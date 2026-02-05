@@ -12,11 +12,13 @@ public class ModuleRecordsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IModuleService _moduleService;
+    private readonly IRelationService _relationService;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService)
     {
         _context = context;
         _moduleService = moduleService;
+        _relationService = relationService;
     }
 
     [HttpPost]
@@ -51,6 +53,9 @@ public class ModuleRecordsController : ControllerBase
         _context.ModuleRecords.Add(record);
         await _context.SaveChangesAsync();
 
+        // Save relations
+        await _relationService.SaveRelations(module.Name, record.Id, record);
+
         return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = record.Id }, new ModuleRecordDto
         {
             Id = record.Id,
@@ -74,11 +79,19 @@ public class ModuleRecordsController : ControllerBase
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
+        var recordIds = records.Select(r => r.Id).ToList();
+        var counts = await _context.RecordRelations
+            .Where(r => r.TargetModule == module.Name && recordIds.Contains(r.TargetRecordId))
+            .GroupBy(r => r.TargetRecordId)
+            .Select(g => new { RecordId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RecordId, x => x.Count);
+
         var recordDtos = records.Select(r => new ModuleRecordDto
         {
             Id = r.Id,
             ModuleId = r.ModuleId,
             Data = _moduleService.DeserializeData(r.Data),
+            LinkedCount = counts.GetValueOrDefault(r.Id, 0),
             CreatedAt = r.CreatedAt
         }).ToList();
 
@@ -89,6 +102,7 @@ public class ModuleRecordsController : ControllerBase
     public async Task<ActionResult<ModuleRecordDto>> GetRecord(int moduleId, int recordId)
     {
         var record = await _context.ModuleRecords
+            .Include(r => r.Module)
             .FirstOrDefaultAsync(r => r.Id == recordId && r.ModuleId == moduleId);
 
         if (record == null)
@@ -96,11 +110,15 @@ public class ModuleRecordsController : ControllerBase
             return NotFound();
         }
 
+        var count = await _context.RecordRelations
+            .CountAsync(r => r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id);
+
         return Ok(new ModuleRecordDto
         {
             Id = record.Id,
             ModuleId = record.ModuleId,
             Data = _moduleService.DeserializeData(record.Data),
+            LinkedCount = count,
             CreatedAt = record.CreatedAt
         });
     }
@@ -130,11 +148,22 @@ public class ModuleRecordsController : ControllerBase
         record.Data = _moduleService.SerializeData(dto.Data);
         await _context.SaveChangesAsync();
 
+        // Update relations
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null)
+        {
+            await _relationService.SaveRelations(module.Name, record.Id, record);
+        }
+
+        var count = await _context.RecordRelations
+            .CountAsync(r => r.TargetModule == module.Name && r.TargetRecordId == record.Id);
+
         return Ok(new ModuleRecordDto
         {
             Id = record.Id,
             ModuleId = record.ModuleId,
             Data = dto.Data,
+            LinkedCount = module != null ? count : 0,
             CreatedAt = record.CreatedAt
         });
     }
@@ -153,6 +182,13 @@ public class ModuleRecordsController : ControllerBase
         _context.ModuleRecords.Remove(record);
         await _context.SaveChangesAsync();
 
+        // Delete relations for source
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null)
+        {
+            await _relationService.DeleteRelationsForSource(module.Name, record.Id);
+        }
+
         return NoContent();
     }
 
@@ -170,11 +206,19 @@ public class ModuleRecordsController : ControllerBase
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
+        var recordIds = records.Select(r => r.Id).ToList();
+        var counts = await _context.RecordRelations
+            .Where(r => r.TargetModule == moduleName && recordIds.Contains(r.TargetRecordId))
+            .GroupBy(r => r.TargetRecordId)
+            .Select(g => new { RecordId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RecordId, x => x.Count);
+
         var recordDtos = records.Select(r => new ModuleRecordDto
         {
             Id = r.Id,
             ModuleId = r.ModuleId,
             Data = _moduleService.DeserializeData(r.Data),
+            LinkedCount = counts.GetValueOrDefault(r.Id, 0),
             CreatedAt = r.CreatedAt
         }).ToList();
 

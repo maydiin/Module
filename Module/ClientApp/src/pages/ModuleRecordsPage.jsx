@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
+import LinkedRecordsModal from '../components/LinkedRecordsModal';
 
 function ModuleRecordsPage() {
   const { moduleId } = useParams();
@@ -13,6 +14,9 @@ function ModuleRecordsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [error, setError] = useState('');
+  const [showLinkedModal, setShowLinkedModal] = useState(false);
+  const [selectedRecordForLinks, setSelectedRecordForLinks] = useState(null);
+  const [linkedCountLoading, setLinkedCountLoading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -217,6 +221,7 @@ function ModuleRecordsPage() {
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: '60px' }}>ID</th>
+                    <th style={{ width: '120px' }}>Linked Count</th>
                     {fields.map(field => (
                       <th key={field.id}>{field.label}</th>
                     ))}
@@ -229,6 +234,21 @@ function ModuleRecordsPage() {
                     <tr key={record.id}>
                       <td>
                         <span className="badge bg-secondary">#{record.id}</span>
+                      </td>
+                      <td>
+                        <button
+                          className={`btn btn-sm ${record.linkedCount > 0 ? 'btn-info text-white' : 'btn-outline-secondary opacity-50'}`}
+                          onClick={() => {
+                            if (record.linkedCount > 0) {
+                              setSelectedRecordForLinks(record);
+                              setShowLinkedModal(true);
+                            }
+                          }}
+                          disabled={record.linkedCount === 0}
+                          title={record.linkedCount > 0 ? 'View linked records' : 'No linked records'}
+                        >
+                          📎 {record.linkedCount || 0}
+                        </button>
                       </td>
                       {fields.map(field => (
                         <td key={field.id}>
@@ -280,6 +300,17 @@ function ModuleRecordsPage() {
           )}
         </div>
       </div>
+
+      {showLinkedModal && selectedRecordForLinks && (
+        <LinkedRecordsModal
+          moduleName={module.name}
+          recordId={selectedRecordForLinks.id}
+          onClose={() => {
+            setShowLinkedModal(false);
+            setSelectedRecordForLinks(null);
+          }}
+        />
+      )}
     </div>
   );
 }

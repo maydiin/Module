@@ -13,10 +13,22 @@ public class AppDbContext : DbContext
     public DbSet<ModuleEntity> Modules { get; set; }
     public DbSet<ModuleField> ModuleFields { get; set; }
     public DbSet<ModuleRecord> ModuleRecords { get; set; }
+    public DbSet<RecordRelation> RecordRelations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<RecordRelation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SourceModule).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.TargetModule).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.FieldName).IsRequired().HasMaxLength(100);
+
+            entity.HasIndex(e => new { e.SourceModule, e.SourceRecordId });
+            entity.HasIndex(e => new { e.TargetModule, e.TargetRecordId });
+        });
 
         modelBuilder.Entity<ModuleEntity>(entity =>
         {
