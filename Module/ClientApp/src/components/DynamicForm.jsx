@@ -43,6 +43,10 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
   }, [fields, initialData]);
 
   const handleChange = (fieldName, value) => {
+    // Determine if we need to handle multi-select (array) or single value
+    const field = fields.find(f => f.name === fieldName);
+    const isMultiSelect = field && (field.type.toLowerCase() === 'relation' || field.type.toLowerCase() === 'multiselect');
+
     setFormData(prev => ({
       ...prev,
       [fieldName]: value
@@ -66,6 +70,10 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
           if (value !== true && value !== 'true') {
             newErrors[field.name] = `${field.label} is required`;
           }
+        } else if (field.type.toLowerCase() === 'relation' || field.type.toLowerCase() === 'multiselect') {
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            newErrors[field.name] = `${field.label} is required`;
+          }
         } else {
           if (value === undefined || value === null || value === '' ||
             (typeof value === 'string' && value.trim() === '')) {
@@ -81,12 +89,19 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      onSubmit(formData);
+      // Create a copy of the data and convert empty strings to null
+      const sanitizedData = { ...formData };
+      Object.keys(sanitizedData).forEach(key => {
+        if (sanitizedData[key] === '') {
+          sanitizedData[key] = null;
+        }
+      });
+      onSubmit(sanitizedData);
     }
   };
 
   const renderField = (field) => {
-    const value = formData[field.name] || '';
+    const value = formData[field.name] || (['relation', 'multiselect'].includes(field.type.toLowerCase()) ? [] : '');
     const hasError = errors[field.name];
 
     switch (field.type.toLowerCase()) {
@@ -195,6 +210,12 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
 
       case 'relation':
         const relationRecords = relationsData[field.name] || [];
+        // Handle multi-select value extraction
+        const handleRelationChange = (e) => {
+          const selectedOptions = Array.from(e.target.selectedOptions).map(opt => Number(opt.value));
+          handleChange(field.name, selectedOptions);
+        };
+
         return (
           <div key={field.id} className="mb-3">
             <label htmlFor={field.name} className="form-label">
@@ -202,12 +223,13 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
               {field.required && <span className="text-danger"> *</span>}
             </label>
             <select
+              multiple
               className={`form-select ${hasError ? 'is-invalid' : ''}`}
               id={field.name}
-              value={value}
-              onChange={(e) => handleChange(field.name, e.target.value ? Number(e.target.value) : '')}
+              value={Array.isArray(value) ? value : (value ? [value] : [])}
+              onChange={handleRelationChange}
+              style={{ minHeight: '120px' }}
             >
-              <option value="">-- Select {field.label} --</option>
               {relationRecords.map((rec) => {
                 const displayName = rec.data.name || rec.data.title || rec.data.label ||
                   Object.values(rec.data).find(v => typeof v === 'string') ||
@@ -219,6 +241,126 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
                 );
               })}
             </select>
+            <div className="form-text small">Hold Ctrl (Cmd on Mac) to select multiple.</div>
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
+      case 'textarea':
+      case 'richtext':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <textarea
+              className={`form-control ${hasError ? 'is-invalid' : ''}`}
+              id={field.name}
+              rows="4"
+              value={value}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
+      case 'email':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <input
+              type="email"
+              className={`form-control ${hasError ? 'is-invalid' : ''}`}
+              id={field.name}
+              value={value}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
+      case 'phone':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <input
+              type="tel"
+              className={`form-control ${hasError ? 'is-invalid' : ''}`}
+              id={field.name}
+              value={value}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
+      case 'currency':
+      case 'percentage':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <input
+              type="number"
+              step={field.type.toLowerCase() === 'currency' ? '0.01' : '0.1'}
+              className={`form-control ${hasError ? 'is-invalid' : ''}`}
+              id={field.name}
+              value={value}
+              onChange={(e) => handleChange(field.name, e.target.value ? Number(e.target.value) : '')}
+            />
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
+      case 'file':
+      case 'image':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <div className="input-group">
+              <input
+                type="file"
+                className={`form-control ${hasError ? 'is-invalid' : ''}`}
+                id={field.name}
+                onChange={(e) => {
+                  const fileName = e.target.files[0]?.name || '';
+                  handleChange(field.name, fileName);
+                }}
+              />
+            </div>
+            {value && <div className="form-text mt-1 text-success small">Selected file: {value}</div>}
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
+      case 'json':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <textarea
+              className={`form-control ${hasError ? 'is-invalid' : ''} font-monospace`}
+              id={field.name}
+              rows="5"
+              placeholder='{ "key": "value" }'
+              value={value}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+            <div className="form-text small">Enter valid JSON content.</div>
             {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
           </div>
         );

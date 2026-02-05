@@ -239,7 +239,11 @@ function ModuleRecordsPage() {
                               <span className="badge bg-secondary">✗ No</span>
                             )
                           ) : (
-                            <span>{record.data[field.name] || <span className="text-muted">-</span>}</span>
+                            <span>
+                              {Array.isArray(record.data[field.name])
+                                ? record.data[field.name].join(', ')
+                                : (record.data[field.name] || <span className="text-muted">-</span>)}
+                            </span>
                           )}
                         </td>
                       ))}
