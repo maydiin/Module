@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<ModuleField> ModuleFields { get; set; }
     public DbSet<ModuleRecord> ModuleRecords { get; set; }
     public DbSet<RecordRelation> RecordRelations { get; set; }
+    public DbSet<ExternalApiConfig> ExternalApiConfigs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,19 @@ public class AppDbContext : DbContext
             
             entity.HasIndex(e => e.ModuleId);
             entity.HasIndex(e => e.CreatedAt);
+        });
+
+        modelBuilder.Entity<ExternalApiConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Url).IsRequired();
+            entity.Property(e => e.Method).IsRequired().HasMaxLength(10);
+            
+            entity.HasOne(e => e.Module)
+                .WithMany()
+                .HasForeignKey(e => e.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

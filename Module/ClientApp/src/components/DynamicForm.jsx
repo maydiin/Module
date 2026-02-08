@@ -159,6 +159,24 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
           </div>
         );
 
+      case 'datetime':
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+              {field.required && <span className="text-danger"> *</span>}
+            </label>
+            <input
+              type="datetime-local"
+              className={`form-control ${hasError ? 'is-invalid' : ''}`}
+              id={field.name}
+              value={value}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+          </div>
+        );
+
       case 'checkbox':
         return (
           <div key={field.id} className="mb-3 form-check">

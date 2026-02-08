@@ -3,6 +3,7 @@ import AppLayout from './components/Layout/AppLayout';
 import ModulesPage from './pages/ModulesPage';
 import ModuleFieldsPage from './pages/ModuleFieldsPage';
 import ModuleRecordsPage from './pages/ModuleRecordsPage';
+import ModuleApiConfigsPage from './pages/ModuleApiConfigsPage';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route path="/" element={<ModulesPage />} />
           <Route path="/modules/:moduleId/fields" element={<ModuleFieldsPage />} />
           <Route path="/modules/:moduleId/records" element={<ModuleRecordsPage />} />
+          <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
         </Routes>
       </AppLayout>
     </Router>

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Module.Entities;
+using System.Text.Json;
 using ModuleEntity = Module.Entities.Module;
 
 namespace Module.Data;
@@ -13,167 +14,162 @@ public static class SeedData
             return; // Database already seeded
         }
 
-        // Create sample module: "Tasks"
-        var tasksModule = new ModuleEntity
-        {
-            Name = "Tasks"
-        };
-        context.Modules.Add(tasksModule);
+        // --- PDKS Seeding ---
+
+        // 1. Kurum (Institution)
+        var kurumModule = new ModuleEntity { Name = "Kurum" };
+        context.Modules.Add(kurumModule);
         await context.SaveChangesAsync();
 
-        // Add fields to Tasks module
-        var taskFields = new List<ModuleField>
+        var kurumFields = new List<ModuleField>
         {
-            new ModuleField
-            {
-                ModuleId = tasksModule.Id,
-                Name = "title",
-                Label = "Title",
-                Type = "text",
-                Required = true,
-                OrderNo = 1
+            new ModuleField { ModuleId = kurumModule.Id, Name = "name", Label = "Kurum Adı", Type = "text", Required = true, OrderNo = 1 },
+            new ModuleField { ModuleId = kurumModule.Id, Name = "address", Label = "Adres", Type = "textarea", Required = false, OrderNo = 2 },
+            new ModuleField { ModuleId = kurumModule.Id, Name = "taxNo", Label = "Vergi No", Type = "text", Required = false, OrderNo = 3 }
+        };
+        context.ModuleFields.AddRange(kurumFields);
+        await context.SaveChangesAsync();
+
+        var kurumRecords = new List<ModuleRecord>
+        {
+            new ModuleRecord { ModuleId = kurumModule.Id, Data = """{"name":"Antigravity Teknoloji","address":"Kocaeli Teknopark","taxNo":"1234567890"}""", CreatedAt = DateTime.UtcNow }
+        };
+        context.ModuleRecords.AddRange(kurumRecords);
+        await context.SaveChangesAsync();
+
+        // 2. Şube (Branch)
+        var subeModule = new ModuleEntity { Name = "Şube" };
+        context.Modules.Add(subeModule);
+        await context.SaveChangesAsync();
+
+        var subeFields = new List<ModuleField>
+        {
+            new ModuleField { ModuleId = subeModule.Id, Name = "name", Label = "Şube Adı", Type = "text", Required = true, OrderNo = 1 },
+            new ModuleField { ModuleId = subeModule.Id, Name = "kurum", Label = "Bağlı Kurum", Type = "relation", Options = "\"Kurum\"", Required = true, OrderNo = 2 },
+            new ModuleField { ModuleId = subeModule.Id, Name = "city", Label = "Şehir", Type = "text", Required = false, OrderNo = 3 }
+        };
+        context.ModuleFields.AddRange(subeFields);
+        await context.SaveChangesAsync();
+
+        var subeRecords = new List<ModuleRecord>
+        {
+            new ModuleRecord { ModuleId = subeModule.Id, Data = $$"""{"name":"Kocaeli Arge Şubesi","kurum":{{kurumRecords[0].Id}},"city":"Kocaeli"}""", CreatedAt = DateTime.UtcNow }
+        };
+        context.ModuleRecords.AddRange(subeRecords);
+        await context.SaveChangesAsync();
+
+        // 3. Kişi (Person)
+        var kisiModule = new ModuleEntity { Name = "Kişi" };
+        context.Modules.Add(kisiModule);
+        await context.SaveChangesAsync();
+
+        var kisiFields = new List<ModuleField>
+        {
+            new ModuleField { ModuleId = kisiModule.Id, Name = "firstName", Label = "Ad", Type = "text", Required = true, OrderNo = 1 },
+            new ModuleField { ModuleId = kisiModule.Id, Name = "lastName", Label = "Soyad", Type = "text", Required = true, OrderNo = 2 },
+            new ModuleField { ModuleId = kisiModule.Id, Name = "tcNo", Label = "TC Kimlik No", Type = "text", Required = true, OrderNo = 3 },
+            new ModuleField { ModuleId = kisiModule.Id, Name = "sube", Label = "Şube", Type = "relation", Options = "\"Şube\"", Required = true, OrderNo = 4 },
+            new ModuleField { ModuleId = kisiModule.Id, Name = "sicilNo", Label = "Sicil No", Type = "text", Required = false, OrderNo = 5 }
+        };
+        context.ModuleFields.AddRange(kisiFields);
+        await context.SaveChangesAsync();
+
+        var kisiRecords = new List<ModuleRecord>
+        {
+            new ModuleRecord { ModuleId = kisiModule.Id, Data = $$"""{"firstName":"Mustafa","lastName":"Aydın","tcNo":"11122233344","sube":{{subeRecords[0].Id}},"sicilNo":"P001"}""", CreatedAt = DateTime.UtcNow }
+        };
+        context.ModuleRecords.AddRange(kisiRecords);
+        await context.SaveChangesAsync();
+
+        // 4. Giriş-Çıkış (Entry-Exit)
+        var entryExitModule = new ModuleEntity { Name = "Giriş-Çıkış" };
+        context.Modules.Add(entryExitModule);
+        await context.SaveChangesAsync();
+
+        var entryExitFields = new List<ModuleField>
+        {
+            new ModuleField { ModuleId = entryExitModule.Id, Name = "person", Label = "Personel", Type = "relation", Options = "\"Kişi\"", Required = true, OrderNo = 1 },
+            new ModuleField { ModuleId = entryExitModule.Id, Name = "type", Label = "İşlem Türü", Type = "select", Options = "[\"Giriş\",\"Çıkış\"]", Required = true, OrderNo = 2 },
+            new ModuleField { ModuleId = entryExitModule.Id, Name = "timestamp", Label = "Zaman", Type = "datetime", Required = true, OrderNo = 3 },
+            new ModuleField { ModuleId = entryExitModule.Id, Name = "location", Label = "Konum", Type = "text", Required = false, OrderNo = 4 }
+        };
+        context.ModuleFields.AddRange(entryExitFields);
+        await context.SaveChangesAsync();
+
+        var entryExitRecords = new List<ModuleRecord>
+        {
+            new ModuleRecord 
+            { 
+                ModuleId = entryExitModule.Id, 
+                Data = $$"""{"person":{{kisiRecords[0].Id}},"type":"Giriş","timestamp":"{{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}}","location":"Ana Kapı"}""", 
+                CreatedAt = DateTime.UtcNow 
             },
-            new ModuleField
-            {
-                ModuleId = tasksModule.Id,
-                Name = "description",
-                Label = "Description",
-                Type = "text",
-                Required = false,
-                OrderNo = 2
-            },
-            new ModuleField
-            {
-                ModuleId = tasksModule.Id,
-                Name = "dueDate",
-                Label = "Due Date",
-                Type = "date",
-                Required = false,
-                OrderNo = 3
-            },
-            new ModuleField
-            {
-                ModuleId = tasksModule.Id,
-                Name = "completed",
-                Label = "Completed",
-                Type = "checkbox",
-                Required = false,
-                OrderNo = 4
-            },
-            new ModuleField
-            {
-                ModuleId = tasksModule.Id,
-                Name = "priority",
-                Label = "Priority",
-                Type = "number",
-                Required = false,
-                OrderNo = 5
-            },
-            new ModuleField
-            {
-                ModuleId = tasksModule.Id,
-                Name = "status",
-                Label = "Status",
-                Type = "select",
-                Options = "[\"Pending\",\"In Progress\",\"Completed\"]",
-                Required = false,
-                OrderNo = 6
+            new ModuleRecord 
+            { 
+                ModuleId = entryExitModule.Id, 
+                Data = $$"""{"person":{{kisiRecords[0].Id}},"type":"Çıkış","timestamp":"{{DateTime.UtcNow.AddHours(8):yyyy-MM-ddTHH:mm:ss}}","location":"Ana Kapı"}""", 
+                CreatedAt = DateTime.UtcNow 
             }
         };
-        context.ModuleFields.AddRange(taskFields);
+        context.ModuleRecords.AddRange(entryExitRecords);
         await context.SaveChangesAsync();
 
-        // Create sample records
-        var taskRecords = new List<ModuleRecord>
+        // --- RecordRelations Seeding ---
+        // These are necessary for the reverse relations system to show linked record counts
+        
+        var relations = new List<RecordRelation>
         {
-            new ModuleRecord
-            {
-                ModuleId = tasksModule.Id,
-                Data = """{"title":"Complete API documentation","description":"Write comprehensive API docs","dueDate":"2024-12-31","completed":false,"priority":1}""",
-                CreatedAt = DateTime.UtcNow.AddDays(-2)
+            // Şube -> Kurum
+            new RecordRelation 
+            { 
+                SourceModule = "Şube", SourceRecordId = subeRecords[0].Id, 
+                TargetModule = "Kurum", TargetRecordId = kurumRecords[0].Id, 
+                FieldName = "kurum" 
             },
-            new ModuleRecord
-            {
-                ModuleId = tasksModule.Id,
-                Data = """{"title":"Review code changes","description":"Review pull requests","dueDate":"2024-12-15","completed":true,"priority":2}""",
-                CreatedAt = DateTime.UtcNow.AddDays(-1)
+            // Kişi -> Şube
+            new RecordRelation 
+            { 
+                SourceModule = "Kişi", SourceRecordId = kisiRecords[0].Id, 
+                TargetModule = "Şube", TargetRecordId = subeRecords[0].Id, 
+                FieldName = "sube" 
             },
-            new ModuleRecord
-            {
-                ModuleId = tasksModule.Id,
-                Data = """{"title":"Setup CI/CD pipeline","description":"Configure automated deployments","dueDate":"2025-01-10","completed":false,"priority":1}""",
-                CreatedAt = DateTime.UtcNow
+            // Giriş-Çıkış -> Kişi
+            new RecordRelation 
+            { 
+                SourceModule = "Giriş-Çıkış", SourceRecordId = entryExitRecords[0].Id, 
+                TargetModule = "Kişi", TargetRecordId = kisiRecords[0].Id, 
+                FieldName = "person" 
+            },
+            new RecordRelation 
+            { 
+                SourceModule = "Giriş-Çıkış", SourceRecordId = entryExitRecords[1].Id, 
+                TargetModule = "Kişi", TargetRecordId = kisiRecords[0].Id, 
+                FieldName = "person" 
             }
         };
-        context.ModuleRecords.AddRange(taskRecords);
+        
+        context.RecordRelations.AddRange(relations);
         await context.SaveChangesAsync();
 
-        // Create another sample module: "Contacts"
-        var contactsModule = new ModuleEntity
-        {
-            Name = "Contacts"
-        };
-        context.Modules.Add(contactsModule);
-        await context.SaveChangesAsync();
+        // --- External API Configurations Seed ---
 
-        var contactFields = new List<ModuleField>
+        var syncConfig = new ExternalApiConfig
         {
-            new ModuleField
+            ModuleId = entryExitModule.Id,
+            Name = "Dış Kapı Turnike Senkronizasyon",
+            Url = "https://mockapi.io/api/v1/attendance", // Example URL
+            Method = "GET",
+            ResponseMappingsJson = JsonSerializer.Serialize(new Dictionary<string, string>
             {
-                ModuleId = contactsModule.Id,
-                Name = "firstName",
-                Label = "First Name",
-                Type = "text",
-                Required = true,
-                OrderNo = 1
-            },
-            new ModuleField
-            {
-                ModuleId = contactsModule.Id,
-                Name = "lastName",
-                Label = "Last Name",
-                Type = "text",
-                Required = true,
-                OrderNo = 2
-            },
-            new ModuleField
-            {
-                ModuleId = contactsModule.Id,
-                Name = "email",
-                Label = "Email",
-                Type = "text",
-                Required = false,
-                OrderNo = 3
-            },
-            new ModuleField
-            {
-                ModuleId = contactsModule.Id,
-                Name = "phone",
-                Label = "Phone",
-                Type = "text",
-                Required = false,
-                OrderNo = 4
-            }
+                { "__root__", "data" }, // Array is under "data" property
+                { "emp_id", "person" },
+                { "direction", "type" },
+                { "event_time", "timestamp" },
+                { "gate_name", "location" }
+            })
         };
-        context.ModuleFields.AddRange(contactFields);
-        await context.SaveChangesAsync();
 
-        var contactRecords = new List<ModuleRecord>
-        {
-            new ModuleRecord
-            {
-                ModuleId = contactsModule.Id,
-                Data = """{"firstName":"John","lastName":"Doe","email":"john.doe@example.com","phone":"555-0101"}""",
-                CreatedAt = DateTime.UtcNow.AddDays(-3)
-            },
-            new ModuleRecord
-            {
-                ModuleId = contactsModule.Id,
-                Data = """{"firstName":"Jane","lastName":"Smith","email":"jane.smith@example.com","phone":"555-0102"}""",
-                CreatedAt = DateTime.UtcNow.AddDays(-1)
-            }
-        };
-        context.ModuleRecords.AddRange(contactRecords);
+        context.ExternalApiConfigs.Add(syncConfig);
         await context.SaveChangesAsync();
     }
 }

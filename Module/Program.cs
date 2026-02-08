@@ -11,9 +11,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHttpClient();
 
 
 
@@ -21,11 +22,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IModuleService, ModuleService>();
 builder.Services.AddScoped<IRepository, Repository>();
 builder.Services.AddScoped<IRelationService, RelationService>();
+builder.Services.AddScoped<IExternalApiService, ExternalApiService>();
 
 // Add Field Types
 builder.Services.AddScoped<IFieldType, TextFieldType>();
 builder.Services.AddScoped<IFieldType, NumberFieldType>();
 builder.Services.AddScoped<IFieldType, DateFieldType>();
+builder.Services.AddScoped<IFieldType, DateTimeFieldType>();
 builder.Services.AddScoped<IFieldType, CheckboxFieldType>();
 builder.Services.AddScoped<IFieldType, SelectFieldType>();
 

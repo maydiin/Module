@@ -76,5 +76,25 @@ export const getRecordsByName = async (moduleName) => {
   return response.data;
 };
 
+// External API Configs API
+export const getApiConfigs = async (moduleId) => {
+  const response = await api.get(`/modules/${moduleId}/api-configs`);
+  return response.data;
+};
+
+export const createApiConfig = async (moduleId, configData) => {
+  const response = await api.post(`/modules/${moduleId}/api-configs`, configData);
+  return response.data;
+};
+
+export const updateApiConfig = async (moduleId, configId, configData) => {
+  const response = await api.put(`/modules/${moduleId}/api-configs/${configId}`, configData);
+  return response.data;
+};
+
+export const deleteApiConfig = async (moduleId, configId) => {
+  await api.delete(`/modules/${moduleId}/api-configs/${configId}`);
+};
+
 export default api;
 

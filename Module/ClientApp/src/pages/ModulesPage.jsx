@@ -167,6 +167,12 @@ function ModulesPage() {
                     >
                       📋 View Records
                     </button>
+                    <button
+                      className="btn btn-outline-dark btn-sm"
+                      onClick={() => navigate(`/modules/${module.id}/api-configs`)}
+                    >
+                      🔌 API Config
+                    </button>
                   </div>
                 </div>
               </div>
