@@ -141,79 +141,84 @@ function ModuleRecordsPage() {
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="fade-in">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
         <div>
           <button
-            className="btn btn-link mb-2 p-0 text-decoration-none"
+            className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
             onClick={() => navigate('/')}
           >
-            ← Back to Modules
+            <span>←</span> Back to Dashboard
           </button>
-          <h1 className="mb-0">Records for: {module.name}</h1>
-          <p className="text-muted mb-0">Create and manage your module records</p>
+          <h1 className="display-6 mb-1">
+            <span className="opacity-50 me-2">📋</span>
+            {module.name} Records
+          </h1>
+          <p className="text-muted mb-0">Navigate and manage the data instances of this module.</p>
         </div>
-        <div>
+        <div className="d-flex gap-2">
           <button
-            className="btn btn-outline-secondary me-2"
+            className="btn btn-outline-secondary border-2 px-4 shadow-sm"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
           >
-            ⚙️ Manage Fields
+            ⚙️ Schema
           </button>
           <button
-            className="btn btn-primary"
+            className="btn btn-primary px-4 shadow-sm"
             onClick={() => {
               setEditingRecord(null);
               setShowForm(true);
             }}
             disabled={showForm}
           >
-            <span>+</span> Add New Record
+            <span>+</span> New Entry
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-danger" role="alert">
+        <div className="alert alert-danger glass border-danger border-opacity-25 shadow-sm mb-4" role="alert">
           {error}
         </div>
       )}
 
       {showForm && (
-        <div className="card mb-4 shadow-sm">
-          <div className={`card-header ${editingRecord ? 'bg-warning text-dark' : 'bg-primary text-white'}`}>
-            <h5 className="card-title mb-0">
-              {editingRecord ? '✏️ Edit Record' : '➕ Create New Record'}
+        <div className="card shadow-lg border-0 mb-5 overflow-hidden">
+          <div className={`card-header py-3 ${editingRecord ? 'bg-warning' : 'bg-primary'}`}>
+            <h5 className="card-title mb-0 text-white">
+              {editingRecord ? '✏️ Update Existing Record' : '➕ Forge New Record'}
             </h5>
           </div>
-          <div className="card-body">
+          <div className="card-body p-4">
             <DynamicForm
               fields={fields}
               initialData={editingRecord?.data || {}}
               onSubmit={handleFormSubmit}
-              submitLabel={editingRecord ? 'Update Record' : 'Create Record'}
+              submitLabel={editingRecord ? 'Save Changes' : 'Initialize Record'}
             />
             <button
-              className="btn btn-secondary mt-2"
+              className="btn btn-link text-muted mt-3 text-decoration-none"
               onClick={handleCancel}
             >
-              Cancel
+              Discard Actions
             </button>
           </div>
         </div>
       )}
 
-      <div className="card shadow-sm">
-        <div className="card-header bg-light">
-          <h5 className="mb-0">
-            <span>📋</span> Records ({records.length})
+      <div className="card shadow-soft border-0 overflow-hidden">
+        <div className="card-header bg-white py-4 px-4 border-bottom">
+          <h5 className="mb-0 fw-bold">
+            <span className="opacity-75 me-2">📁</span>
+            Data Inventory
+            <span className="badge bg-light text-primary border ms-2 px-3 rounded-pill fw-normal">{records.length}</span>
           </h5>
         </div>
-        <div className="card-body">
+        <div className="card-body p-0">
           {records.length === 0 ? (
-            <div className="alert alert-info shadow-sm">
-              <h6 className="alert-heading">No records yet</h6>
-              <p className="mb-0">Create your first record using the form above.</p>
+            <div className="text-center py-5">
+              <div className="fs-1 mb-3 opacity-25">📂</div>
+              <h5 className="text-muted">Inventory is currently empty.</h5>
             </div>
           ) : (
             <div className="table-responsive">

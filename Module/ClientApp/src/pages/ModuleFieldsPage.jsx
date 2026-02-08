@@ -119,88 +119,90 @@ function ModuleFieldsPage() {
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="fade-in">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
         <div>
           <button
-            className="btn btn-link mb-2 p-0 text-decoration-none"
+            className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
             onClick={() => navigate('/')}
           >
-            ← Back to Modules
+            <span>←</span> Back to Dashboard
           </button>
-          <h1 className="mb-0">Fields for: {module.name}</h1>
-          <p className="text-muted mb-0">Define the structure of your module</p>
+          <h1 className="display-6 mb-1">
+            <span className="opacity-50 me-2">⚙️</span>
+            {module.name} Structure
+          </h1>
+          <p className="text-muted mb-0">Define and calibrate the schema for this dynamic module.</p>
         </div>
         <button
-          className="btn btn-primary"
+          className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? (
             <>
-              <span>✕</span> Cancel
+              <span className="fs-5">✕</span> Cancel
             </>
           ) : (
             <>
-              <span>+</span> Add New Field
+              <span className="fs-5">+</span> New Field
             </>
           )}
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-danger" role="alert">
+        <div className="alert alert-danger glass border-danger border-opacity-25 shadow-sm mb-4" role="alert">
           {error}
         </div>
       )}
 
       {showForm && (
-        <div className="card mb-4 shadow-sm">
-          <div className="card-header bg-primary text-white">
-            <h5 className="card-title mb-0">Add New Field</h5>
+        <div className="card shadow-lg border-0 mb-5 overflow-hidden">
+          <div className="card-header bg-primary py-3">
+            <h5 className="card-title mb-0 text-white">Configure New Attribute</h5>
           </div>
-          <div className="card-body">
+          <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="name" className="form-label fw-bold">
-                    Field Name <span className="text-danger">*</span>
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <label htmlFor="name" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
+                    Technical Name <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control border-2"
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="e.g., firstName"
+                    placeholder="e.g. firstName"
                     required
                     autoFocus
                   />
-                  <small className="form-text text-muted">Internal field identifier</small>
+                  <small className="form-text text-muted">Used for internal data mapping.</small>
                 </div>
-                <div className="col-md-6 mb-3">
-                  <label htmlFor="label" className="form-label fw-bold">
-                    Label
+                <div className="col-md-6">
+                  <label htmlFor="label" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
+                    Display Label
                   </label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control border-2"
                     id="label"
                     name="label"
                     value={formData.label}
                     onChange={handleInputChange}
-                    placeholder="e.g., First Name"
+                    placeholder="e.g. First Name"
                   />
-                  <small className="form-text text-muted">Display name (optional)</small>
+                  <small className="form-text text-muted">Visible to the end users.</small>
                 </div>
-              </div>
-              <div className="row">
-                <div className="col-md-4 mb-3">
-                  <label htmlFor="type" className="form-label fw-bold">
-                    Type <span className="text-danger">*</span>
+
+                <div className="col-md-4">
+                  <label htmlFor="type" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
+                    Data Type <span className="text-danger">*</span>
                   </label>
                   <select
-                    className="form-select"
+                    className="form-select border-2"
                     id="type"
                     name="type"
                     value={formData.type}
@@ -215,8 +217,8 @@ function ModuleFieldsPage() {
                   </select>
                 </div>
                 {['select', 'multiselect', 'relation', 'file', 'textarea', 'richtext', 'image'].includes(formData.type) && (
-                  <div className="col-md-8 mb-3">
-                    <label htmlFor="options" className="form-label fw-bold">
+                  <div className="col-md-8">
+                    <label htmlFor="options" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
                       {formData.type === 'relation' ? 'Target Module' :
                         ['select', 'multiselect'].includes(formData.type) ? 'Options (JSON Array)' :
                           formData.type === 'file' ? 'Allowed Extensions (JSON Array)' :
@@ -225,7 +227,7 @@ function ModuleFieldsPage() {
                     </label>
                     <input
                       type="text"
-                      className="form-control"
+                      className="form-control border-2"
                       id="options"
                       name="options"
                       value={formData.options}
@@ -239,53 +241,48 @@ function ModuleFieldsPage() {
                       }
                       required
                     />
-                    <small className="form-text text-muted">
-                      {formData.type === 'relation' ? 'Name of the module to link to' :
-                        ['select', 'multiselect'].includes(formData.type) ? 'A JSON array: ["A", "B"]' :
-                          formData.type === 'file' ? 'Allowed extensions: [".jpg", ".png"]' :
-                            formData.type === 'textarea' || formData.type === 'richtext' ? 'JSON object with maxLength' :
-                              formData.type === 'image' ? 'JSON object with maxSizeKB' : ''}
-                    </small>
                   </div>
                 )}
-                <div className="col-md-4 mb-3">
-                  <label htmlFor="orderNo" className="form-label fw-bold">
-                    Order No
+
+                <div className="col-md-4">
+                  <label htmlFor="orderNo" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
+                    Display Rank
                   </label>
                   <input
                     type="number"
-                    className="form-control"
+                    className="form-control border-2"
                     id="orderNo"
                     name="orderNo"
                     value={formData.orderNo}
                     onChange={handleInputChange}
                     min="0"
                   />
-                  <small className="form-text text-muted">Display order</small>
                 </div>
-                <div className="col-md-4 mb-3 d-flex align-items-end">
-                  <div className="form-check form-switch">
+                <div className="col-md-4 d-flex align-items-center pt-md-4">
+                  <div className="form-check form-switch p-2 ps-5 rounded bg-light border w-100">
                     <input
-                      className="form-check-input"
+                      className="form-check-input ms-0"
                       type="checkbox"
                       id="required"
                       name="required"
                       checked={formData.required}
                       onChange={handleInputChange}
+                      style={{ float: 'none', marginRight: '10px' }}
                     />
-                    <label className="form-check-label fw-bold" htmlFor="required">
-                      Required Field
+                    <label className="form-check-label fw-bold text-muted small text-uppercase" htmlFor="required">
+                      Mandatory
                     </label>
                   </div>
                 </div>
               </div>
-              <div className="d-flex gap-2">
-                <button type="submit" className="btn btn-primary">
-                  <span>✓</span> Add Field
+
+              <div className="d-flex gap-2 mt-5 pt-4 border-top">
+                <button type="submit" className="btn btn-primary px-4">
+                  <span>✓</span> Add to Schema
                 </button>
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-link text-muted text-decoration-none"
                   onClick={() => {
                     setShowForm(false);
                     setFormData({
@@ -298,7 +295,7 @@ function ModuleFieldsPage() {
                     });
                   }}
                 >
-                  Cancel
+                  Discard Changes
                 </button>
               </div>
             </form>
@@ -306,23 +303,25 @@ function ModuleFieldsPage() {
         </div>
       )}
 
-      <div className="card shadow-sm">
-        <div className="card-header bg-light d-flex justify-content-between align-items-center">
-          <h5 className="mb-0">
-            <span>📋</span> Fields ({fields.length})
+      <div className="card shadow-soft border-0 overflow-hidden">
+        <div className="card-header bg-white py-4 px-4 border-bottom d-flex justify-content-between align-items-center">
+          <h5 className="mb-0 fw-bold">
+            <span className="opacity-75 me-2">📋</span>
+            Schema Attributes
+            <span className="badge bg-light text-primary border ms-2 px-3 rounded-pill fw-normal">{fields.length}</span>
           </h5>
           <button
-            className="btn btn-sm btn-outline-primary"
+            className="btn btn-outline-primary btn-sm rounded-pill px-3"
             onClick={() => navigate(`/modules/${moduleId}/records`)}
           >
-            📋 View Records
+            📋 Manage Data
           </button>
         </div>
-        <div className="card-body">
+        <div className="card-body p-0">
           {fields.length === 0 ? (
-            <div className="alert alert-info shadow-sm">
-              <h6 className="alert-heading">No fields yet</h6>
-              <p className="mb-0">Add your first field to start building your module structure.</p>
+            <div className="text-center py-5">
+              <div className="fs-1 mb-3 opacity-25">📐</div>
+              <h5 className="text-muted">No fields defined yet.</h5>
             </div>
           ) : (
             <div className="table-responsive">

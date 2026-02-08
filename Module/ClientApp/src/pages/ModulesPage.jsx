@@ -63,68 +63,68 @@ function ModulesPage() {
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="fade-in">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
         <div>
-          <h1 className="mb-0">Modules</h1>
-          <p className="text-muted mb-0">Manage your dynamic modules</p>
+          <h1 className="display-5 mb-1">Dynamic Modules</h1>
+          <p className="text-muted lead mb-0">Architect your data structures with precision.</p>
         </div>
         <button
-          className="btn btn-primary"
+          className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? (
             <>
-              <span>✕</span> Cancel
+              <span className="fs-5">✕</span> Cancel
             </>
           ) : (
             <>
-              <span>+</span> Add New Module
+              <span className="fs-5">+</span> Create Module
             </>
           )}
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-danger" role="alert">
+        <div className="alert alert-danger glass border-danger border-opacity-25 shadow-sm mb-4" role="alert">
           {error}
         </div>
       )}
 
       {showForm && (
-        <div className="card mb-4 shadow-sm">
-          <div className="card-header bg-primary text-white">
-            <h5 className="card-title mb-0">Create New Module</h5>
+        <div className="card shadow-lg border-0 mb-5 overflow-hidden">
+          <div className="card-header bg-primary py-3">
+            <h5 className="card-title mb-0 text-white">New Module Blueprint</h5>
           </div>
-          <div className="card-body">
+          <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="moduleName" className="form-label fw-bold">
-                  Module Name
+              <div className="mb-4">
+                <label htmlFor="moduleName" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
+                  Module Identifier
                 </label>
                 <input
                   type="text"
-                  className="form-control form-control-lg"
+                  className="form-control form-control-lg border-2"
                   id="moduleName"
                   value={moduleName}
                   onChange={(e) => setModuleName(e.target.value)}
-                  placeholder="Enter module name (e.g., Customers, Products)"
+                  placeholder="e.g. Executive Reports, Supply Chain"
                   autoFocus
                 />
               </div>
               <div className="d-flex gap-2">
-                <button type="submit" className="btn btn-primary">
-                  <span>✓</span> Create Module
+                <button type="submit" className="btn btn-primary px-4">
+                  <span>✓</span> Finalize Module
                 </button>
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-link text-muted text-decoration-none"
                   onClick={() => {
                     setShowForm(false);
                     setModuleName('');
                   }}
                 >
-                  Cancel
+                  Discard
                 </button>
               </div>
             </form>
@@ -133,45 +133,49 @@ function ModulesPage() {
       )}
 
       {modules.length === 0 ? (
-        <div className="alert alert-info shadow-sm">
-          <h5 className="alert-heading">No modules yet</h5>
-          <p className="mb-0">Create your first module to get started with dynamic form management.</p>
+        <div className="text-center py-5 glass rounded-4 border-dashed border-2">
+          <div className="fs-1 mb-3 opacity-50">📁</div>
+          <h3 className="h4">Your workspace is empty</h3>
+          <p className="text-muted">Start by defining your first module to begin managing data.</p>
         </div>
       ) : (
-        <div className="row g-3">
+        <div className="row g-4">
           {modules.map((module) => (
-            <div key={module.id} className="col-md-4 col-sm-6">
-              <div className="card h-100 shadow-sm border-0">
-                <div className="card-body">
-                  <div className="d-flex align-items-center mb-3">
-                    <div className="bg-primary bg-opacity-10 rounded p-2 me-2">
-                      <span className="fs-4">📦</span>
+            <div key={module.id} className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-soft-hover">
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-center mb-4">
+                    <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                      </svg>
                     </div>
                     <div>
-                      <h5 className="card-title mb-0">{module.name}</h5>
-                      <small className="text-muted">ID: {module.id}</small>
+                      <h5 className="card-title mb-1 fw-bold">{module.name}</h5>
+                      <div className="badge bg-light text-muted fw-normal border">ID: {module.id}</div>
                     </div>
                   </div>
-                </div>
-                <div className="card-footer bg-transparent border-top">
-                  <div className="d-grid gap-2 d-md-block">
+
+                  <div className="d-flex flex-wrap gap-2 mt-auto">
                     <button
-                      className="btn btn-primary btn-sm"
+                      className="btn btn-light btn-sm flex-grow-1 border"
                       onClick={() => handleModuleClick(module.id)}
                     >
-                      ⚙️ Manage Fields
+                      <span className="opacity-75">⚙️</span> Fields
                     </button>
                     <button
-                      className="btn btn-outline-secondary btn-sm"
+                      className="btn btn-light btn-sm flex-grow-1 border"
                       onClick={() => navigate(`/modules/${module.id}/records`)}
                     >
-                      📋 View Records
+                      <span className="opacity-75">📋</span> Data
                     </button>
                     <button
-                      className="btn btn-outline-dark btn-sm"
+                      className="btn btn-light btn-sm flex-grow-1 border"
                       onClick={() => navigate(`/modules/${module.id}/api-configs`)}
                     >
-                      🔌 API Config
+                      <span className="opacity-75">🔌</span> API
                     </button>
                   </div>
                 </div>
