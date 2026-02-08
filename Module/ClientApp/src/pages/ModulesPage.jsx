@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getModules, createModule } from '../services/api';
 
 function ModulesPage() {
+  const { t } = useTranslation();
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -12,6 +14,7 @@ function ModulesPage() {
 
   useEffect(() => {
     loadModules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadModules = async () => {
@@ -20,7 +23,7 @@ function ModulesPage() {
       const data = await getModules();
       setModules(data);
     } catch (err) {
-      setError('Failed to load modules');
+      setError(t('error'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -32,7 +35,7 @@ function ModulesPage() {
     setError('');
 
     if (!moduleName.trim()) {
-      setError('Module name is required');
+      setError(t('required'));
       return;
     }
 
@@ -42,7 +45,7 @@ function ModulesPage() {
       setShowForm(false);
       loadModules();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create module');
+      setError(err.response?.data?.error || t('error'));
       console.error(err);
     }
   };
@@ -55,9 +58,9 @@ function ModulesPage() {
     return (
       <div className="text-center py-5">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+          <span className="visually-hidden">{t('loading')}</span>
         </div>
-        <p className="mt-2 text-muted">Loading modules...</p>
+        <p className="mt-2 text-muted">{t('loading')}</p>
       </div>
     );
   }
@@ -66,8 +69,8 @@ function ModulesPage() {
     <div className="fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
         <div>
-          <h1 className="display-5 mb-1">Dynamic Modules</h1>
-          <p className="text-muted lead mb-0">Architect your data structures with precision.</p>
+          <h1 className="display-5 mb-1">{t('modules_title')}</h1>
+          <p className="text-muted lead mb-0">{t('modules_subtitle')}</p>
         </div>
         <button
           className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
@@ -75,11 +78,11 @@ function ModulesPage() {
         >
           {showForm ? (
             <>
-              <span className="fs-5">✕</span> Cancel
+              <span className="fs-5">✕</span> {t('cancel')}
             </>
           ) : (
             <>
-              <span className="fs-5">+</span> Create Module
+              <span className="fs-5">+</span> {t('create_module')}
             </>
           )}
         </button>
@@ -94,13 +97,13 @@ function ModulesPage() {
       {showForm && (
         <div className="card shadow-lg border-0 mb-5 overflow-hidden">
           <div className="card-header bg-primary py-3">
-            <h5 className="card-title mb-0 text-white">New Module Blueprint</h5>
+            <h5 className="card-title mb-0 text-white">{t('new_module_blueprint')}</h5>
           </div>
           <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label htmlFor="moduleName" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
-                  Module Identifier
+                  {t('module_identifier')}
                 </label>
                 <input
                   type="text"
@@ -108,13 +111,13 @@ function ModulesPage() {
                   id="moduleName"
                   value={moduleName}
                   onChange={(e) => setModuleName(e.target.value)}
-                  placeholder="e.g. Executive Reports, Supply Chain"
+                  placeholder={t('module_placeholder')}
                   autoFocus
                 />
               </div>
               <div className="d-flex gap-2">
                 <button type="submit" className="btn btn-primary px-4">
-                  <span>✓</span> Finalize Module
+                  <span>✓</span> {t('finalize_module')}
                 </button>
                 <button
                   type="button"
@@ -124,7 +127,7 @@ function ModulesPage() {
                     setModuleName('');
                   }}
                 >
-                  Discard
+                  {t('discard')}
                 </button>
               </div>
             </form>
@@ -135,8 +138,8 @@ function ModulesPage() {
       {modules.length === 0 ? (
         <div className="text-center py-5 glass rounded-4 border-dashed border-2">
           <div className="fs-1 mb-3 opacity-50">📁</div>
-          <h3 className="h4">Your workspace is empty</h3>
-          <p className="text-muted">Start by defining your first module to begin managing data.</p>
+          <h3 className="h4">{t('empty_workspace_title')}</h3>
+          <p className="text-muted">{t('empty_workspace_desc')}</p>
         </div>
       ) : (
         <div className="row g-4">
@@ -163,13 +166,13 @@ function ModulesPage() {
                       className="btn btn-light btn-sm flex-grow-1 border"
                       onClick={() => handleModuleClick(module.id)}
                     >
-                      <span className="opacity-75">⚙️</span> Fields
+                      <span className="opacity-75">⚙️</span> {t('fields')}
                     </button>
                     <button
                       className="btn btn-light btn-sm flex-grow-1 border"
                       onClick={() => navigate(`/modules/${module.id}/records`)}
                     >
-                      <span className="opacity-75">📋</span> Data
+                      <span className="opacity-75">📋</span> {t('records')}
                     </button>
                     <button
                       className="btn btn-light btn-sm flex-grow-1 border"

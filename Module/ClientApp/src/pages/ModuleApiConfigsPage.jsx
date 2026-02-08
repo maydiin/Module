@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig } from '../services/api';
 
 function ModuleApiConfigsPage() {
+    const { t } = useTranslation();
     const { moduleId } = useParams();
     const navigate = useNavigate();
     const [module, setModule] = useState(null);
@@ -23,6 +25,7 @@ function ModuleApiConfigsPage() {
 
     useEffect(() => {
         loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [moduleId]);
 
     const loadData = async () => {
@@ -35,7 +38,7 @@ function ModuleApiConfigsPage() {
             setModule(moduleData);
             setConfigs(configsData);
         } catch (err) {
-            setError('Failed to load API configurations');
+            setError(t('error'));
             console.error(err);
         } finally {
             setLoading(false);
@@ -61,7 +64,7 @@ function ModuleApiConfigsPage() {
         setError('');
 
         if (!formData.name || !formData.url) {
-            setError('Name and URL are required');
+            setError(t('required'));
             return;
         }
 
@@ -74,7 +77,7 @@ function ModuleApiConfigsPage() {
             resetForm();
             loadData();
         } catch (err) {
-            setError(err.response?.data?.error || `Failed to ${editConfigId ? 'update' : 'create'} API configuration`);
+            setError(err.response?.data?.error || t('error'));
             console.error(err);
         }
     };
@@ -93,12 +96,12 @@ function ModuleApiConfigsPage() {
     };
 
     const handleDelete = async (configId) => {
-        if (!window.confirm('Are you sure you want to delete this configuration?')) return;
+        if (!window.confirm(t('confirm_delete_config'))) return;
         try {
             await deleteApiConfig(moduleId, configId);
             loadData();
         } catch (err) {
-            setError('Failed to delete configuration');
+            setError(t('error'));
             console.error(err);
         }
     };
@@ -107,7 +110,7 @@ function ModuleApiConfigsPage() {
         return (
             <div className="text-center py-5">
                 <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">{t('loading')}</span>
                 </div>
             </div>
         );
@@ -117,15 +120,15 @@ function ModuleApiConfigsPage() {
         <div className="container-fluid py-4">
             <nav aria-label="breadcrumb">
                 <ol className="breadcrumb">
-                    <li className="breadcrumb-item"><Link to="/">Modules</Link></li>
-                    <li className="breadcrumb-item active">{module?.name} API Configs</li>
+                    <li className="breadcrumb-item"><Link to="/">{t('modules')}</Link></li>
+                    <li className="breadcrumb-item active">{module?.name} {t('api_configs')}</li>
                 </ol>
             </nav>
 
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 className="h3 mb-0">External API Configurations</h1>
-                    <p className="text-muted">Manage external API integrations for {module?.name}</p>
+                    <h1 className="h3 mb-0">{t('api_configs_title')}</h1>
+                    <p className="text-muted">{t('api_configs_subtitle')} {module?.name}</p>
                 </div>
                 <button
                     className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'}`}
@@ -134,7 +137,7 @@ function ModuleApiConfigsPage() {
                         else setShowForm(true);
                     }}
                 >
-                    {showForm ? 'Cancel' : '+ Add New Config'}
+                    {showForm ? t('cancel') : `+ ${t('add_new_config')}`}
                 </button>
             </div>
 
@@ -143,23 +146,23 @@ function ModuleApiConfigsPage() {
             {showForm && (
                 <div className="card shadow mb-4 border-0">
                     <div className={`card-header ${editConfigId ? 'bg-primary' : 'bg-dark'} text-white border-0 py-3`}>
-                        <h5 className="mb-0">{editConfigId ? 'Edit API Configuration' : 'New API Configuration'}</h5>
+                        <h5 className="mb-0">{editConfigId ? t('edit_api_config') : t('new_api_config')}</h5>
                     </div>
                     <div className="card-body bg-light">
                         <form onSubmit={handleSubmit}>
                             <div className="row">
                                 <div className="col-md-8 mb-3">
-                                    <label className="form-label fw-bold">Integration Name</label>
+                                    <label className="form-label fw-bold">{t('integration_name')}</label>
                                     <input
                                         type="text"
                                         className="form-control"
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="e.g. Identity Verification"
+                                        placeholder={t('integration_name_placeholder')}
                                     />
                                 </div>
                                 <div className="col-md-4 mb-3">
-                                    <label className="form-label fw-bold">HTTP Method</label>
+                                    <label className="form-label fw-bold">{t('http_method')}</label>
                                     <select
                                         className="form-select"
                                         value={formData.method}
@@ -174,55 +177,55 @@ function ModuleApiConfigsPage() {
                             </div>
 
                             <div className="mb-3">
-                                <label className="form-label fw-bold">API URL</label>
+                                <label className="form-label fw-bold">{t('api_url')}</label>
                                 <input
                                     type="text"
                                     className="form-control"
                                     value={formData.url}
                                     onChange={e => setFormData({ ...formData, url: e.target.value })}
-                                    placeholder="https://api.example.com/v1/user/{{TCNo}}"
+                                    placeholder={t('api_url_placeholder')}
                                 />
-                                <small className="text-muted">Use <code>{`{{FieldName}}`}</code> for dynamic placeholders.</small>
+                                <small className="text-muted">{t('dynamic_placeholders_help')}</small>
                             </div>
 
                             <div className="mb-3">
-                                <label className="form-label fw-bold">Custom Headers (JSON Dictionary)</label>
+                                <label className="form-label fw-bold">{t('custom_headers')}</label>
                                 <textarea
                                     className="form-control font-monospace"
                                     rows="2"
                                     value={formData.headersJson}
                                     onChange={e => setFormData({ ...formData, headersJson: e.target.value })}
-                                    placeholder='{ "Authorization": "Bearer token", "X-Custom": "value" }'
+                                    placeholder={t('custom_headers_placeholder')}
                                 ></textarea>
                             </div>
 
                             <div className="row">
                                 <div className="col-md-6 mb-3">
-                                    <label className="form-label fw-bold">Request Body Template (JSON)</label>
+                                    <label className="form-label fw-bold">{t('request_body_template')}</label>
                                     <textarea
                                         className="form-control font-monospace"
                                         rows="4"
                                         value={formData.requestBodyTemplate}
                                         onChange={e => setFormData({ ...formData, requestBodyTemplate: e.target.value })}
-                                        placeholder='{ "userId": {{Id}}, "action": "verify" }'
+                                        placeholder={t('request_body_placeholder')}
                                     ></textarea>
                                 </div>
                                 <div className="col-md-6 mb-3">
-                                    <label className="form-label fw-bold">Response Mappings (JSON)</label>
+                                    <label className="form-label fw-bold">{t('response_mappings')}</label>
                                     <textarea
                                         className="form-control font-monospace"
                                         rows="4"
                                         value={formData.responseMappingsJson}
                                         onChange={e => setFormData({ ...formData, responseMappingsJson: e.target.value })}
-                                        placeholder='{ "result.status": "IsVerified", "result.id": "ExternalId" }'
+                                        placeholder={t('response_mappings_placeholder')}
                                     ></textarea>
-                                    <small className="text-muted">Map API paths to Module fields.</small>
+                                    <small className="text-muted">{t('map_api_paths_help')}</small>
                                 </div>
                             </div>
 
                             <div className="d-flex justify-content-end gap-2 mt-2">
-                                <button type="button" className="btn btn-outline-secondary px-4" onClick={resetForm}>Cancel</button>
-                                <button type="submit" className="btn btn-primary px-5 fw-bold">{editConfigId ? 'Update' : 'Save'} Configuration</button>
+                                <button type="button" className="btn btn-outline-secondary px-4" onClick={resetForm}>{t('cancel')}</button>
+                                <button type="submit" className="btn btn-primary px-5 fw-bold">{editConfigId ? t('update_configuration') : t('save_configuration')}</button>
                             </div>
                         </form>
                     </div>
@@ -234,7 +237,7 @@ function ModuleApiConfigsPage() {
                     <div className="col-12">
                         <div className="text-center py-5 bg-light rounded-3 border mt-3">
                             <span className="display-1 text-muted opacity-25">🔌</span>
-                            <p className="mt-3 text-muted">No API configurations found for {module?.name}.</p>
+                            <p className="mt-3 text-muted">{t('no_api_configs_found')} {module?.name}.</p>
                         </div>
                     </div>
                 ) : (
@@ -247,10 +250,10 @@ function ModuleApiConfigsPage() {
                                         <h5 className="mb-0">{config.name}</h5>
                                     </div>
                                     <div className="d-flex gap-2">
-                                        <button className="btn btn-outline-primary btn-sm border-0" onClick={() => handleEdit(config)} title="Edit Configuration">
-                                            <span>📝 Edit</span>
+                                        <button className="btn btn-outline-primary btn-sm border-0" onClick={() => handleEdit(config)} title={t('edit_api_config')}>
+                                            <span>📝 {t('edit_module')}</span>
                                         </button>
-                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => handleDelete(config.id)} title="Delete Configuration">
+                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => handleDelete(config.id)} title={t('delete_module')}>
                                             <span>🗑️</span>
                                         </button>
                                     </div>
@@ -263,21 +266,21 @@ function ModuleApiConfigsPage() {
                                     <div className="row g-2 mb-3">
                                         <div className="col-6">
                                             <div className="border rounded p-2 text-center h-100 bg-white">
-                                                <div className="small text-muted mb-1">Headers</div>
-                                                <div className="fw-bold">{config.headersJson ? 'Yes ✅' : 'No'}</div>
+                                                <div className="small text-muted mb-1">{t('headers')}</div>
+                                                <div className="fw-bold">{config.headersJson ? `${t('yes')} ✅` : t('no')}</div>
                                             </div>
                                         </div>
                                         <div className="col-6">
                                             <div className="border rounded p-2 text-center h-100 bg-white">
-                                                <div className="small text-muted mb-1">Mappings</div>
-                                                <div className="fw-bold">{config.responseMappingsJson ? 'Yes ✅' : 'No'}</div>
+                                                <div className="small text-muted mb-1">{t('mappings')}</div>
+                                                <div className="fw-bold">{config.responseMappingsJson ? `${t('yes')} ✅` : t('no')}</div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {config.requestBodyTemplate && (
                                         <div className="small mb-2">
-                                            <div className="fw-bold mb-1">Body Template:</div>
+                                            <div className="fw-bold mb-1">{t('body_template')}</div>
                                             <pre className="bg-dark text-light p-2 rounded small overflow-auto" style={{ maxHeight: '100px' }}>
                                                 {config.requestBodyTemplate}
                                             </pre>
@@ -286,7 +289,7 @@ function ModuleApiConfigsPage() {
 
                                     {config.responseMappingsJson && (
                                         <div className="small">
-                                            <div className="fw-bold mb-1">Mappings:</div>
+                                            <div className="fw-bold mb-1">{t('mappings')}:</div>
                                             <pre className="bg-light border p-2 rounded small overflow-auto" style={{ maxHeight: '100px' }}>
                                                 {config.responseMappingsJson}
                                             </pre>

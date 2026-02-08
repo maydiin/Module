@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
 import LinkedRecordsModal from '../components/LinkedRecordsModal';
 
 function ModuleRecordsPage() {
+  const { t } = useTranslation();
   const { moduleId } = useParams();
   const navigate = useNavigate();
   const [module, setModule] = useState(null);
@@ -16,10 +18,10 @@ function ModuleRecordsPage() {
   const [error, setError] = useState('');
   const [showLinkedModal, setShowLinkedModal] = useState(false);
   const [selectedRecordForLinks, setSelectedRecordForLinks] = useState(null);
-  const [linkedCountLoading, setLinkedCountLoading] = useState(false);
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId]);
 
   const loadData = async () => {
@@ -37,7 +39,7 @@ function ModuleRecordsPage() {
       if (err.response?.status === 404) {
         setModule(null);
       } else {
-        setError(err.response?.data?.error || 'Failed to load data from server. Check if database is updated.');
+        setError(err.response?.data?.error || t('error'));
         setModule({ id: -1, name: 'Error' });
       }
       console.error(err);
@@ -58,7 +60,7 @@ function ModuleRecordsPage() {
       setEditingRecord(null);
       loadData();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save record');
+      setError(err.response?.data?.error || t('error'));
       console.error(err);
     }
   };
@@ -69,7 +71,7 @@ function ModuleRecordsPage() {
   };
 
   const handleDelete = async (recordId) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) {
+    if (!window.confirm(t('confirm_delete_record'))) {
       return;
     }
 
@@ -77,7 +79,7 @@ function ModuleRecordsPage() {
       await deleteRecord(moduleId, recordId);
       loadData();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to delete record');
+      setError(err.response?.data?.error || t('error'));
       console.error(err);
     }
   };
@@ -91,9 +93,9 @@ function ModuleRecordsPage() {
     return (
       <div className="text-center py-5">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+          <span className="visually-hidden">{t('loading')}</span>
         </div>
-        <p className="mt-2 text-muted">Loading records...</p>
+        <p className="mt-2 text-muted">{t('loading')}</p>
       </div>
     );
   }
@@ -101,11 +103,11 @@ function ModuleRecordsPage() {
   if (module === null) {
     return (
       <div className="alert alert-danger shadow-sm">
-        <h5 className="alert-heading">Module not found</h5>
-        <p className="mb-0">The module you're looking for doesn't exist.</p>
+        <h5 className="alert-heading">{t('module_not_found')}</h5>
+        <p className="mb-0">{t('module_not_found_desc')}</p>
         <hr />
         <button className="btn btn-outline-danger" onClick={() => navigate('/')}>
-          ← Back to Modules
+          ← {t('back_to_modules')}
         </button>
       </div>
     );
@@ -120,20 +122,20 @@ function ModuleRecordsPage() {
               className="btn btn-link mb-2 p-0 text-decoration-none"
               onClick={() => navigate('/')}
             >
-              ← Back to Modules
+              ← {t('back_to_modules')}
             </button>
-            <h1 className="mb-0">Records for: {module.name}</h1>
-            <p className="text-muted mb-0">Manage your module records</p>
+            <h1 className="mb-0">{t('records_title')} {module.name}</h1>
+            <p className="text-muted mb-0">{t('records_subtitle')}</p>
           </div>
         </div>
         <div className="alert alert-warning shadow-sm">
-          <h6 className="alert-heading">No fields defined</h6>
-          <p className="mb-3">This module has no fields. Please add fields first before creating records.</p>
+          <h6 className="alert-heading">{t('no_fields_defined_title')}</h6>
+          <p className="mb-3">{t('no_fields_defined_desc')}</p>
           <button
             className="btn btn-warning"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
           >
-            ⚙️ Manage Fields
+            ⚙️ {t('manage_fields')}
           </button>
         </div>
       </div>
@@ -148,20 +150,20 @@ function ModuleRecordsPage() {
             className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
             onClick={() => navigate('/')}
           >
-            <span>←</span> Back to Dashboard
+            <span>←</span> {t('back_to_dashboard')}
           </button>
           <h1 className="display-6 mb-1">
             <span className="opacity-50 me-2">📋</span>
-            {module.name} Records
+            {module.name} {t('records_title')}
           </h1>
-          <p className="text-muted mb-0">Navigate and manage the data instances of this module.</p>
+          <p className="text-muted mb-0">{t('records_subtitle')}</p>
         </div>
         <div className="d-flex gap-2">
           <button
             className="btn btn-outline-secondary border-2 px-4 shadow-sm"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
           >
-            ⚙️ Schema
+            ⚙️ {t('schema')}
           </button>
           <button
             className="btn btn-primary px-4 shadow-sm"
@@ -171,7 +173,7 @@ function ModuleRecordsPage() {
             }}
             disabled={showForm}
           >
-            <span>+</span> New Entry
+            <span>+</span> {t('new_entry')}
           </button>
         </div>
       </div>
@@ -186,7 +188,7 @@ function ModuleRecordsPage() {
         <div className="card shadow-lg border-0 mb-5 overflow-hidden">
           <div className={`card-header py-3 ${editingRecord ? 'bg-warning' : 'bg-primary'}`}>
             <h5 className="card-title mb-0 text-white">
-              {editingRecord ? '✏️ Update Existing Record' : '➕ Forge New Record'}
+              {editingRecord ? `✏️ ${t('update_existing_record')}` : `➕ ${t('forge_new_record')}`}
             </h5>
           </div>
           <div className="card-body p-4">
@@ -194,13 +196,13 @@ function ModuleRecordsPage() {
               fields={fields}
               initialData={editingRecord?.data || {}}
               onSubmit={handleFormSubmit}
-              submitLabel={editingRecord ? 'Save Changes' : 'Initialize Record'}
+              submitLabel={editingRecord ? t('save_changes') : t('initialize_record')}
             />
             <button
               className="btn btn-link text-muted mt-3 text-decoration-none"
               onClick={handleCancel}
             >
-              Discard Actions
+              {t('discard_actions')}
             </button>
           </div>
         </div>
@@ -210,7 +212,7 @@ function ModuleRecordsPage() {
         <div className="card-header bg-white py-4 px-4 border-bottom">
           <h5 className="mb-0 fw-bold">
             <span className="opacity-75 me-2">📁</span>
-            Data Inventory
+            {t('data_inventory')}
             <span className="badge bg-light text-primary border ms-2 px-3 rounded-pill fw-normal">{records.length}</span>
           </h5>
         </div>
@@ -218,7 +220,7 @@ function ModuleRecordsPage() {
           {records.length === 0 ? (
             <div className="text-center py-5">
               <div className="fs-1 mb-3 opacity-25">📂</div>
-              <h5 className="text-muted">Inventory is currently empty.</h5>
+              <h5 className="text-muted">{t('inventory_empty')}</h5>
             </div>
           ) : (
             <div className="table-responsive">
@@ -226,12 +228,12 @@ function ModuleRecordsPage() {
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: '60px' }}>ID</th>
-                    <th style={{ width: '120px' }}>Linked Count</th>
+                    <th style={{ width: '120px' }}>{t('linked_count')}</th>
                     {fields.map(field => (
                       <th key={field.id}>{field.label}</th>
                     ))}
-                    <th style={{ width: '180px' }}>Created At</th>
-                    <th style={{ width: '150px' }}>Actions</th>
+                    <th style={{ width: '180px' }}>{t('created_at')}</th>
+                    <th style={{ width: '150px' }}>{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -250,7 +252,7 @@ function ModuleRecordsPage() {
                             }
                           }}
                           disabled={record.linkedCount === 0}
-                          title={record.linkedCount > 0 ? 'View linked records' : 'No linked records'}
+                          title={record.linkedCount > 0 ? t('view_linked_records') : t('no_linked_records')}
                         >
                           📎 {record.linkedCount || 0}
                         </button>
@@ -259,9 +261,9 @@ function ModuleRecordsPage() {
                         <td key={field.id}>
                           {field.type === 'checkbox' ? (
                             record.data[field.name] ? (
-                              <span className="badge bg-success">✓ Yes</span>
+                              <span className="badge bg-success">✓ {t('yes')}</span>
                             ) : (
-                              <span className="badge bg-secondary">✗ No</span>
+                              <span className="badge bg-secondary">✗ {t('no')}</span>
                             )
                           ) : (
                             <span>
@@ -283,7 +285,7 @@ function ModuleRecordsPage() {
                             className="btn btn-outline-primary"
                             onClick={() => handleEdit(record)}
                             disabled={showForm}
-                            title="Edit record"
+                            title={t('save_changes')}
                           >
                             ✏️
                           </button>
@@ -291,7 +293,7 @@ function ModuleRecordsPage() {
                             className="btn btn-outline-danger"
                             onClick={() => handleDelete(record.id)}
                             disabled={showForm}
-                            title="Delete record"
+                            title={t('delete_record')}
                           >
                             🗑️
                           </button>

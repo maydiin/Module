@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getRecordsByName } from '../services/api';
 
-function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit' }) {
+function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [relationsData, setRelationsData] = useState({});
@@ -43,10 +45,6 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
   }, [fields, initialData]);
 
   const handleChange = (fieldName, value) => {
-    // Determine if we need to handle multi-select (array) or single value
-    const field = fields.find(f => f.name === fieldName);
-    const isMultiSelect = field && (field.type.toLowerCase() === 'relation' || field.type.toLowerCase() === 'multiselect');
-
     setFormData(prev => ({
       ...prev,
       [fieldName]: value
@@ -68,16 +66,16 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
         const value = formData[field.name];
         if (field.type.toLowerCase() === 'checkbox') {
           if (value !== true && value !== 'true') {
-            newErrors[field.name] = `${field.label} is required`;
+            newErrors[field.name] = `${field.label} ${t('field_required')}`;
           }
         } else if (field.type.toLowerCase() === 'relation' || field.type.toLowerCase() === 'multiselect') {
           if (!value || (Array.isArray(value) && value.length === 0)) {
-            newErrors[field.name] = `${field.label} is required`;
+            newErrors[field.name] = `${field.label} ${t('field_required')}`;
           }
         } else {
           if (value === undefined || value === null || value === '' ||
             (typeof value === 'string' && value.trim() === '')) {
-            newErrors[field.name] = `${field.label} is required`;
+            newErrors[field.name] = `${field.label} ${t('field_required')}`;
           }
         }
       }
@@ -217,7 +215,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
               value={value}
               onChange={(e) => handleChange(field.name, e.target.value)}
             >
-              <option value="">-- Select an option --</option>
+              <option value="">{t('select_option')}</option>
               {selectOptions.map((opt, idx) => (
                 <option key={idx} value={opt}>{opt}</option>
               ))}
@@ -259,7 +257,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
                 );
               })}
             </select>
-            <div className="form-text small">Hold Ctrl (Cmd on Mac) to select multiple.</div>
+            <div className="form-text small">{t('multi_select_hint')}</div>
             {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
           </div>
         );
@@ -358,7 +356,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
                 }}
               />
             </div>
-            {value && <div className="form-text mt-1 text-success small">Selected file: {value}</div>}
+            {value && <div className="form-text mt-1 text-success small">{t('selected_file')}: {value}</div>}
             {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
           </div>
         );
@@ -378,7 +376,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
               value={value}
               onChange={(e) => handleChange(field.name, e.target.value)}
             />
-            <div className="form-text small">Enter valid JSON content.</div>
+            <div className="form-text small">{t('valid_json_hint')}</div>
             {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
           </div>
         );
@@ -411,7 +409,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel = 'Submit
       {sortedFields.map(field => renderField(field))}
       <div className="d-flex gap-2">
         <button type="submit" className="btn btn-primary">
-          <span>✓</span> {submitLabel}
+          <span>✓</span> {submitLabel || t('submit')}
         </button>
       </div>
     </form>

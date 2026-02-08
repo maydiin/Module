@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 function LinkedRecordsModal({ moduleName, recordId, onClose }) {
+    const { t } = useTranslation();
     const [relations, setRelations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -13,7 +15,7 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                 const response = await axios.get(`/api/relations/used-in?module=${moduleName}&id=${recordId}`);
                 setRelations(response.data);
             } catch (err) {
-                setError('Failed to fetch linked records');
+                setError(t('error'));
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -21,7 +23,7 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
         };
 
         fetchRelations();
-    }, [moduleName, recordId]);
+    }, [moduleName, recordId, t]);
 
     // Group relations by module
     const groupedRelations = relations.reduce((acc, rel) => {
@@ -37,14 +39,14 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
             <div className="modal-dialog modal-lg modal-dialog-centered">
                 <div className="modal-content shadow-lg">
                     <div className="modal-header bg-info text-white">
-                        <h5 className="modal-title">📎 Linked Records for #{recordId}</h5>
+                        <h5 className="modal-title">📎 {t('linked_records_for')} #{recordId}</h5>
                         <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                     </div>
                     <div className="modal-body">
                         {loading && (
                             <div className="text-center py-4">
                                 <div className="spinner-border text-primary" role="status"></div>
-                                <p className="mt-2 text-muted">Fetching linked records...</p>
+                                <p className="mt-2 text-muted">{t('loading')}</p>
                             </div>
                         )}
 
@@ -54,7 +56,7 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
 
                         {!loading && !error && relations.length === 0 && (
                             <div className="text-center py-4 text-muted">
-                                <p className="mb-0">No records are currently referencing this record.</p>
+                                <p className="mb-0">{t('no_references_found')}</p>
                             </div>
                         )}
 
@@ -62,7 +64,7 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                             <div key={module} className="mb-4">
                                 <h6 className="border-bottom pb-2 mb-3">
                                     <span className="badge bg-secondary me-2">{module}</span>
-                                    {groupedRelations[module].length} Records
+                                    {groupedRelations[module].length} {t('records_count')}
                                 </h6>
                                 <div className="list-group">
                                     {groupedRelations[module].map(rel => (
@@ -73,7 +75,7 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                                             </div>
                                             {/* Optional: Add a link to the record if we know the module ID */}
                                             <span className="badge bg-light text-dark border">
-                                                Linked via relation
+                                                {t('linked_via_relation')}
                                             </span>
                                         </div>
                                     ))}
@@ -82,7 +84,7 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                         ))}
                     </div>
                     <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>{t('close')}</button>
                     </div>
                 </div>
             </div>

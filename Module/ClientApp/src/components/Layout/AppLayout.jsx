@@ -1,7 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 function AppLayout({ children }) {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
@@ -10,7 +16,7 @@ function AppLayout({ children }) {
           <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center" to="/">
             <span className="me-2 text-primary">📦</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-              Module Central
+              {t('app_name')}
             </span>
           </Link>
           <button
@@ -22,17 +28,35 @@ function AppLayout({ children }) {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto gap-2">
+            <ul className="navbar-nav ms-auto gap-2 align-items-center">
               <li className="nav-item">
                 <Link
                   className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'hover-bg-accent'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'hover-bg-accent'
                     }`}
                   to="/"
                 >
-                  Dashboard
+                  {t('dashboard')}
                 </Link>
+              </li>
+              <li className="nav-item ms-lg-3">
+                <div className="btn-group" role="group">
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-start-pill ${i18n.language.startsWith('en') ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => changeLanguage('en')}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-end-pill ${i18n.language.startsWith('tr') ? 'btn-primary' : 'btn-outline-primary'}`}
+                    onClick={() => changeLanguage('tr')}
+                  >
+                    TR
+                  </button>
+                </div>
               </li>
             </ul>
           </div>
@@ -44,7 +68,7 @@ function AppLayout({ children }) {
       <footer className="py-5 border-top bg-white">
         <div className="container text-center">
           <p className="text-muted mb-0 small">
-            &copy; {new Date().getFullYear()} Module Management System. Crafted for Excellence.
+            &copy; {new Date().getFullYear()} {t('footer_text')}
           </p>
         </div>
       </footer>
