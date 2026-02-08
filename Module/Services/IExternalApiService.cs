@@ -14,5 +14,5 @@ public interface IExternalApiService
     /// Maps data from an API response JSON (that is an array) to a list of module record data JSON strings.
     /// Parameters can be used to fill missing fields in the response.
     /// </summary>
-    List<string> MapArrayResponse(string apiResponseJson, string responseMappingsJson, IDictionary<string, string>? parameters = null);
+    (List<string> Records, List<string> Errors) MapArrayResponse(string apiResponseJson, string responseMappingsJson, IDictionary<string, string>? parameters = null);
 }

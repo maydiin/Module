@@ -66,18 +66,20 @@ public class ExternalApiService : IExternalApiService
         }
     }
 
-    public List<string> MapArrayResponse(string apiResponseJson, string responseMappingsJson, IDictionary<string, string>? parameters = null)
+    public (List<string> Records, List<string> Errors) MapArrayResponse(string apiResponseJson, string responseMappingsJson, IDictionary<string, string>? parameters = null)
     {
-        var result = new List<string>();
+        var records = new List<string>();
+        var errors = new List<string>();
+        
         if (string.IsNullOrEmpty(apiResponseJson) || string.IsNullOrEmpty(responseMappingsJson))
-            return result;
+            return (records, errors);
 
         try
         {
             var apiResponse = JsonNode.Parse(apiResponseJson);
             var mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(responseMappingsJson);
 
-            if (apiResponse == null || mappings == null) return result;
+            if (apiResponse == null || mappings == null) return (records, errors);
 
             // Handle root path if specified
             JsonNode? arrayNode = apiResponse;
@@ -88,24 +90,43 @@ public class ExternalApiService : IExternalApiService
 
             if (arrayNode is JsonArray jsonArray)
             {
+                int index = 0;
                 foreach (var item in jsonArray)
                 {
-                    if (item != null)
+                    try 
                     {
-                        var recordDataJson = MapJsonToRecordData(item, mappings, "{}", parameters);
-                        result.Add(recordDataJson);
+                        if (item != null)
+                        {
+                            var recordDataJson = MapJsonToRecordData(item, mappings, "{}", parameters);
+                            records.Add(recordDataJson);
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                         errors.Add($"Row {index}: Error mapping record - {ex.Message}");
+                    }
+                    index++;
                 }
             }
             else if (arrayNode is JsonObject)
             {
                  // Single object fallback
-                 result.Add(MapJsonToRecordData(arrayNode, mappings, "{}", parameters));
+                 try
+                 {
+                    records.Add(MapJsonToRecordData(arrayNode, mappings, "{}", parameters));
+                 }
+                 catch (Exception ex)
+                 {
+                    errors.Add($"Error mapping single object - {ex.Message}");
+                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            errors.Add($"JSON Parsing Error: {ex.Message}");
+        }
 
-        return result;
+        return (records, errors);
     }
 
     private string MapJsonToRecordData(JsonNode node, Dictionary<string, string> mappings, string currentRecordDataJson, IDictionary<string, string>? parameters = null)

@@ -77,33 +77,80 @@ public class ApiSyncController : ControllerBase
             }
  
             var apiResponseJson = await response.Content.ReadAsStringAsync();
-            var mappedRecords = _apiService.MapArrayResponse(apiResponseJson, config.ResponseMappingsJson ?? "{}", parameters);
+            var (mappedRecords, mappingErrors) = _apiService.MapArrayResponse(apiResponseJson, config.ResponseMappingsJson ?? "{}", parameters);
  
             int createdCount = 0;
+            int failedCount = 0;
+            var validationErrors = new List<string>();
+
+            // Add mapping errors directly to validation errors with a prefix
+            validationErrors.AddRange(mappingErrors);
+            failedCount += mappingErrors.Count;
+
+            int recordIndex = 0;
             foreach (var recordJson in mappedRecords)
             {
-                var data = _moduleService.DeserializeData(recordJson);
-                
-                // Optional: Check for duplicates based on a unique field if needed
-                // For now, just create new records
-                
-                var record = new ModuleRecord
+                recordIndex++;
+                try
                 {
-                    ModuleId = config.ModuleId,
-                    Data = recordJson,
-                    CreatedAt = DateTime.UtcNow
-                };
- 
-                _context.ModuleRecords.Add(record);
-                await _context.SaveChangesAsync(); // Save one by one to use record.Id for relations
-                
-                // Save relations for the new record
-                await _relationService.SaveRelations(config.Module.Name, record.Id, record);
-                
-                createdCount++;
+                    var data = _moduleService.DeserializeData(recordJson);
+                    
+                    // Validate data against module fields
+                    var recordErrors = await _moduleService.ValidateDataAsync(config.ModuleId, data);
+                    
+                    if (recordErrors.Any())
+                    {
+                         failedCount++;
+                         foreach(var err in recordErrors)
+                         {
+                             validationErrors.Add($"Record {recordIndex}: {err}");
+                         }
+                         continue; // Skip saving this record
+                    }
+
+                    // Optional: Check for duplicates based on a unique field if needed
+                    // For now, just create new records
+                    
+                    var record = new ModuleRecord
+                    {
+                        ModuleId = config.ModuleId,
+                        Data = recordJson,
+                        CreatedAt = DateTime.UtcNow
+                    };
+     
+                    _context.ModuleRecords.Add(record);
+                    await _context.SaveChangesAsync(); // Save one by one to use record.Id for relations
+                    
+                    // Save relations for the new record
+                    await _relationService.SaveRelations(config.Module.Name, record.Id, record);
+                    
+                    createdCount++;
+                }
+                catch (Exception ex)
+                {
+                    failedCount++;
+                    validationErrors.Add($"Record {recordIndex}: Save Failed - {ex.Message}");
+                }
             }
  
-            return Ok(new { message = $"Successfully synced {createdCount} records.", module = config.Module.Name });
+            var result = new 
+            { 
+                message = $"Sync completed. Created: {createdCount}, Failed: {failedCount}", 
+                module = config.Module.Name,
+                createdCount,
+                failedCount,
+                errors = validationErrors
+            };
+
+            if (failedCount > 0)
+            {
+                // Return 200 OK but with error details, or 400 if you prefer strictly calling it a bad request.
+                // Usually for a partial success batch job, 200 with details is common, 
+                // but if we want to alert the user strongly, we can assume the client checks the 'errors' field.
+                return Ok(result);
+            }
+
+            return Ok(result);
         }
         catch (Exception ex)
         {

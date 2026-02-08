@@ -89,7 +89,7 @@ using (var scope = app.Services.CreateScope())
     if (app.Environment.IsDevelopment())
     {
         // Uncomment the line below if you want to force recreation on every start
-        context.Database.EnsureDeleted();
+        //context.Database.EnsureDeleted();
     }
     
     context.Database.EnsureCreated();
