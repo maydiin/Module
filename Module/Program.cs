@@ -47,6 +47,8 @@ builder.Services.AddScoped<IFieldType, RelationFieldType>();
 
 builder.Services.AddScoped<FieldTypeFactory>();
 
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
 // CORS
 builder.Services.AddCors(options =>
 {

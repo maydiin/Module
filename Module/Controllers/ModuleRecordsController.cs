@@ -13,56 +13,38 @@ public class ModuleRecordsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IModuleService _moduleService;
     private readonly IRelationService _relationService;
+    private readonly MediatR.IMediator _mediator;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator)
     {
         _context = context;
         _moduleService = moduleService;
         _relationService = relationService;
+        _mediator = mediator;
     }
 
     [HttpPost]
     public async Task<ActionResult<ModuleRecordDto>> CreateRecord(int moduleId, [FromBody] CreateModuleRecordDto dto)
     {
-        var module = await _context.Modules.FindAsync(moduleId);
-        if (module == null)
-        {
-            return NotFound(new { error = "Module not found" });
-        }
-
         if (dto.Data == null)
         {
             return BadRequest(new { error = "Data is required" });
         }
 
-        var errors = await _moduleService.ValidateDataAsync(moduleId, dto.Data);
-        if (errors.Any())
+        try 
         {
-            return BadRequest(new { errors });
+            var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
+            return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = result.Id }, result);
         }
-
-        var jsonData = _moduleService.SerializeData(dto.Data);
-
-        var record = new Entities.ModuleRecord
+        catch (KeyNotFoundException ex)
         {
-            ModuleId = moduleId,
-            Data = jsonData,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.ModuleRecords.Add(record);
-        await _context.SaveChangesAsync();
-
-        // Save relations
-        await _relationService.SaveRelations(module.Name, record.Id, record);
-
-        return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = record.Id }, new ModuleRecordDto
+            return NotFound(new { error = ex.Message });
+        }
+        catch (Exception ex)
         {
-            Id = record.Id,
-            ModuleId = record.ModuleId,
-            Data = dto.Data,
-            CreatedAt = record.CreatedAt
-        });
+            // In a real app, logic inside the handler would throw specific validation exceptions
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpGet]
@@ -126,70 +108,42 @@ public class ModuleRecordsController : ControllerBase
     [HttpPut("{recordId}")]
     public async Task<ActionResult<ModuleRecordDto>> UpdateRecord(int moduleId, int recordId, [FromBody] UpdateModuleRecordDto dto)
     {
-        var record = await _context.ModuleRecords
-            .FirstOrDefaultAsync(r => r.Id == recordId && r.ModuleId == moduleId);
-
-        if (record == null)
-        {
-            return NotFound();
-        }
-
         if (dto.Data == null)
         {
             return BadRequest(new { error = "Data is required" });
         }
 
-        var errors = await _moduleService.ValidateDataAsync(moduleId, dto.Data);
-        if (errors.Any())
+        try
         {
-            return BadRequest(new { errors });
+            var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
+            return Ok(result);
         }
-
-        record.Data = _moduleService.SerializeData(dto.Data);
-        await _context.SaveChangesAsync();
-
-        // Update relations
-        var module = await _context.Modules.FindAsync(moduleId);
-        if (module != null)
+        catch (KeyNotFoundException ex)
         {
-            await _relationService.SaveRelations(module.Name, record.Id, record);
+            return NotFound(new { error = ex.Message });
         }
-
-        var count = await _context.RecordRelations
-            .CountAsync(r => r.TargetModule == module.Name && r.TargetRecordId == record.Id);
-
-        return Ok(new ModuleRecordDto
+        catch (Exception ex)
         {
-            Id = record.Id,
-            ModuleId = record.ModuleId,
-            Data = dto.Data,
-            LinkedCount = module != null ? count : 0,
-            CreatedAt = record.CreatedAt
-        });
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpDelete("{recordId}")]
     public async Task<IActionResult> DeleteRecord(int moduleId, int recordId)
     {
-        var record = await _context.ModuleRecords
-            .FirstOrDefaultAsync(r => r.Id == recordId && r.ModuleId == moduleId);
-
-        if (record == null)
+        try
         {
-            return NotFound();
+            await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
+            return NoContent();
         }
-
-        _context.ModuleRecords.Remove(record);
-        await _context.SaveChangesAsync();
-
-        // Delete relations for source
-        var module = await _context.Modules.FindAsync(moduleId);
-        if (module != null)
+        catch (KeyNotFoundException ex)
         {
-            await _relationService.DeleteRelationsForSource(module.Name, record.Id);
+            return NotFound(new { error = ex.Message });
         }
-
-        return NoContent();
+        catch (Exception ex)
+        {
+             return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpGet("/api/records/by-name/{moduleName}")]
