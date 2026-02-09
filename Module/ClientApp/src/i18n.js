@@ -124,6 +124,8 @@ const resources = {
             "headers": "Headers",
             "mappings": "Mappings",
             "body_template": "Body Template:",
+            "formula_field_hint": "This field is calculated automatically.",
+            "calculated_automatically": "Calculated Automatically",
             "notifications": {
                 "module_created": "Module created successfully",
                 "module_updated": "Module updated successfully",
@@ -229,6 +231,8 @@ const resources = {
             "no": "Hayır",
             "view_linked_records": "Bağlantılı kayıtları görüntüle",
             "no_linked_records": "Bağlantılı kayıt yok",
+            "formula_field_hint": "Bu alan otomatik olarak hesaplanır.",
+            "calculated_automatically": "Otomatik Hesaplanır",
             "notifications": {
                 "module_created": "Modül başarıyla oluşturuldu",
                 "module_updated": "Modül başarıyla güncellendi",

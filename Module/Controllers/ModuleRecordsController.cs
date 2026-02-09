@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.DTOs;
 using Module.Services;
+using Module.FieldTypes;
 
 namespace Module.Controllers;
 
@@ -14,13 +15,15 @@ public class ModuleRecordsController : ControllerBase
     private readonly IModuleService _moduleService;
     private readonly IRelationService _relationService;
     private readonly MediatR.IMediator _mediator;
+    private readonly FieldTypeFactory _fieldTypeFactory;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory)
     {
         _context = context;
         _moduleService = moduleService;
         _relationService = relationService;
         _mediator = mediator;
+        _fieldTypeFactory = fieldTypeFactory;
     }
 
     [HttpPost]
@@ -50,7 +53,10 @@ public class ModuleRecordsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ModuleRecordDto>>> ListRecords(int moduleId)
     {
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _context.Modules
+            .Include(m => m.Fields)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            
         if (module == null)
         {
             return NotFound(new { error = "Module not found" });
@@ -68,13 +74,52 @@ public class ModuleRecordsController : ControllerBase
             .Select(g => new { RecordId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.RecordId, x => x.Count);
 
-        var recordDtos = records.Select(r => new ModuleRecordDto
+        var recordDtos = records.Select(r =>
         {
-            Id = r.Id,
-            ModuleId = r.ModuleId,
-            Data = _moduleService.DeserializeData(r.Data),
-            LinkedCount = counts.GetValueOrDefault(r.Id, 0),
-            CreatedAt = r.CreatedAt
+            var data = _moduleService.DeserializeData(r.Data);
+            
+            // Compute non-stored formula fields at runtime
+            // Ordered by OrderNo to ensure dependencies are calculated first
+            foreach (var field in module.Fields.OrderBy(f => f.OrderNo))
+            {
+                if (field.Type == "formula")
+                {
+                    try
+                    {
+                        // If it's not stored, we MUST calculate it
+                        // If it IS stored, it might depend on a non-stored field, so we might need to recalculate or just ensure dependencies exist?
+                        // Simple approach: Always calculate non-stored fields. 
+                        // Stored fields are already in 'data'. 
+                        // BUT if a stored field depends on a non-stored field, the non-stored field needs to be in 'data' first.
+                        
+                        if (!field.IsStored) 
+                        {
+                            var fieldType = _fieldTypeFactory.Get(field.Type);
+                            var computedValue = fieldType.Compute(field, data);
+                            if (computedValue != null)
+                            {
+                                data[field.Name] = computedValue;
+                            }
+                        }
+                        
+                        // If a stored field depends on a non-stored field, we might need to recalculate it locally for display purposes if the DB value is stale/wrong?
+                        // For now, let's assume stored fields are correct in DB, but if they depend on non-stored fields, those non-stored fields are needed for display regardless.
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Field type not supported, ignore
+                    }
+                }
+            }
+            
+            return new ModuleRecordDto
+            {
+                Id = r.Id,
+                ModuleId = r.ModuleId,
+                Data = data,
+                LinkedCount = counts.GetValueOrDefault(r.Id, 0),
+                CreatedAt = r.CreatedAt
+            };
         }).ToList();
 
         return Ok(recordDtos);

@@ -44,6 +44,7 @@ builder.Services.AddScoped<IFieldType, MultiSelectFieldType>();
 builder.Services.AddScoped<IFieldType, RichTextFieldType>();
 builder.Services.AddScoped<IFieldType, JsonFieldType>();
 builder.Services.AddScoped<IFieldType, RelationFieldType>();
+builder.Services.AddScoped<IFieldType, FormulaFieldType>();
 
 builder.Services.AddScoped<FieldTypeFactory>();
 
@@ -81,20 +82,13 @@ app.MapControllers();
 // Fallback to index.html for client-side routing
 app.MapFallbackToFile("index.html");
 
-// Ensure database is created and seeded
+// Apply migrations and seed data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     
-    // In development, we can ensure the database is updated by deleting and recreating it
-    // WARNING: This deletes all data. In production, use migrations.
-    if (app.Environment.IsDevelopment())
-    {
-        // Uncomment the line below if you want to force recreation on every start
-        //context.Database.EnsureDeleted();
-    }
-    
-    context.Database.EnsureCreated();
+    // Apply pending migrations
+    context.Database.Migrate();
     
     // Seed data
     await SeedData.SeedAsync(context);

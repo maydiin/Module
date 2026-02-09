@@ -9,6 +9,7 @@ public class ModuleField
     public string Type { get; set; } = string.Empty; // text, number, date, checkbox
     public bool Required { get; set; }
     public string? Options { get; set; } // JSON array of options
+    public bool IsStored { get; set; } = true; // For formula fields: true = save to DB, false = compute on-the-fly
     public int OrderNo { get; set; }
     
     public Module Module { get; set; } = null!;

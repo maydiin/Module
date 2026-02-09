@@ -19,6 +19,7 @@ function ModuleFieldsPage() {
     type: 'text',
     required: false,
     options: '',
+    isStored: true,
     orderNo: 0
   });
 
@@ -78,7 +79,8 @@ function ModuleFieldsPage() {
         ...formData,
         name: formData.name.trim(),
         label: formData.label.trim() || formData.name.trim(),
-        orderNo: parseInt(formData.orderNo) || fields.length
+        orderNo: parseInt(formData.orderNo) || fields.length,
+        isStored: formData.type === 'formula' ? formData.isStored : true
       };
       await addField(moduleId, fieldData);
       setFormData({
@@ -87,6 +89,7 @@ function ModuleFieldsPage() {
         type: 'text',
         required: false,
         options: '',
+        isStored: true,
         orderNo: fields.length
       });
       setShowForm(false);
@@ -219,13 +222,14 @@ function ModuleFieldsPage() {
                     ))}
                   </select>
                 </div>
-                {['select', 'multiselect', 'relation', 'file', 'textarea', 'richtext', 'image'].includes(formData.type) && (
+                {['select', 'multiselect', 'relation', 'file', 'textarea', 'richtext', 'image', 'formula'].includes(formData.type) && (
                   <div className="col-md-8">
                     <label htmlFor="options" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
                       {formData.type === 'relation' ? t('target_module') :
                         ['select', 'multiselect'].includes(formData.type) ? t('options_json') :
                           formData.type === 'file' ? t('allowed_extensions') :
-                            ['textarea', 'richtext', 'image'].includes(formData.type) ? t('configuration_json') : 'Options'}
+                            formData.type === 'formula' ? 'Formula' :
+                              ['textarea', 'richtext', 'image'].includes(formData.type) ? t('configuration_json') : 'Options'}
                       <span className="text-danger">*</span>
                     </label>
                     <input
@@ -239,8 +243,9 @@ function ModuleFieldsPage() {
                         formData.type === 'relation' ? 'e.g., "Categories"' :
                           ['select', 'multiselect'].includes(formData.type) ? 'e.g., ["Red", "Blue"]' :
                             formData.type === 'file' ? 'e.g., [".pdf", ".docx"]' :
-                              formData.type === 'textarea' || formData.type === 'richtext' ? 'e.g., {"maxLength": 500}' :
-                                formData.type === 'image' ? 'e.g., {"maxSizeKB": 2048}' : ''
+                              formData.type === 'formula' ? 'e.g., {Fiyat} * {Adet}' :
+                                formData.type === 'textarea' || formData.type === 'richtext' ? 'e.g., {"maxLength": 500}' :
+                                  formData.type === 'image' ? 'e.g., {"maxSizeKB": 2048}' : ''
                       }
                       required
                     />
@@ -277,6 +282,24 @@ function ModuleFieldsPage() {
                     </label>
                   </div>
                 </div>
+                {formData.type === 'formula' && (
+                  <div className="col-md-4 d-flex align-items-center pt-md-4">
+                    <div className="form-check form-switch p-2 ps-5 rounded bg-light border w-100">
+                      <input
+                        className="form-check-input ms-0"
+                        type="checkbox"
+                        id="isStored"
+                        name="isStored"
+                        checked={formData.isStored}
+                        onChange={handleInputChange}
+                        style={{ float: 'none', marginRight: '10px' }}
+                      />
+                      <label className="form-check-label fw-bold text-muted small text-uppercase" htmlFor="isStored">
+                        Store in DB
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="d-flex gap-2 mt-5 pt-4 border-top">
@@ -294,6 +317,7 @@ function ModuleFieldsPage() {
                       type: 'text',
                       required: false,
                       options: '',
+                      isStored: true,
                       orderNo: fields.length
                     });
                   }}

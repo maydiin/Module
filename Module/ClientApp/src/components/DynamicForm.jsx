@@ -381,6 +381,29 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
           </div>
         );
 
+      case 'formula':
+        const rawValue = formData[field.name];
+        const displayValue = (rawValue !== undefined && rawValue !== null && rawValue !== '')
+          ? rawValue
+          : t('calculated_automatically');
+
+        return (
+          <div key={field.id} className="mb-3">
+            <label htmlFor={field.name} className="form-label">
+              {field.label}
+            </label>
+            <input
+              type="text"
+              className="form-control bg-light"
+              id={field.name}
+              value={displayValue}
+              disabled
+              readOnly
+            />
+            <div className="form-text text-muted">{t('formula_field_hint')}</div>
+          </div>
+        );
+
       default:
         return (
           <div key={field.id} className="mb-3">
