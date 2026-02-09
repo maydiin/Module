@@ -1,7 +1,9 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.Entities;
+using Module.Features.Records.Commands;
 using Module.Services;
 using System.Text.Json;
 
@@ -16,19 +18,22 @@ public class ApiSyncController : ControllerBase
     private readonly IModuleService _moduleService;
     private readonly IRelationService _relationService;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMediator _mediator;
 
     public ApiSyncController(
         AppDbContext context, 
         IExternalApiService apiService, 
         IModuleService moduleService, 
         IRelationService relationService,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IMediator mediator)
     {
         _context = context;
         _apiService = apiService;
         _moduleService = moduleService;
         _relationService = relationService;
         _httpClientFactory = httpClientFactory;
+        _mediator = mediator;
     }
 
     [HttpPost("{configId}/execute")]
@@ -108,21 +113,8 @@ public class ApiSyncController : ControllerBase
                          continue; // Skip saving this record
                     }
 
-                    // Optional: Check for duplicates based on a unique field if needed
-                    // For now, just create new records
-                    
-                    var record = new ModuleRecord
-                    {
-                        ModuleId = config.ModuleId,
-                        Data = recordJson,
-                        CreatedAt = DateTime.UtcNow
-                    };
-     
-                    _context.ModuleRecords.Add(record);
-                    await _context.SaveChangesAsync(); // Save one by one to use record.Id for relations
-                    
-                    // Save relations for the new record
-                    await _relationService.SaveRelations(config.Module.Name, record.Id, record);
+                    // Use CreateRecordCommand to handle formula computation and validation
+                    await _mediator.Send(new CreateRecordCommand(config.ModuleId, data));
                     
                     createdCount++;
                 }
@@ -149,7 +141,7 @@ public class ApiSyncController : ControllerBase
                 // but if we want to alert the user strongly, we can assume the client checks the 'errors' field.
                 return Ok(result);
             }
-
+ 
             return Ok(result);
         }
         catch (Exception ex)
@@ -158,3 +150,4 @@ public class ApiSyncController : ControllerBase
         }
     }
 }
+
