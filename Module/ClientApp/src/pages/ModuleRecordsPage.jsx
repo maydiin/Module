@@ -28,6 +28,7 @@ function ModuleRecordsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDrafts, setFilterDrafts] = useState([]);
   const [filters, setFilters] = useState([]);
+  const [showFilterPanel, setShowFilterPanel] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -43,6 +44,7 @@ function ModuleRecordsPage() {
     setSearchQuery('');
     setFilterDrafts([]);
     setFilters([]);
+    setShowFilterPanel(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId]);
 
@@ -407,182 +409,194 @@ function ModuleRecordsPage() {
       )}
 
       <div className="card shadow-sm border-0 mb-4">
-        <div className="card-body">
-          <div className="d-flex flex-column flex-lg-row gap-3 align-items-lg-end">
-            <div className="flex-grow-1">
-              <label className="form-label text-muted mb-1">{t('search')}</label>
-              <div className="input-group">
-                <span className="input-group-text">🔍</span>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={t('search_records_placeholder')}
-                  value={searchInput}
-                  onChange={(event) => setSearchInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      applyFilters();
-                    }
+        <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+          <h6 className="mb-0">{t('filters_panel_title')}</h6>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            type="button"
+            onClick={() => setShowFilterPanel(prev => !prev)}
+          >
+            {showFilterPanel ? t('hide_filters_panel') : t('show_filters_panel')}
+          </button>
+        </div>
+        {showFilterPanel && (
+          <div className="card-body">
+            <div className="d-flex flex-column flex-lg-row gap-3 align-items-lg-end">
+              <div className="flex-grow-1">
+                <label className="form-label text-muted mb-1">{t('search')}</label>
+                <div className="input-group">
+                  <span className="input-group-text">🔍</span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={t('search_records_placeholder')}
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        applyFilters();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="form-label text-muted mb-1">{t('sort_by')}</label>
+                <select
+                  className="form-select"
+                  value={sortBy}
+                  onChange={(event) => {
+                    setSortBy(event.target.value);
+                    setPage(1);
                   }}
-                />
+                >
+                  {buildSortOptions().map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label text-muted mb-1">{t('sort_direction')}</label>
+                <select
+                  className="form-select"
+                  value={sortDir}
+                  onChange={(event) => {
+                    setSortDir(event.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="desc">{t('sort_desc')}</option>
+                  <option value="asc">{t('sort_asc')}</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label text-muted mb-1">{t('page_size')}</label>
+                <select
+                  className="form-select"
+                  value={pageSize}
+                  onChange={(event) => {
+                    setPageSize(Number(event.target.value));
+                    setPage(1);
+                  }}
+                >
+                  {[10, 20, 50, 100].map(size => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="d-flex gap-2">
+                <button className="btn btn-primary px-3" onClick={applyFilters}>
+                  {t('apply_filters')}
+                </button>
+                <button className="btn btn-outline-secondary px-3" onClick={clearFilters}>
+                  {t('clear_filters')}
+                </button>
               </div>
             </div>
-            <div>
-              <label className="form-label text-muted mb-1">{t('sort_by')}</label>
-              <select
-                className="form-select"
-                value={sortBy}
-                onChange={(event) => {
-                  setSortBy(event.target.value);
-                  setPage(1);
-                }}
-              >
-                {buildSortOptions().map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="form-label text-muted mb-1">{t('sort_direction')}</label>
-              <select
-                className="form-select"
-                value={sortDir}
-                onChange={(event) => {
-                  setSortDir(event.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="desc">{t('sort_desc')}</option>
-                <option value="asc">{t('sort_asc')}</option>
-              </select>
-            </div>
-            <div>
-              <label className="form-label text-muted mb-1">{t('page_size')}</label>
-              <select
-                className="form-select"
-                value={pageSize}
-                onChange={(event) => {
-                  setPageSize(Number(event.target.value));
-                  setPage(1);
-                }}
-              >
-                {[10, 20, 50, 100].map(size => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-            </div>
-            <div className="d-flex gap-2">
-              <button className="btn btn-primary px-3" onClick={applyFilters}>
-                {t('apply_filters')}
-              </button>
-              <button className="btn btn-outline-secondary px-3" onClick={clearFilters}>
-                {t('clear_filters')}
-              </button>
-            </div>
-          </div>
 
-          <div className="mt-4">
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-              <h6 className="mb-0">{t('advanced_filters')}</h6>
-              <button className="btn btn-sm btn-outline-primary" onClick={addFilterRow}>
-                + {t('add_filter')}
-              </button>
-            </div>
+            <div className="mt-4">
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <h6 className="mb-0">{t('advanced_filters')}</h6>
+                <button className="btn btn-sm btn-outline-primary" onClick={addFilterRow}>
+                  + {t('add_filter')}
+                </button>
+              </div>
 
-            {filterDrafts.length === 0 ? (
-              <div className="text-muted small">{t('no_filters_applied')}</div>
-            ) : (
-              <div className="d-flex flex-column gap-2">
-                {filterDrafts.map((filter, index) => {
-                  const fieldMeta = getFieldMeta(filter.field);
-                  const operators = resolveOperatorOptions(fieldMeta.type);
-                  const options = getFieldOptions(fieldMeta);
-                  const operator = filter.operator || operators[0]?.value || 'contains';
-                  const showValueInputs = !['isempty', 'isnotempty'].includes(operator);
-                  const showBetween = operator === 'between';
-                  return (
-                    <div key={`${filter.field}-${index}`} className="row g-2 align-items-end">
-                      <div className="col-12 col-md-4">
-                        <label className="form-label text-muted mb-1">{t('filter_field')}</label>
-                        <select
-                          className="form-select"
-                          value={filter.field}
-                          onChange={(event) => updateFilterRow(index, { field: event.target.value })}
-                        >
-                          {allFilterFields.map(field => (
-                            <option key={field.name} value={field.name}>{field.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-12 col-md-3">
-                        <label className="form-label text-muted mb-1">{t('filter_operator')}</label>
-                        <select
-                          className="form-select"
-                          value={operator}
-                          onChange={(event) => updateFilterRow(index, { operator: event.target.value })}
-                        >
-                          {operators.map(option => (
-                            <option key={option.value} value={option.value}>{option.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      {showValueInputs && (
+              {filterDrafts.length === 0 ? (
+                <div className="text-muted small">{t('no_filters_applied')}</div>
+              ) : (
+                <div className="d-flex flex-column gap-2">
+                  {filterDrafts.map((filter, index) => {
+                    const fieldMeta = getFieldMeta(filter.field);
+                    const operators = resolveOperatorOptions(fieldMeta.type);
+                    const options = getFieldOptions(fieldMeta);
+                    const operator = filter.operator || operators[0]?.value || 'contains';
+                    const showValueInputs = !['isempty', 'isnotempty'].includes(operator);
+                    const showBetween = operator === 'between';
+                    return (
+                      <div key={`${filter.field}-${index}`} className="row g-2 align-items-end">
                         <div className="col-12 col-md-4">
-                          <label className="form-label text-muted mb-1">{t('filter_value')}</label>
-                          {fieldMeta.type === 'checkbox' ? (
-                            <select
-                              className="form-select"
-                              value={filter.value ?? ''}
-                              onChange={(event) => updateFilterRow(index, { value: event.target.value })}
-                            >
-                              <option value="true">{t('yes')}</option>
-                              <option value="false">{t('no')}</option>
-                            </select>
-                          ) : options.length > 0 && !showBetween ? (
-                            <select
-                              className="form-select"
-                              value={filter.value ?? ''}
-                              onChange={(event) => updateFilterRow(index, { value: event.target.value })}
-                            >
-                              <option value="">{t('select_option')}</option>
-                              {options.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                              ))}
-                            </select>
-                          ) : (
+                          <label className="form-label text-muted mb-1">{t('filter_field')}</label>
+                          <select
+                            className="form-select"
+                            value={filter.field}
+                            onChange={(event) => updateFilterRow(index, { field: event.target.value })}
+                          >
+                            {allFilterFields.map(field => (
+                              <option key={field.name} value={field.name}>{field.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-12 col-md-3">
+                          <label className="form-label text-muted mb-1">{t('filter_operator')}</label>
+                          <select
+                            className="form-select"
+                            value={operator}
+                            onChange={(event) => updateFilterRow(index, { operator: event.target.value })}
+                          >
+                            {operators.map(option => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {showValueInputs && (
+                          <div className="col-12 col-md-4">
+                            <label className="form-label text-muted mb-1">{t('filter_value')}</label>
+                            {fieldMeta.type === 'checkbox' ? (
+                              <select
+                                className="form-select"
+                                value={filter.value ?? ''}
+                                onChange={(event) => updateFilterRow(index, { value: event.target.value })}
+                              >
+                                <option value="true">{t('yes')}</option>
+                                <option value="false">{t('no')}</option>
+                              </select>
+                            ) : options.length > 0 && !showBetween ? (
+                              <select
+                                className="form-select"
+                                value={filter.value ?? ''}
+                                onChange={(event) => updateFilterRow(index, { value: event.target.value })}
+                              >
+                                <option value="">{t('select_option')}</option>
+                                {options.map(option => (
+                                  <option key={option} value={option}>{option}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type={getValueInputType(fieldMeta.type)}
+                                className="form-control"
+                                value={filter.value ?? ''}
+                                onChange={(event) => updateFilterRow(index, { value: event.target.value })}
+                                placeholder={operator === 'in' ? t('filter_comma_hint') : ''}
+                              />
+                            )}
+                          </div>
+                        )}
+                        {showBetween && (
+                          <div className="col-12 col-md-4">
+                            <label className="form-label text-muted mb-1">{t('filter_value_to')}</label>
                             <input
                               type={getValueInputType(fieldMeta.type)}
                               className="form-control"
-                              value={filter.value ?? ''}
-                              onChange={(event) => updateFilterRow(index, { value: event.target.value })}
-                              placeholder={operator === 'in' ? t('filter_comma_hint') : ''}
+                              value={filter.valueTo ?? ''}
+                              onChange={(event) => updateFilterRow(index, { valueTo: event.target.value })}
                             />
-                          )}
+                          </div>
+                        )}
+                        <div className="col-12 col-md-1 d-flex">
+                          <button className="btn btn-outline-danger w-100" onClick={() => removeFilterRow(index)}>
+                            ✕
+                          </button>
                         </div>
-                      )}
-                      {showBetween && (
-                        <div className="col-12 col-md-4">
-                          <label className="form-label text-muted mb-1">{t('filter_value_to')}</label>
-                          <input
-                            type={getValueInputType(fieldMeta.type)}
-                            className="form-control"
-                            value={filter.valueTo ?? ''}
-                            onChange={(event) => updateFilterRow(index, { valueTo: event.target.value })}
-                          />
-                        </div>
-                      )}
-                      <div className="col-12 col-md-1 d-flex">
-                        <button className="btn btn-outline-danger w-100" onClick={() => removeFilterRow(index)}>
-                          ✕
-                        </button>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="card shadow-soft border-0 overflow-hidden">
