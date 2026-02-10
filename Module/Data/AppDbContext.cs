@@ -16,6 +16,9 @@ public class AppDbContext : DbContext
     public DbSet<RecordRelation> RecordRelations { get; set; }
     public DbSet<ExternalApiConfig> ExternalApiConfigs { get; set; }
 
+    [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
+    public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
