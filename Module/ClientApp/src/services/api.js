@@ -47,8 +47,8 @@ export const getFieldTypes = async (moduleId) => {
 };
 
 // Module Records API
-export const getRecords = async (moduleId) => {
-  const response = await api.get(`/modules/${moduleId}/records`);
+export const getRecords = async (moduleId, params = {}) => {
+  const response = await api.get(`/modules/${moduleId}/records`, { params });
   return response.data;
 };
 
@@ -97,4 +97,3 @@ export const deleteApiConfig = async (moduleId, configId) => {
 };
 
 export default api;
-
