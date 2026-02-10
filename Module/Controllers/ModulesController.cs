@@ -32,6 +32,43 @@ public class ModulesController : ControllerBase
         _context.Modules.Add(module);
         await _context.SaveChangesAsync();
 
+        // Dynamically create permissions for the new module
+        var permissions = new[] { "View", "Create", "Update", "Delete", "Manage" };
+        var createdPermissions = new List<Entities.Permission>();
+
+        foreach (var action in permissions)
+        {
+            var permName = $"Module.{module.Name}.{action}";
+            var description = action == "Manage" 
+                ? $"Can manage {module.Name} schema" 
+                : $"Can {action.ToLower()} {module.Name} records";
+
+            var permission = new Entities.Permission
+            {
+                Name = permName,
+                Description = description
+            };
+            _context.Permissions.Add(permission);
+            createdPermissions.Add(permission);
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Assign these permissions to the Admin role
+        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        if (adminRole != null)
+        {
+            foreach (var perm in createdPermissions)
+            {
+                _context.RolePermissions.Add(new Entities.RolePermission
+                {
+                    RoleId = adminRole.Id,
+                    PermissionId = perm.Id
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
+
         return CreatedAtAction(nameof(GetModule), new { id = module.Id }, new ModuleDto
         {
             Id = module.Id,

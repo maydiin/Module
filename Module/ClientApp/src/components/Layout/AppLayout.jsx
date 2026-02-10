@@ -1,12 +1,20 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { logout } from '../../services/api';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+  const username = localStorage.getItem('username');
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -39,6 +47,36 @@ function AppLayout({ children }) {
                 >
                   {t('dashboard')}
                 </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/users'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'hover-bg-accent'
+                    }`}
+                  to="/users"
+                >
+                  Kullanıcılar
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/roles'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'hover-bg-accent'
+                    }`}
+                  to="/roles"
+                >
+                  Roller
+                </Link>
+              </li>
+              <li className="nav-item ms-lg-3">
+                <div className="d-flex align-items-center gap-3">
+                  <span className="text-muted small">👤 {username}</span>
+                  <button onClick={handleLogout} className="btn btn-sm btn-outline-danger rounded-pill px-3">
+                    Çıkış Yap
+                  </button>
+                </div>
               </li>
               <li className="nav-item ms-lg-3">
                 <div className="btn-group" role="group">

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.DTOs;
 using Module.FieldTypes;
+using Module.Authorization;
 
 namespace Module.Controllers;
 
@@ -20,6 +21,7 @@ public class ModuleFieldsController : ControllerBase
     }
 
     [HttpPost]
+    [HasModulePermission("Manage")]
     public async Task<ActionResult<ModuleFieldDto>> AddField(int moduleId, [FromBody] CreateModuleFieldDto dto)
     {
         var module = await _context.Modules.FindAsync(moduleId);

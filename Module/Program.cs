@@ -3,6 +3,11 @@ using Module.Data;
 using Module.Services;
 using Module.FieldTypes;
 using Module.FieldTypes.Advanced;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Module.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,9 +20,35 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
 
+// JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? "super_secret_key_that_is_at_least_32_characters");
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
 
+builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ModulePermissionAuthorizationHandler>();
+// Add a polyfill for dynamic policies if needed, but for now we'll use a dynamic policy provider or simply register policies by name.
+// Standard way for dynamic permissions is to use a custom PolicyProvider.
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 // Add services
 builder.Services.AddScoped<IModuleService, ModuleService>();
 builder.Services.AddScoped<IRepository, Repository>();
@@ -76,6 +107,7 @@ app.UseCors();
 // Serve static files
 app.UseStaticFiles();
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

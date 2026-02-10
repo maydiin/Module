@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModules, createModule } from '../services/api';
+import HasPermission from '../components/HasPermission';
 
 function ModulesPage() {
   const { t } = useTranslation();
@@ -65,6 +66,14 @@ function ModulesPage() {
     );
   }
 
+  // Filter modules based on View permission
+  const permissionsJson = localStorage.getItem('permissions');
+  const userPermissions = permissionsJson ? JSON.parse(permissionsJson) : [];
+
+  const visibleModules = modules.filter(m =>
+    userPermissions.includes(`Module.${m.name}.View`)
+  );
+
   return (
     <div className="fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
@@ -72,20 +81,24 @@ function ModulesPage() {
           <h1 className="display-5 mb-1">{t('modules_title')}</h1>
           <p className="text-muted lead mb-0">{t('modules_subtitle')}</p>
         </div>
-        <button
-          className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? (
-            <>
-              <span className="fs-5">✕</span> {t('cancel')}
-            </>
-          ) : (
-            <>
-              <span className="fs-5">+</span> {t('create_module')}
-            </>
-          )}
-        </button>
+
+        {/* Dynamic creation button usually requires high-level manage permission */}
+        {userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
+          <button
+            className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? (
+              <>
+                <span className="fs-5">✕</span> {t('cancel')}
+              </>
+            ) : (
+              <>
+                <span className="fs-5">+</span> {t('create_module')}
+              </>
+            )}
+          </button>
+        ) : null}
       </div>
 
       {error && (
@@ -135,7 +148,7 @@ function ModulesPage() {
         </div>
       )}
 
-      {modules.length === 0 ? (
+      {visibleModules.length === 0 ? (
         <div className="text-center py-5 glass rounded-4 border-dashed border-2">
           <div className="fs-1 mb-3 opacity-50">📁</div>
           <h3 className="h4">{t('empty_workspace_title')}</h3>
@@ -143,7 +156,7 @@ function ModulesPage() {
         </div>
       ) : (
         <div className="row g-4">
-          {modules.map((module) => (
+          {visibleModules.map((module) => (
             <div key={module.id} className="col-lg-4 col-md-6">
               <div className="card h-100 border-0 shadow-soft-hover">
                 <div className="card-body p-4">
@@ -162,24 +175,30 @@ function ModulesPage() {
                   </div>
 
                   <div className="d-flex flex-wrap gap-2 mt-auto">
-                    <button
-                      className="btn btn-light btn-sm flex-grow-1 border"
-                      onClick={() => handleModuleClick(module.id)}
-                    >
-                      <span className="opacity-75">⚙️</span> {t('fields')}
-                    </button>
-                    <button
-                      className="btn btn-light btn-sm flex-grow-1 border"
-                      onClick={() => navigate(`/modules/${module.id}/records`)}
-                    >
-                      <span className="opacity-75">📋</span> {t('records')}
-                    </button>
-                    <button
-                      className="btn btn-light btn-sm flex-grow-1 border"
-                      onClick={() => navigate(`/modules/${module.id}/api-configs`)}
-                    >
-                      <span className="opacity-75">🔌</span> API
-                    </button>
+                    <HasPermission permission={`Module.${module.name}.Manage`}>
+                      <button
+                        className="btn btn-light btn-sm flex-grow-1 border"
+                        onClick={() => handleModuleClick(module.id)}
+                      >
+                        <span className="opacity-75">⚙️</span> {t('fields')}
+                      </button>
+                    </HasPermission>
+                    <HasPermission permission={`Module.${module.name}.View`}>
+                      <button
+                        className="btn btn-light btn-sm flex-grow-1 border"
+                        onClick={() => navigate(`/modules/${module.id}/records`)}
+                      >
+                        <span className="opacity-75">📋</span> {t('records')}
+                      </button>
+                    </HasPermission>
+                    <HasPermission permission={`Module.${module.name}.Manage`}>
+                      <button
+                        className="btn btn-light btn-sm flex-grow-1 border"
+                        onClick={() => navigate(`/modules/${module.id}/api-configs`)}
+                      >
+                        <span className="opacity-75">🔌</span> API
+                      </button>
+                    </HasPermission>
                   </div>
                 </div>
               </div>

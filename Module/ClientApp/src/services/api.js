@@ -9,6 +9,91 @@ const api = axios.create({
   },
 });
 
+// Request interceptor to add JWT token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Auth API
+export const login = async (username, password) => {
+  const response = await api.post('/auth/login', { username, password });
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('username', response.data.username);
+    localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []));
+  }
+  return response.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('permissions');
+};
+
+export const seedPermissions = async () => {
+  const response = await api.post('/auth/seed');
+  return response.data;
+};
+
+// Users Management API
+export const getUsers = async () => {
+  const response = await api.get('/users');
+  return response.data;
+};
+
+export const assignRole = async (userId, roleName) => {
+  const response = await api.post(`/users/${userId}/roles`, { roleName });
+  return response.data;
+};
+
+export const removeRole = async (userId, roleName) => {
+  const response = await api.delete(`/users/${userId}/roles/${roleName}`);
+  return response.data;
+};
+
+// Roles Management API
+export const getRoles = async () => {
+  const response = await api.get('/roles');
+  return response.data;
+};
+
+export const getAllPermissions = async () => {
+  const response = await api.get('/roles/permissions');
+  return response.data;
+};
+
+export const addPermissionToRole = async (roleId, permissionName) => {
+  const response = await api.post(`/roles/${roleId}/permissions`, { permissionName });
+  return response.data;
+};
+
+export const removePermissionFromRole = async (roleId, permissionName) => {
+  const response = await api.delete(`/roles/${roleId}/permissions/${permissionName}`);
+  return response.data;
+};
+
+export const createRole = async (roleData) => {
+  const response = await api.post('/roles', roleData);
+  return response.data;
+};
+
+export const updateRole = async (id, roleData) => {
+  const response = await api.put(`/roles/${id}`, roleData);
+  return response.data;
+};
+
+export const deleteRole = async (id) => {
+  await api.delete(`/roles/${id}`);
+};
+
 // Modules API
 export const getModules = async () => {
   const response = await api.get('/modules');

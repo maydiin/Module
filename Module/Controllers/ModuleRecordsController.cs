@@ -6,11 +6,13 @@ using Module.Data;
 using Module.DTOs;
 using Module.Services;
 using Module.FieldTypes;
+using Module.Authorization;
 
 namespace Module.Controllers;
 
 [ApiController]
 [Route("api/modules/{moduleId}/records")]
+[Microsoft.AspNetCore.Authorization.Authorize]
 public class ModuleRecordsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -29,6 +31,7 @@ public class ModuleRecordsController : ControllerBase
     }
 
     [HttpPost]
+    [HasModulePermission("Create")]
     public async Task<ActionResult<ModuleRecordDto>> CreateRecord(int moduleId, [FromBody] CreateModuleRecordDto dto)
     {
         if (dto.Data == null)
@@ -53,6 +56,7 @@ public class ModuleRecordsController : ControllerBase
     }
 
     [HttpGet]
+    [HasModulePermission("View")]
     public async Task<ActionResult<PagedResult<ModuleRecordDto>>> ListRecords(
         int moduleId,
         [FromQuery] int page = 1,
@@ -328,6 +332,7 @@ public class ModuleRecordsController : ControllerBase
     }
 
     [HttpGet("{recordId}")]
+    [HasModulePermission("View")]
     public async Task<ActionResult<ModuleRecordDto>> GetRecord(int moduleId, int recordId)
     {
         var record = await _context.ModuleRecords
@@ -353,6 +358,7 @@ public class ModuleRecordsController : ControllerBase
     }
 
     [HttpPut("{recordId}")]
+    [HasModulePermission("Update")]
     public async Task<ActionResult<ModuleRecordDto>> UpdateRecord(int moduleId, int recordId, [FromBody] UpdateModuleRecordDto dto)
     {
         if (dto.Data == null)
@@ -376,6 +382,7 @@ public class ModuleRecordsController : ControllerBase
     }
 
     [HttpDelete("{recordId}")]
+    [HasModulePermission("Delete")]
     public async Task<IActionResult> DeleteRecord(int moduleId, int recordId)
     {
         try
@@ -394,6 +401,7 @@ public class ModuleRecordsController : ControllerBase
     }
 
     [HttpGet("/api/records/by-name/{moduleName}")]
+    [HasModulePermission("View")]
     public async Task<ActionResult<IEnumerable<ModuleRecordDto>>> ListRecordsByName(string moduleName)
     {
         var module = await _context.Modules.FirstOrDefaultAsync(m => m.Name == moduleName);
