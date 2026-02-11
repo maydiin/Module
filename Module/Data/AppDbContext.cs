@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
+    public DbSet<Tenant> Tenants { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -44,6 +45,11 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.HasIndex(e => e.Name);
+            
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.Modules)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ModuleField>(entity =>
@@ -71,9 +77,15 @@ public class AppDbContext : DbContext
                 .WithMany(m => m.Records)
                 .HasForeignKey(e => e.ModuleId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.ModuleRecords)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
             
             entity.HasIndex(e => e.ModuleId);
             entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.TenantId);
         });
 
         modelBuilder.Entity<ExternalApiConfig>(entity =>
@@ -95,6 +107,12 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Username).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
             entity.HasIndex(e => e.Username).IsUnique();
+            
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.Users)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -122,6 +140,14 @@ public class AppDbContext : DbContext
             entity.HasKey(e => new { e.RoleId, e.PermissionId });
             entity.HasOne(e => e.Role).WithMany(r => r.RolePermissions).HasForeignKey(e => e.RoleId);
             entity.HasOne(e => e.Permission).WithMany(p => p.RolePermissions).HasForeignKey(e => e.PermissionId);
+        });
+
+        modelBuilder.Entity<Tenant>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Subdomain).HasMaxLength(100);
+            entity.HasIndex(e => e.IsHost);
         });
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Module.Data;
 
@@ -11,9 +12,11 @@ using Module.Data;
 namespace Module.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211184200_AddEmailVerification")]
+    partial class AddEmailVerification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,14 +79,9 @@ namespace Module.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("Modules");
                 });
@@ -152,16 +150,11 @@ namespace Module.Migrations
                     b.Property<int>("ModuleId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("ModuleId");
-
-                    b.HasIndex("TenantId");
 
                     b.ToTable("ModuleRecords");
                 });
@@ -266,36 +259,6 @@ namespace Module.Migrations
                     b.ToTable("RolePermissions");
                 });
 
-            modelBuilder.Entity("Module.Entities.Tenant", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsHost")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Subdomain")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsHost");
-
-                    b.ToTable("Tenants");
-                });
-
             modelBuilder.Entity("Module.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -325,17 +288,12 @@ namespace Module.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TenantId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -369,17 +327,6 @@ namespace Module.Migrations
                     b.Navigation("Module");
                 });
 
-            modelBuilder.Entity("Module.Entities.Module", b =>
-                {
-                    b.HasOne("Module.Entities.Tenant", "Tenant")
-                        .WithMany("Modules")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("Module.Entities.ModuleField", b =>
                 {
                     b.HasOne("Module.Entities.Module", "Module")
@@ -399,15 +346,7 @@ namespace Module.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Module.Entities.Tenant", "Tenant")
-                        .WithMany("ModuleRecords")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Module");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("Module.Entities.RolePermission", b =>
@@ -427,16 +366,6 @@ namespace Module.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("Module.Entities.User", b =>
-                {
-                    b.HasOne("Module.Entities.Tenant", "Tenant")
-                        .WithMany("Users")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("Module.Entities.UserRole", b =>
@@ -475,15 +404,6 @@ namespace Module.Migrations
                     b.Navigation("RolePermissions");
 
                     b.Navigation("UserRoles");
-                });
-
-            modelBuilder.Entity("Module.Entities.Tenant", b =>
-                {
-                    b.Navigation("ModuleRecords");
-
-                    b.Navigation("Modules");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Module.Entities.User", b =>

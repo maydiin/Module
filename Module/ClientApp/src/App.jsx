@@ -5,6 +5,8 @@ import ModuleFieldsPage from './pages/ModuleFieldsPage';
 import ModuleRecordsPage from './pages/ModuleRecordsPage';
 import ModuleApiConfigsPage from './pages/ModuleApiConfigsPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 import UsersPage from './pages/UsersPage';
 import RolesPage from './pages/RolesPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,6 +16,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route
           path="/*"
           element={

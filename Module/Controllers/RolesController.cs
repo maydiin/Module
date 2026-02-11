@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +57,12 @@ public class RolesController : ControllerBase
 
         _context.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permission.Id });
         await _context.SaveChangesAsync();
-        return Ok();
+        
+        // Check if the current user has this role
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentUserHasRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == currentUserId && ur.RoleId == roleId);
+        
+        return Ok(new { shouldRefreshToken = currentUserHasRole });
     }
 
     [HttpDelete("{roleId}/permissions/{permissionName}")]
@@ -70,7 +76,12 @@ public class RolesController : ControllerBase
 
         _context.RolePermissions.Remove(rolePermission);
         await _context.SaveChangesAsync();
-        return Ok();
+        
+        // Check if the current user has this role
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentUserHasRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == currentUserId && ur.RoleId == roleId);
+        
+        return Ok(new { shouldRefreshToken = currentUserHasRole });
     }
 
     [HttpPost]

@@ -7,6 +7,10 @@ public class ModuleRecord
     public string Data { get; set; } = string.Empty; // JSON stored as nvarchar(max)
     public DateTime CreatedAt { get; set; }
     
+    // Multi-tenant support
+    public int TenantId { get; set; }
+    public Tenant Tenant { get; set; } = null!;
+    
     public Module Module { get; set; } = null!;
 }
 

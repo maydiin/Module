@@ -20,14 +20,16 @@ public class ModuleRecordsController : ControllerBase
     private readonly IRelationService _relationService;
     private readonly MediatR.IMediator _mediator;
     private readonly FieldTypeFactory _fieldTypeFactory;
+    private readonly ITenantService _tenantService;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService)
     {
         _context = context;
         _moduleService = moduleService;
         _relationService = relationService;
         _mediator = mediator;
         _fieldTypeFactory = fieldTypeFactory;
+        _tenantService = tenantService;
     }
 
     [HttpPost]
@@ -82,6 +84,13 @@ public class ModuleRecordsController : ControllerBase
         var query = _context.ModuleRecords
             .Where(r => r.ModuleId == moduleId)
             .AsNoTracking();
+            
+        // Apply tenant filter unless super admin
+        if (!_tenantService.IsSuperAdmin())
+        {
+            var tenantId = _tenantService.GetCurrentTenantId();
+            query = query.Where(r => r.TenantId == tenantId);
+        }
 
         // 1. Global Search (at DB level)
         if (!string.IsNullOrWhiteSpace(search))

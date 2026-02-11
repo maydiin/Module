@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Module.Data;
 
@@ -11,9 +12,11 @@ using Module.Data;
 namespace Module.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211200125_AddMultiTenant")]
+    partial class AddMultiTenant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -325,7 +328,7 @@ namespace Module.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TenantId")
+                    b.Property<int>("TenantId")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
@@ -434,7 +437,8 @@ namespace Module.Migrations
                     b.HasOne("Module.Entities.Tenant", "Tenant")
                         .WithMany("Users")
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Tenant");
                 });

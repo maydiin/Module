@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.DTOs;
+using Module.Services;
 
 namespace Module.Controllers;
 
@@ -10,10 +12,12 @@ namespace Module.Controllers;
 public class ModulesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ITenantService _tenantService;
 
-    public ModulesController(AppDbContext context)
+    public ModulesController(AppDbContext context, ITenantService tenantService)
     {
         _context = context;
+        _tenantService = tenantService;
     }
 
     [HttpPost]
@@ -26,7 +30,8 @@ public class ModulesController : ControllerBase
 
         var module = new Entities.Module
         {
-            Name = dto.Name
+            Name = dto.Name,
+            TenantId = _tenantService.GetCurrentTenantId()
         };
 
         _context.Modules.Add(module);
@@ -56,6 +61,8 @@ public class ModulesController : ControllerBase
 
         // Assign these permissions to the Admin role
         var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        bool shouldRefreshToken = false;
+        
         if (adminRole != null)
         {
             foreach (var perm in createdPermissions)
@@ -67,19 +74,33 @@ public class ModulesController : ControllerBase
                 });
             }
             await _context.SaveChangesAsync();
+            
+            // Check if the current user has the Admin role
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            shouldRefreshToken = await _context.UserRoles.AnyAsync(ur => ur.UserId == currentUserId && ur.RoleId == adminRole.Id);
         }
 
-        return CreatedAtAction(nameof(GetModule), new { id = module.Id }, new ModuleDto
+        return CreatedAtAction(nameof(GetModule), new { id = module.Id }, new
         {
-            Id = module.Id,
-            Name = module.Name
+            id = module.Id,
+            name = module.Name,
+            shouldRefreshToken = shouldRefreshToken
         });
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ModuleDto>>> ListModules()
     {
-        var modules = await _context.Modules
+        var query = _context.Modules.AsQueryable();
+        
+        // Apply tenant filter unless super admin
+        if (!_tenantService.IsSuperAdmin())
+        {
+            var tenantId = _tenantService.GetCurrentTenantId();
+            query = query.Where(m => m.TenantId == tenantId);
+        }
+        
+        var modules = await query
             .OrderBy(m => m.Name)
             .Select(m => new ModuleDto
             {

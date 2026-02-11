@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getRoles, getAllPermissions, addPermissionToRole, removePermissionFromRole, createRole, updateRole, deleteRole } from '../services/api';
+import { getRoles, getAllPermissions, addPermissionToRole, removePermissionFromRole, createRole, updateRole, deleteRole, refreshToken } from '../services/api';
 
 function RolesPage() {
     const [roles, setRoles] = useState([]);
@@ -71,8 +71,15 @@ function RolesPage() {
 
     const handleAddPermission = async (roleId, permissionName) => {
         try {
-            await addPermissionToRole(roleId, permissionName);
-            loadData();
+            const result = await addPermissionToRole(roleId, permissionName);
+
+            // If the permission was added to a role the current user has, refresh their token
+            if (result.shouldRefreshToken) {
+                await refreshToken();
+                window.location.reload();
+            } else {
+                loadData();
+            }
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to add permission');
         }
@@ -80,8 +87,15 @@ function RolesPage() {
 
     const handleRemovePermission = async (roleId, permissionName) => {
         try {
-            await removePermissionFromRole(roleId, permissionName);
-            loadData();
+            const result = await removePermissionFromRole(roleId, permissionName);
+
+            // If the permission was removed from a role the current user has, refresh their token
+            if (result.shouldRefreshToken) {
+                await refreshToken();
+                window.location.reload();
+            } else {
+                loadData();
+            }
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to remove permission');
         }

@@ -50,7 +50,12 @@ public class UsersController : ControllerBase
 
         _context.UserRoles.Add(new UserRole { UserId = userId, RoleId = role.Id });
         await _context.SaveChangesAsync();
-        return Ok();
+        
+        // Check if the role was assigned to the current user
+        var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var shouldRefresh = userId == currentUserId;
+        
+        return Ok(new { shouldRefreshToken = shouldRefresh });
     }
 
     [HttpDelete("{userId}/roles/{roleName}")]
@@ -64,7 +69,12 @@ public class UsersController : ControllerBase
 
         _context.UserRoles.Remove(userRole);
         await _context.SaveChangesAsync();
-        return Ok();
+        
+        // Check if the role was removed from the current user
+        var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var shouldRefresh = userId == currentUserId;
+        
+        return Ok(new { shouldRefreshToken = shouldRefresh });
     }
 }
 

@@ -43,6 +43,32 @@ export const seedPermissions = async () => {
   return response.data;
 };
 
+export const register = async (username, email, password) => {
+  const response = await api.post('/auth/register', { username, email, password });
+  return response.data;
+};
+
+export const verifyEmail = async (email, verificationCode) => {
+  const response = await api.post('/auth/verify-email', { email, verificationCode });
+  return response.data;
+};
+
+export const resendVerificationCode = async (email) => {
+  const response = await api.post('/auth/resend-verification', { email });
+  return response.data;
+};
+
+export const refreshToken = async () => {
+  const response = await api.post('/auth/refresh-token');
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('username', response.data.username);
+    localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []));
+  }
+  return response.data;
+};
+
+
 // Users Management API
 export const getUsers = async () => {
   const response = await api.get('/users');

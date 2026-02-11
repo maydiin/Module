@@ -59,6 +59,10 @@ function LoginPage() {
                                 <button type="submit" className="btn btn-primary w-100 py-2 mb-3" disabled={loading}>
                                     {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
                                 </button>
+                                <div className="text-center">
+                                    <span className="text-muted">Hesabınız yok mu? </span>
+                                    <a href="/register" className="text-decoration-none">Kayıt Olun</a>
+                                </div>
                             </form>
                         </div>
                     </div>

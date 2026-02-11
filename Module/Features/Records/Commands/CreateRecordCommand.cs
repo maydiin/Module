@@ -7,6 +7,7 @@ using Module.Entities;
 using Module.Services;
 using Module.FieldTypes;
 using System.Text.Json;
+using System.Text.Json;
 
 namespace Module.Features.Records.Commands;
 
@@ -18,13 +19,15 @@ public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRe
     private readonly IModuleService _moduleService;
     private readonly IRelationService _relationService;
     private readonly FieldTypeFactory _fieldTypeFactory;
+    private readonly ITenantService _tenantService;
 
-    public CreateRecordHandler(AppDbContext context, IModuleService moduleService, IRelationService relationService, FieldTypeFactory fieldTypeFactory)
+    public CreateRecordHandler(AppDbContext context, IModuleService moduleService, IRelationService relationService, FieldTypeFactory fieldTypeFactory, ITenantService tenantService)
     {
         _context = context;
         _moduleService = moduleService;
         _relationService = relationService;
         _fieldTypeFactory = fieldTypeFactory;
+        _tenantService = tenantService;
     }
 
     public async Task<ModuleRecordDto> Handle(CreateRecordCommand request, CancellationToken cancellationToken)
@@ -83,7 +86,8 @@ public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRe
         {
             ModuleId = request.ModuleId,
             Data = json,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            TenantId = _tenantService.GetCurrentTenantId()
         };
 
         _context.ModuleRecords.Add(record);

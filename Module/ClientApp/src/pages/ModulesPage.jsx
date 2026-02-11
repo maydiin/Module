@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModules, createModule } from '../services/api';
+import { getModules, createModule, refreshToken } from '../services/api';
 import HasPermission from '../components/HasPermission';
 
 function ModulesPage() {
@@ -41,10 +41,17 @@ function ModulesPage() {
     }
 
     try {
-      await createModule({ name: moduleName.trim() });
-      setModuleName('');
-      setShowForm(false);
-      loadModules();
+      const result = await createModule({ name: moduleName.trim() });
+
+      // If permissions were added to a role the current user has, refresh their token
+      if (result.shouldRefreshToken) {
+        await refreshToken();
+        window.location.reload();
+      } else {
+        setModuleName('');
+        setShowForm(false);
+        loadModules();
+      }
     } catch (err) {
       setError(err.response?.data?.error || t('error'));
       console.error(err);

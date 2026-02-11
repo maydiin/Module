@@ -54,6 +54,8 @@ builder.Services.AddScoped<IModuleService, ModuleService>();
 builder.Services.AddScoped<IRepository, Repository>();
 builder.Services.AddScoped<IRelationService, RelationService>();
 builder.Services.AddScoped<IExternalApiService, ExternalApiService>();
+builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
 
 // Add Field Types
 builder.Services.AddScoped<IFieldType, TextFieldType>();

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getUsers, getRoles, assignRole, removeRole } from '../services/api';
+import { getUsers, getRoles, assignRole, removeRole, refreshToken } from '../services/api';
 
 function UsersPage() {
     const { t } = useTranslation();
@@ -28,8 +28,15 @@ function UsersPage() {
 
     const handleAssignRole = async (userId, roleName) => {
         try {
-            await assignRole(userId, roleName);
-            loadData();
+            const result = await assignRole(userId, roleName);
+
+            // If the role was assigned to the current user, refresh their token
+            if (result.shouldRefreshToken) {
+                await refreshToken();
+                window.location.reload();
+            } else {
+                loadData();
+            }
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to assign role');
         }
@@ -37,8 +44,15 @@ function UsersPage() {
 
     const handleRemoveRole = async (userId, roleName) => {
         try {
-            await removeRole(userId, roleName);
-            loadData();
+            const result = await removeRole(userId, roleName);
+
+            // If the role was removed from the current user, refresh their token
+            if (result.shouldRefreshToken) {
+                await refreshToken();
+                window.location.reload();
+            } else {
+                loadData();
+            }
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to remove role');
         }
