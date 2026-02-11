@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, seedPermissions } from '../services/api';
+import { login } from '../services/api';
 import { useTranslation } from 'react-i18next';
 
 function LoginPage() {
@@ -10,7 +10,6 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [seedMessage, setSeedMessage] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,14 +25,7 @@ function LoginPage() {
         }
     };
 
-    const handleSeed = async () => {
-        try {
-            const res = await seedPermissions();
-            setSeedMessage(res.message);
-        } catch (err) {
-            setError('Seed failed or already done');
-        }
-    };
+
 
     return (
         <div className="container mt-5">
@@ -43,7 +35,6 @@ function LoginPage() {
                         <div className="card-body p-5">
                             <h2 className="text-center mb-4">Giriş Yap</h2>
                             {error && <div className="alert alert-danger">{error}</div>}
-                            {seedMessage && <div className="alert alert-success">{seedMessage}</div>}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
                                     <label className="form-label">Kullanıcı Adı</label>
@@ -69,13 +60,6 @@ function LoginPage() {
                                     {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
                                 </button>
                             </form>
-                            <hr />
-                            <div className="text-center">
-                                <small className="text-muted d-block mb-2">Sistemi ilk kez kuruyorsanız:</small>
-                                <button onClick={handleSeed} className="btn btn-outline-secondary btn-sm">
-                                    Admin ve İzinleri Oluştur (Seed)
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
