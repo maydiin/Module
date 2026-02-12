@@ -24,6 +24,17 @@ public class TenantService : ITenantService
 
     public int GetCurrentTenantId()
     {
+        // Super Admin can override tenant via X-Tenant-Id header
+        if (IsSuperAdmin())
+        {
+            var headerValue = _httpContextAccessor.HttpContext?.Request.Headers["X-Tenant-Id"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(headerValue) && int.TryParse(headerValue, out var overrideTenantId))
+            {
+                return overrideTenantId;
+            }
+        }
+
+        // Default: use tenant from JWT claim
         var tenantIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst("TenantId");
         if (tenantIdClaim != null && int.TryParse(tenantIdClaim.Value, out var tenantId))
         {

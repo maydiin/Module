@@ -89,7 +89,8 @@ public class AuthController : ControllerBase
         {
             username = user.Username,
             token = tokenString,
-            permissions = permissions
+            permissions = permissions,
+            isSuperAdmin = isSuperAdmin
         });
     }
 
@@ -183,12 +184,29 @@ public class AuthController : ControllerBase
         // Assign user to the new tenant
         user.TenantId = newTenant.Id;
         
-        // Assign Admin role to the user
-        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-        if (adminRole != null)
+        // Create default permissions for the new tenant
+        var defaultPermissions = new List<Permission>
         {
-            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = adminRole.Id });
+            new Permission { Name = "User.Manage", Description = "Can manage users and roles", TenantId = newTenant.Id },
+            new Permission { Name = "Role.Manage", Description = "Can manage roles and permissions", TenantId = newTenant.Id }
+        };
+        _context.Permissions.AddRange(defaultPermissions);
+        await _context.SaveChangesAsync();
+        
+        // Create default roles for the new tenant
+        var adminRole = new Role { Name = "Admin", Description = "Full access within tenant", TenantId = newTenant.Id };
+        var viewerRole = new Role { Name = "Viewer", Description = "Read-only access", TenantId = newTenant.Id };
+        _context.Roles.AddRange(adminRole, viewerRole);
+        await _context.SaveChangesAsync();
+        
+        // Assign all permissions to Admin role
+        foreach (var perm in defaultPermissions)
+        {
+            _context.RolePermissions.Add(new RolePermission { RoleId = adminRole.Id, PermissionId = perm.Id });
         }
+        
+        // Assign Admin role to the user
+        _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = adminRole.Id });
 
         await _context.SaveChangesAsync();
 
@@ -304,7 +322,8 @@ public class AuthController : ControllerBase
         {
             username = user.Username,
             token = tokenString,
-            permissions = permissions
+            permissions = permissions,
+            isSuperAdmin = isSuperAdmin
         });
     }
 }

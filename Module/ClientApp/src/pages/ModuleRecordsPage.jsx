@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
 import LinkedRecordsModal from '../components/LinkedRecordsModal';
+import { useTenant } from '../components/TenantContext';
 
 function ModuleRecordsPage() {
   const { t } = useTranslation();
@@ -29,11 +30,12 @@ function ModuleRecordsPage() {
   const [filterDrafts, setFilterDrafts] = useState([]);
   const [filters, setFilters] = useState([]);
   const [showFilterPanel, setShowFilterPanel] = useState(true);
+  const { selectedTenantId } = useTenant();
 
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleId, page, pageSize, sortBy, sortDir, searchQuery, filters]);
+  }, [moduleId, page, pageSize, sortBy, sortDir, searchQuery, filters, selectedTenantId]);
 
   useEffect(() => {
     setPage(1);

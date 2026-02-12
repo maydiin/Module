@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getUsers, getRoles, assignRole, removeRole, refreshToken } from '../services/api';
+import { useTenant } from '../components/TenantContext';
 
 function UsersPage() {
     const { t } = useTranslation();
@@ -8,10 +9,11 @@ function UsersPage() {
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { selectedTenantId } = useTenant();
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [selectedTenantId]);
 
     const loadData = async () => {
         try {

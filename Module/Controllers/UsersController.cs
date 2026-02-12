@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Module.Authorization;
 using Module.Data;
 using Module.Entities;
+using Module.Services;
 
 namespace Module.Controllers;
 
@@ -14,16 +15,21 @@ namespace Module.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ITenantService _tenantService;
 
-    public UsersController(AppDbContext context)
+    public UsersController(AppDbContext context, ITenantService tenantService)
     {
         _context = context;
+        _tenantService = tenantService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
+        var tenantId = _tenantService.GetCurrentTenantId();
+        
         var users = await _context.Users
+            .Where(u => u.TenantId == tenantId)
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
             .Select(u => new {

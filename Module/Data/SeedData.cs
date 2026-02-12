@@ -23,46 +23,59 @@ public static class SeedData
             await context.SaveChangesAsync();
         }
 
-        // 2. Seed Permissions
+        // 2. Seed Permissions (for Host tenant)
         var permissionsToSeed = new List<Permission>
         {
-            new Permission { Name = "User.Manage", Description = "Can manage users and roles" },
-            new Permission { Name = "Role.Manage", Description = "Can manage roles and permissions" }
+            new Permission { Name = "User.Manage", Description = "Can manage users and roles", TenantId = hostTenant.Id },
+            new Permission { Name = "Role.Manage", Description = "Can manage roles and permissions", TenantId = hostTenant.Id }
         };
 
         foreach (var perm in permissionsToSeed)
         {
-            if (!await context.Permissions.AnyAsync(p => p.Name == perm.Name))
+            if (!await context.Permissions.AnyAsync(p => p.Name == perm.Name && p.TenantId == hostTenant.Id))
             {
                 context.Permissions.Add(perm);
             }
         }
         await context.SaveChangesAsync();
 
-        // 3. Seed Roles
+        // 3. Seed Roles (for Host tenant)
         var rolesToSeed = new List<Role>
         {
-            new Role { Name = "Super Admin", Description = "Full system access across all tenants" },
-            new Role { Name = "Admin", Description = "Full access within tenant" },
-            new Role { Name = "Viewer", Description = "Read-only access" }
+            new Role { Name = "Super Admin", Description = "Full system access across all tenants", TenantId = hostTenant.Id },
+            new Role { Name = "Admin", Description = "Full access within tenant", TenantId = hostTenant.Id },
+            new Role { Name = "Viewer", Description = "Read-only access", TenantId = hostTenant.Id }
         };
 
         foreach (var role in rolesToSeed)
         {
-            if (!await context.Roles.AnyAsync(r => r.Name == role.Name))
+            if (!await context.Roles.AnyAsync(r => r.Name == role.Name && r.TenantId == hostTenant.Id))
             {
                 context.Roles.Add(role);
             }
         }
         await context.SaveChangesAsync();
 
-        // 4. Ensure Super Admin and Admin have all permissions
-        var superAdminRole = await context.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Super Admin");
-        var adminRole = await context.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Admin");
+        // 3.5 Fix existing roles/permissions with null TenantId (migration fix)
+        var rolesWithNullTenant = await context.Roles.Where(r => r.TenantId == null).ToListAsync();
+        foreach (var role in rolesWithNullTenant)
+        {
+            role.TenantId = hostTenant.Id;
+        }
+        var permsWithNullTenant = await context.Permissions.Where(p => p.TenantId == null).ToListAsync();
+        foreach (var perm in permsWithNullTenant)
+        {
+            perm.TenantId = hostTenant.Id;
+        }
+        await context.SaveChangesAsync();
+
+        // 4. Ensure Super Admin and Admin have all host tenant permissions
+        var superAdminRole = await context.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Super Admin" && r.TenantId == hostTenant.Id);
+        var adminRole = await context.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == hostTenant.Id);
         
         if (superAdminRole != null || adminRole != null)
         {
-            var allPermissions = await context.Permissions.ToListAsync();
+            var allPermissions = await context.Permissions.Where(p => p.TenantId == hostTenant.Id).ToListAsync();
             
             // Assign all permissions to Super Admin
             if (superAdminRole != null)

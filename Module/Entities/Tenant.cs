@@ -11,4 +11,6 @@ public class Tenant
     public ICollection<User> Users { get; set; } = new List<User>();
     public ICollection<Module> Modules { get; set; } = new List<Module>();
     public ICollection<ModuleRecord> ModuleRecords { get; set; } = new List<ModuleRecord>();
+    public ICollection<Role> Roles { get; set; } = new List<Role>();
+    public ICollection<Permission> Permissions { get; set; } = new List<Permission>();
 }

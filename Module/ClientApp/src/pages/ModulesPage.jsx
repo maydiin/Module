@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModules, createModule, refreshToken } from '../services/api';
 import HasPermission from '../components/HasPermission';
+import { useTenant } from '../components/TenantContext';
 
 function ModulesPage() {
   const { t } = useTranslation();
@@ -12,11 +13,12 @@ function ModulesPage() {
   const [moduleName, setModuleName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { selectedTenantId } = useTenant();
 
   useEffect(() => {
     loadModules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedTenantId]);
 
   const loadModules = async () => {
     try {
@@ -73,13 +75,14 @@ function ModulesPage() {
     );
   }
 
-  // Filter modules based on View permission
+  // Filter modules based on View permission (Super Admin sees all)
   const permissionsJson = localStorage.getItem('permissions');
   const userPermissions = permissionsJson ? JSON.parse(permissionsJson) : [];
+  const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
 
-  const visibleModules = modules.filter(m =>
-    userPermissions.includes(`Module.${m.name}.View`)
-  );
+  const visibleModules = isSuperAdmin
+    ? modules
+    : modules.filter(m => userPermissions.includes(`Module.${m.name}.View`));
 
   return (
     <div className="fade-in">
@@ -90,7 +93,7 @@ function ModulesPage() {
         </div>
 
         {/* Dynamic creation button usually requires high-level manage permission */}
-        {userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
+        {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
           <button
             className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
             onClick={() => setShowForm(!showForm)}

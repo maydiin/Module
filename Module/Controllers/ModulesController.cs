@@ -28,16 +28,18 @@ public class ModulesController : ControllerBase
             return BadRequest(new { error = "Module name is required" });
         }
 
+        var tenantId = _tenantService.GetCurrentTenantId();
+
         var module = new Entities.Module
         {
             Name = dto.Name,
-            TenantId = _tenantService.GetCurrentTenantId()
+            TenantId = tenantId
         };
 
         _context.Modules.Add(module);
         await _context.SaveChangesAsync();
 
-        // Dynamically create permissions for the new module
+        // Dynamically create permissions for the new module (tenant-scoped)
         var permissions = new[] { "View", "Create", "Update", "Delete", "Manage" };
         var createdPermissions = new List<Entities.Permission>();
 
@@ -51,7 +53,8 @@ public class ModulesController : ControllerBase
             var permission = new Entities.Permission
             {
                 Name = permName,
-                Description = description
+                Description = description,
+                TenantId = tenantId
             };
             _context.Permissions.Add(permission);
             createdPermissions.Add(permission);
@@ -59,8 +62,8 @@ public class ModulesController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        // Assign these permissions to the Admin role
-        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        // Assign these permissions to the tenant's Admin role
+        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == tenantId);
         bool shouldRefreshToken = false;
         
         if (adminRole != null)
@@ -91,16 +94,10 @@ public class ModulesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ModuleDto>>> ListModules()
     {
-        var query = _context.Modules.AsQueryable();
+        var tenantId = _tenantService.GetCurrentTenantId();
         
-        // Apply tenant filter unless super admin
-        if (!_tenantService.IsSuperAdmin())
-        {
-            var tenantId = _tenantService.GetCurrentTenantId();
-            query = query.Where(m => m.TenantId == tenantId);
-        }
-        
-        var modules = await query
+        var modules = await _context.Modules
+            .Where(m => m.TenantId == tenantId)
             .OrderBy(m => m.Name)
             .Select(m => new ModuleDto
             {

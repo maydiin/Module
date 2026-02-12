@@ -85,12 +85,9 @@ public class ModuleRecordsController : ControllerBase
             .Where(r => r.ModuleId == moduleId)
             .AsNoTracking();
             
-        // Apply tenant filter unless super admin
-        if (!_tenantService.IsSuperAdmin())
-        {
-            var tenantId = _tenantService.GetCurrentTenantId();
-            query = query.Where(r => r.TenantId == tenantId);
-        }
+        // Always apply tenant filter (TenantService handles super admin header override)
+        var tenantId = _tenantService.GetCurrentTenantId();
+        query = query.Where(r => r.TenantId == tenantId);
 
         // 1. Global Search (at DB level)
         if (!string.IsNullOrWhiteSpace(search))

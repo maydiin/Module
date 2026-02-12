@@ -9,12 +9,16 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add JWT token
+// Request interceptor to add JWT token and tenant header
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const selectedTenantId = localStorage.getItem('selectedTenantId');
+    if (selectedTenantId) {
+      config.headers['X-Tenant-Id'] = selectedTenantId;
     }
     return config;
   },
@@ -28,6 +32,7 @@ export const login = async (username, password) => {
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('username', response.data.username);
     localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []));
+    localStorage.setItem('isSuperAdmin', response.data.isSuperAdmin ? 'true' : 'false');
   }
   return response.data;
 };
@@ -36,6 +41,8 @@ export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('username');
   localStorage.removeItem('permissions');
+  localStorage.removeItem('isSuperAdmin');
+  localStorage.removeItem('selectedTenantId');
 };
 
 export const seedPermissions = async () => {
@@ -64,7 +71,14 @@ export const refreshToken = async () => {
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('username', response.data.username);
     localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []));
+    localStorage.setItem('isSuperAdmin', response.data.isSuperAdmin ? 'true' : 'false');
   }
+  return response.data;
+};
+
+// Tenants API
+export const getTenants = async () => {
+  const response = await api.get('/tenants');
   return response.data;
 };
 

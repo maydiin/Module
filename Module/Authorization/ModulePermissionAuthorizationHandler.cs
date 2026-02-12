@@ -34,6 +34,14 @@ public class ModulePermissionAuthorizationHandler : AuthorizationHandler<ModuleP
             return;
         }
 
+        // Super Admin bypasses all permission checks
+        var isSuperAdminClaim = context.User.FindFirst("IsSuperAdmin");
+        if (isSuperAdminClaim != null && bool.TryParse(isSuperAdminClaim.Value, out var isSuperAdmin) && isSuperAdmin)
+        {
+            context.Succeed(requirement);
+            return;
+        }
+
         // Get module name from route data
         var routeData = _httpContextAccessor.HttpContext?.GetRouteData();
         if (routeData == null)

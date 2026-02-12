@@ -119,13 +119,28 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.Roles)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            
+            entity.HasIndex(e => new { e.Name, e.TenantId }).IsUnique();
         });
 
         modelBuilder.Entity<Permission>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            entity.HasIndex(e => e.Name).IsUnique();
+            
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.Permissions)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            
+            entity.HasIndex(e => new { e.Name, e.TenantId }).IsUnique();
         });
 
         modelBuilder.Entity<UserRole>(entity =>

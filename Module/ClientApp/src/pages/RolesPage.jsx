@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getRoles, getAllPermissions, addPermissionToRole, removePermissionFromRole, createRole, updateRole, deleteRole, refreshToken } from '../services/api';
+import { useTenant } from '../components/TenantContext';
 
 function RolesPage() {
     const [roles, setRoles] = useState([]);
@@ -9,10 +10,11 @@ function RolesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editingRole, setEditingRole] = useState(null);
     const [formData, setFormData] = useState({ name: '', description: '' });
+    const { selectedTenantId } = useTenant();
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [selectedTenantId]);
 
     const loadData = async () => {
         try {

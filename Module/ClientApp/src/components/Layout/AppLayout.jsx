@@ -1,12 +1,33 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { logout } from '../../services/api';
+import { logout, getTenants } from '../../services/api';
+import { useTenant } from '../TenantContext';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const username = localStorage.getItem('username');
+  const { selectedTenantId, setSelectedTenantId, isSuperAdmin } = useTenant();
+  const [tenants, setTenants] = useState([]);
+  const [tenantsLoaded, setTenantsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (isSuperAdmin && !tenantsLoaded) {
+      loadTenants();
+    }
+  }, [isSuperAdmin]);
+
+  const loadTenants = async () => {
+    try {
+      const data = await getTenants();
+      setTenants(data);
+      setTenantsLoaded(true);
+    } catch (err) {
+      console.error('Failed to load tenants', err);
+    }
+  };
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -16,6 +37,14 @@ function AppLayout({ children }) {
     logout();
     navigate('/login');
   };
+
+  const handleTenantChange = (e) => {
+    const value = e.target.value;
+    setSelectedTenantId(value || null);
+  };
+
+  // Find current tenant name for display
+  const currentTenant = tenants.find(t => String(t.id) === String(selectedTenantId));
 
   return (
     <div className="min-vh-100 d-flex flex-column bg-light">
@@ -70,6 +99,29 @@ function AppLayout({ children }) {
                   Roller
                 </Link>
               </li>
+
+              {/* Tenant Selector for Super Admin */}
+              {isSuperAdmin && tenants.length > 0 && (
+                <li className="nav-item ms-lg-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="text-muted small">🏢</span>
+                    <select
+                      className="form-select form-select-sm border-primary border-opacity-50 rounded-pill px-3"
+                      style={{ minWidth: '180px', fontSize: '0.85rem' }}
+                      value={selectedTenantId || ''}
+                      onChange={handleTenantChange}
+                    >
+                      <option value="">Kendi Tenant'ım</option>
+                      {tenants.filter(t => !t.isHost).map((tenant) => (
+                        <option key={tenant.id} value={tenant.id}>
+                          {tenant.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </li>
+              )}
+
               <li className="nav-item ms-lg-3">
                 <div className="d-flex align-items-center gap-3">
                   <span className="text-muted small">👤 {username}</span>
@@ -115,4 +167,3 @@ function AppLayout({ children }) {
 }
 
 export default AppLayout;
-

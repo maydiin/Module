@@ -29,10 +29,15 @@ public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionReq
             return;
         }
 
-        var permissionToCheck = requirement.Permission;
+        // Super Admin bypasses all permission checks
+        var isSuperAdminClaim = context.User.FindFirst("IsSuperAdmin");
+        if (isSuperAdminClaim != null && bool.TryParse(isSuperAdminClaim.Value, out var isSuperAdmin) && isSuperAdmin)
+        {
+            context.Succeed(requirement);
+            return;
+        }
 
-        // All permissions should now be module-specific (e.g., Module.Kurum.View)
-        // No generic Module.Records.* permissions are used anymore
+        var permissionToCheck = requirement.Permission;
 
         // Check if the user has the required permission through their roles
         var hasPermission = await _context.UserRoles
