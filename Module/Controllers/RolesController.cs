@@ -17,11 +17,13 @@ public class RolesController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ITenantService _tenantService;
+    private readonly IAuditLogService _auditLogService;
 
-    public RolesController(AppDbContext context, ITenantService tenantService)
+    public RolesController(AppDbContext context, ITenantService tenantService, IAuditLogService auditLogService)
     {
         _context = context;
         _tenantService = tenantService;
+        _auditLogService = auditLogService;
     }
 
     [HttpGet]
@@ -69,6 +71,8 @@ public class RolesController : ControllerBase
 
         _context.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permission.Id });
         await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Update", "Role", roleId.ToString(), role.Name, $"Permission added: {dto.PermissionName}");
         
         // Check if the current user has this role
         var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -94,6 +98,8 @@ public class RolesController : ControllerBase
 
         _context.RolePermissions.Remove(rolePermission);
         await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Update", "Role", roleId.ToString(), null, $"Permission removed: {permissionName}");
         
         // Check if the current user has this role
         var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -119,6 +125,7 @@ public class RolesController : ControllerBase
 
         _context.Roles.Add(role);
         await _context.SaveChangesAsync();
+        await _auditLogService.LogAsync("Create", "Role", role.Id.ToString(), role.Name);
         return Ok(role);
     }
 
@@ -136,6 +143,7 @@ public class RolesController : ControllerBase
         role.Description = dto.Description;
 
         await _context.SaveChangesAsync();
+        await _auditLogService.LogAsync("Update", "Role", id.ToString(), role.Name);
         return Ok(role);
     }
 
@@ -153,6 +161,7 @@ public class RolesController : ControllerBase
 
         _context.Roles.Remove(role);
         await _context.SaveChangesAsync();
+        await _auditLogService.LogAsync("Delete", "Role", id.ToString(), role.Name);
         return Ok();
     }
 }

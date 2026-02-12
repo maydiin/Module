@@ -56,6 +56,7 @@ builder.Services.AddScoped<IRelationService, RelationService>();
 builder.Services.AddScoped<IExternalApiService, ExternalApiService>();
 builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 // Add Field Types
 builder.Services.AddScoped<IFieldType, TextFieldType>();

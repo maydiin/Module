@@ -21,8 +21,9 @@ public class ModuleRecordsController : ControllerBase
     private readonly MediatR.IMediator _mediator;
     private readonly FieldTypeFactory _fieldTypeFactory;
     private readonly ITenantService _tenantService;
+    private readonly IAuditLogService _auditLogService;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService, IAuditLogService auditLogService)
     {
         _context = context;
         _moduleService = moduleService;
@@ -30,6 +31,7 @@ public class ModuleRecordsController : ControllerBase
         _mediator = mediator;
         _fieldTypeFactory = fieldTypeFactory;
         _tenantService = tenantService;
+        _auditLogService = auditLogService;
     }
 
     [HttpPost]
@@ -44,6 +46,7 @@ public class ModuleRecordsController : ControllerBase
         try 
         {
             var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
+            await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
             return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = result.Id }, result);
         }
         catch (KeyNotFoundException ex)
@@ -375,6 +378,7 @@ public class ModuleRecordsController : ControllerBase
         try
         {
             var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
+            await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -394,6 +398,7 @@ public class ModuleRecordsController : ControllerBase
         try
         {
             await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
+            await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
             return NoContent();
         }
         catch (KeyNotFoundException ex)

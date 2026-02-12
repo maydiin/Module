@@ -173,7 +173,28 @@ const resources = {
                 "module_deleted": "Module deleted successfully",
                 "field_added": "Field added successfully",
                 "record_saved": "Record saved successfully"
-            }
+            },
+            "audit_logs_nav": "Audit Log",
+            "audit_logs_title": "Audit Log",
+            "audit_logs_subtitle": "Track and monitor all system activities across your workspace.",
+            "audit_search_placeholder": "Search by name, user, or details...",
+            "audit_all_actions": "All Actions",
+            "audit_all_entities": "All Entities",
+            "audit_start_date": "Start Date",
+            "audit_end_date": "End Date",
+            "audit_total_records": "{{count}} records found",
+            "audit_no_logs": "No audit log entries found.",
+            "audit_col_time": "Time",
+            "audit_col_user": "User",
+            "audit_col_action": "Action",
+            "audit_col_entity_type": "Entity Type",
+            "audit_col_entity_name": "Entity Name",
+            "audit_col_details": "Details",
+            "audit_action_create": "Create",
+            "audit_action_update": "Update",
+            "audit_action_delete": "Delete",
+            "audit_action_login": "Login",
+            "audit_action_register": "Register"
         }
     },
     tr: {
@@ -321,7 +342,28 @@ const resources = {
                 "module_deleted": "Modül başarıyla silindi",
                 "field_added": "Alan başarıyla eklendi",
                 "record_saved": "Kayıt başarıyla kaydedildi"
-            }
+            },
+            "audit_logs_nav": "İşlem Geçmişi",
+            "audit_logs_title": "İşlem Geçmişi",
+            "audit_logs_subtitle": "Çalışma alanınızdaki tüm sistem aktivitelerini takip edin ve izleyin.",
+            "audit_search_placeholder": "Ad, kullanıcı veya detay ara...",
+            "audit_all_actions": "Tüm İşlemler",
+            "audit_all_entities": "Tüm Varlıklar",
+            "audit_start_date": "Başlangıç Tarihi",
+            "audit_end_date": "Bitiş Tarihi",
+            "audit_total_records": "{{count}} kayıt bulundu",
+            "audit_no_logs": "İşlem geçmişi kaydı bulunamadı.",
+            "audit_col_time": "Zaman",
+            "audit_col_user": "Kullanıcı",
+            "audit_col_action": "İşlem",
+            "audit_col_entity_type": "Varlık Tipi",
+            "audit_col_entity_name": "Varlık Adı",
+            "audit_col_details": "Detaylar",
+            "audit_action_create": "Oluşturma",
+            "audit_action_update": "Güncelleme",
+            "audit_action_delete": "Silme",
+            "audit_action_login": "Giriş",
+            "audit_action_register": "Kayıt"
         }
     }
 };

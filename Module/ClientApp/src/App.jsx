@@ -9,6 +9,7 @@ import RegisterPage from './pages/RegisterPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import UsersPage from './pages/UsersPage';
 import RolesPage from './pages/RolesPage';
+import AuditLogsPage from './pages/AuditLogsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { TenantProvider } from './components/TenantContext';
 
@@ -32,6 +33,7 @@ function App() {
                     <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/roles" element={<RolesPage />} />
+                    <Route path="/audit-logs" element={<AuditLogsPage />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </AppLayout>

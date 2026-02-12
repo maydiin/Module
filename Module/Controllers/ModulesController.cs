@@ -13,11 +13,13 @@ public class ModulesController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ITenantService _tenantService;
+    private readonly IAuditLogService _auditLogService;
 
-    public ModulesController(AppDbContext context, ITenantService tenantService)
+    public ModulesController(AppDbContext context, ITenantService tenantService, IAuditLogService auditLogService)
     {
         _context = context;
         _tenantService = tenantService;
+        _auditLogService = auditLogService;
     }
 
     [HttpPost]
@@ -82,6 +84,8 @@ public class ModulesController : ControllerBase
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             shouldRefreshToken = await _context.UserRoles.AnyAsync(ur => ur.UserId == currentUserId && ur.RoleId == adminRole.Id);
         }
+
+        await _auditLogService.LogAsync("Create", "Module", module.Id.ToString(), module.Name);
 
         return CreatedAtAction(nameof(GetModule), new { id = module.Id }, new
         {

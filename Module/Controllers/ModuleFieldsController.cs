@@ -4,6 +4,7 @@ using Module.Data;
 using Module.DTOs;
 using Module.FieldTypes;
 using Module.Authorization;
+using Module.Services;
 
 namespace Module.Controllers;
 
@@ -13,11 +14,13 @@ public class ModuleFieldsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly FieldTypeFactory _fieldTypeFactory;
+    private readonly IAuditLogService _auditLogService;
 
-    public ModuleFieldsController(AppDbContext context, FieldTypeFactory fieldTypeFactory)
+    public ModuleFieldsController(AppDbContext context, FieldTypeFactory fieldTypeFactory, IAuditLogService auditLogService)
     {
         _context = context;
         _fieldTypeFactory = fieldTypeFactory;
+        _auditLogService = auditLogService;
     }
 
     [HttpPost]
@@ -67,6 +70,8 @@ public class ModuleFieldsController : ControllerBase
 
         _context.ModuleFields.Add(field);
         await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Create", "Field", field.Id.ToString(), $"{field.Label} ({field.Name})");
 
         return CreatedAtAction(nameof(GetField), new { moduleId, id = field.Id }, new ModuleFieldDto
         {

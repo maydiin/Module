@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -163,6 +164,22 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Subdomain).HasMaxLength(100);
             entity.HasIndex(e => e.IsHost);
+        });
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityId).HasMaxLength(50);
+            entity.Property(e => e.EntityName).HasMaxLength(300);
+            entity.Property(e => e.Username).HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.Details).HasColumnType("nvarchar(max)");
+            entity.HasIndex(e => e.TenantId);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => e.EntityType);
+            entity.HasIndex(e => e.Action);
         });
     }
 }

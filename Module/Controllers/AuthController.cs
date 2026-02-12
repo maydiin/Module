@@ -19,12 +19,14 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly IAuditLogService _auditLogService;
 
-    public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService)
+    public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService, IAuditLogService auditLogService)
     {
         _context = context;
         _configuration = configuration;
         _emailService = emailService;
+        _auditLogService = auditLogService;
     }
 
     [HttpPost("login")]
@@ -85,6 +87,8 @@ public class AuthController : ControllerBase
             .Distinct()
             .ToList();
 
+        await _auditLogService.LogAsync("Login", "Auth", user.Id.ToString(), user.Username);
+
         return Ok(new
         {
             username = user.Username,
@@ -138,6 +142,8 @@ public class AuthController : ControllerBase
             Console.WriteLine($"Failed to send verification email: {ex.Message}");
         }
 
+        await _auditLogService.LogAsync("Register", "Auth", user.Id.ToString(), user.Username);
+
         return Ok(new { message = "Kayıt başarılı! E-posta adresinize gönderilen doğrulama kodunu kullanarak hesabınızı aktif edin.", email = user.Email });
     }
 
@@ -188,7 +194,8 @@ public class AuthController : ControllerBase
         var defaultPermissions = new List<Permission>
         {
             new Permission { Name = "User.Manage", Description = "Can manage users and roles", TenantId = newTenant.Id },
-            new Permission { Name = "Role.Manage", Description = "Can manage roles and permissions", TenantId = newTenant.Id }
+            new Permission { Name = "Role.Manage", Description = "Can manage roles and permissions", TenantId = newTenant.Id },
+            new Permission { Name = "AuditLog.View", Description = "Can view audit logs", TenantId = newTenant.Id }
         };
         _context.Permissions.AddRange(defaultPermissions);
         await _context.SaveChangesAsync();

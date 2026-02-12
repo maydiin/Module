@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { logout, getTenants } from '../../services/api';
 import { useTenant } from '../TenantContext';
+import HasPermission from '../HasPermission';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
@@ -99,6 +100,19 @@ function AppLayout({ children }) {
                   Roller
                 </Link>
               </li>
+              <HasPermission permission="AuditLog.View">
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/audit-logs'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'hover-bg-accent'
+                      }`}
+                    to="/audit-logs"
+                  >
+                    {t('audit_logs_nav')}
+                  </Link>
+                </li>
+              </HasPermission>
 
               {/* Tenant Selector for Super Admin */}
               {isSuperAdmin && tenants.length > 0 && (

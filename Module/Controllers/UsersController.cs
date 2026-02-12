@@ -16,11 +16,13 @@ public class UsersController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ITenantService _tenantService;
+    private readonly IAuditLogService _auditLogService;
 
-    public UsersController(AppDbContext context, ITenantService tenantService)
+    public UsersController(AppDbContext context, ITenantService tenantService, IAuditLogService auditLogService)
     {
         _context = context;
         _tenantService = tenantService;
+        _auditLogService = auditLogService;
     }
 
     [HttpGet]
@@ -56,6 +58,8 @@ public class UsersController : ControllerBase
 
         _context.UserRoles.Add(new UserRole { UserId = userId, RoleId = role.Id });
         await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Update", "User", userId.ToString(), user.Username, $"Role assigned: {dto.RoleName}");
         
         // Check if the role was assigned to the current user
         var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -75,6 +79,8 @@ public class UsersController : ControllerBase
 
         _context.UserRoles.Remove(userRole);
         await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Update", "User", userId.ToString(), null, $"Role removed: {roleName}");
         
         // Check if the role was removed from the current user
         var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");

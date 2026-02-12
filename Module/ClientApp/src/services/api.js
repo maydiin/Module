@@ -221,4 +221,10 @@ export const deleteApiConfig = async (moduleId, configId) => {
   await api.delete(`/modules/${moduleId}/api-configs/${configId}`);
 };
 
+// Audit Logs API
+export const getAuditLogs = async (params = {}) => {
+  const response = await api.get('/audit-logs', { params });
+  return response.data;
+};
+
 export default api;
