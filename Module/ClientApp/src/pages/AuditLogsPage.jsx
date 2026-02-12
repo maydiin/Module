@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuditLogs } from '../services/api';
+import { useTenant } from '../components/TenantContext';
 
 const ACTION_BADGES = {
     Create: { bg: 'linear-gradient(135deg, #10b981, #059669)', icon: '➕' },
@@ -21,6 +22,7 @@ const ENTITY_ICONS = {
 
 function AuditLogsPage() {
     const { t } = useTranslation();
+    const { selectedTenantId } = useTenant();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -54,11 +56,16 @@ function AuditLogsPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, actionFilter, entityTypeFilter, searchQuery, startDate, endDate]);
+    }, [page, pageSize, actionFilter, entityTypeFilter, searchQuery, startDate, endDate, selectedTenantId]);
 
     useEffect(() => {
         fetchLogs();
     }, [fetchLogs]);
+
+    // Reset to page 1 when tenant changes
+    useEffect(() => {
+        setPage(1);
+    }, [selectedTenantId]);
 
     const handleSearch = (e) => {
         e.preventDefault();
