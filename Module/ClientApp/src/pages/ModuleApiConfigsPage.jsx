@@ -251,9 +251,9 @@ function ModuleApiConfigsPage() {
                                     </div>
                                     <div className="d-flex gap-2">
                                         <button className="btn btn-outline-primary btn-sm border-0" onClick={() => handleEdit(config)} title={t('edit_api_config')}>
-                                            <span>📝 {t('edit_module')}</span>
+                                            <span>📝 {t('edit_api_config')}</span>
                                         </button>
-                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => handleDelete(config.id)} title={t('delete_module')}>
+                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => handleDelete(config.id)} title={t('delete_api_config')}>
                                             <span>🗑️</span>
                                         </button>
                                     </div>
