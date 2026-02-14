@@ -207,7 +207,13 @@ const resources = {
             "edit": "Edit",
             "selected": "Selected",
             "no_results": "No results found",
-            "multi_select_hint": "You can select multiple items"
+            "multi_select_hint": "You can select multiple items",
+            "linked_records_for": "Linked Records for",
+            "no_references_found": "No linked records found",
+            "records_count": "records",
+            "linked_via_relation": "Linked via relation",
+            "load_more": "Load More",
+            "close": "Close"
         }
     },
     tr: {
@@ -389,7 +395,13 @@ const resources = {
             "edit": "Düzenle",
             "selected": "Seçildi",
             "no_results": "Sonuç bulunamadı",
-            "multi_select_hint": "Birden fazla seçim yapabilirsiniz"
+            "multi_select_hint": "Birden fazla seçim yapabilirsiniz",
+            "linked_records_for": "Bağlantılı Kayıtlar: ",
+            "no_references_found": "Bağlantılı kayıt bulunamadı",
+            "records_count": "kayıt",
+            "linked_via_relation": "İlişki ile bağlandı",
+            "load_more": "Daha Fazla Yükle",
+            "close": "Kapat"
         }
     }
 };

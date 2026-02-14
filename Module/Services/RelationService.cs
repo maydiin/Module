@@ -143,4 +143,67 @@ public class RelationService : IRelationService
             await _context.SaveChangesAsync();
         }
     }
+    public async Task<List<RelationSummaryDto>> GetRelationSummary(string targetModule, int targetId)
+    {
+        return await _context.RecordRelations
+            .Where(r => r.TargetModule == targetModule && r.TargetRecordId == targetId)
+            .GroupBy(r => r.SourceModule)
+            .Select(g => new RelationSummaryDto
+            {
+                Module = g.Key,
+                Count = g.Count()
+            })
+            .ToListAsync();
+    }
+
+    public async Task<List<RelationDto>> GetRelatedRecords(string targetModule, int targetId, string sourceModule, int page, int pageSize)
+    {
+        var relations = await _context.RecordRelations
+            .Where(r => r.TargetModule == targetModule && r.TargetRecordId == targetId && r.SourceModule == sourceModule)
+            .OrderBy(r => r.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        if (!relations.Any())
+            return new List<RelationDto>();
+
+        var recordIds = relations.Select(r => r.SourceRecordId).Distinct().ToList();
+
+        var records = await _context.ModuleRecords
+            .Include(r => r.Module)
+            .ThenInclude(m => m.Fields)
+            .Where(r => r.Module.Name == sourceModule && recordIds.Contains(r.Id))
+            .ToListAsync();
+
+        var result = new List<RelationDto>();
+
+        foreach (var relation in relations)
+        {
+            var record = records.FirstOrDefault(r => r.Id == relation.SourceRecordId);
+            if (record == null) continue;
+
+            var data = _moduleService.DeserializeData(record.Data);
+            var displayValue = record.Id.ToString();
+
+            // Find first text field for display
+            var displayField = record.Module.Fields
+                .OrderBy(f => f.OrderNo)
+                .FirstOrDefault(f => f.Type == "text");
+
+            if (displayField != null && data.TryGetValue(displayField.Name, out var val) && val != null)
+            {
+                displayValue = val.ToString() ?? record.Id.ToString();
+            }
+
+            result.Add(new RelationDto
+            {
+                Module = sourceModule,
+                RecordId = record.Id,
+                Display = displayValue
+            });
+        }
+
+        return result;
+    }
 }

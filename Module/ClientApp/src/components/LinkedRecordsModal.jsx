@@ -4,35 +4,78 @@ import axios from 'axios';
 
 function LinkedRecordsModal({ moduleName, recordId, onClose }) {
     const { t } = useTranslation();
-    const [relations, setRelations] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [summary, setSummary] = useState([]);
+    const [loadingSummary, setLoadingSummary] = useState(true);
     const [error, setError] = useState('');
+    const [expandedModule, setExpandedModule] = useState(null);
+    const [moduleRecords, setModuleRecords] = useState({}); // { moduleName: { records: [], page: 1, hasMore: true, loading: false } }
 
     useEffect(() => {
-        const fetchRelations = async () => {
+        const fetchSummary = async () => {
+            if (!moduleName || !recordId) return;
+
             try {
-                setLoading(true);
-                const response = await axios.get(`/api/relations/used-in?module=${moduleName}&id=${recordId}`);
-                setRelations(response.data);
+                setLoadingSummary(true);
+                const response = await axios.get(`/api/relations/summary?module=${encodeURIComponent(moduleName)}&id=${recordId}`);
+                setSummary(response.data || []);
             } catch (err) {
-                setError(t('error'));
                 console.error(err);
+                setError(t('error'));
             } finally {
-                setLoading(false);
+                setLoadingSummary(false);
             }
         };
 
-        fetchRelations();
+        fetchSummary();
     }, [moduleName, recordId, t]);
 
-    // Group relations by module
-    const groupedRelations = relations.reduce((acc, rel) => {
-        if (!acc[rel.module]) {
-            acc[rel.module] = [];
+    const handleExpand = async (sourceModule) => {
+        if (expandedModule === sourceModule) {
+            setExpandedModule(null);
+            return;
         }
-        acc[rel.module].push(rel);
-        return acc;
-    }, {});
+
+        setExpandedModule(sourceModule);
+
+        if (!moduleRecords[sourceModule]) {
+            await loadRecords(sourceModule, 1);
+        }
+    };
+
+    const loadRecords = async (sourceModule, page) => {
+        setModuleRecords(prev => ({
+            ...prev,
+            [sourceModule]: {
+                ...prev[sourceModule],
+                loading: true,
+                records: page === 1 ? [] : (prev[sourceModule]?.records || [])
+            }
+        }));
+
+        try {
+            const pageSize = 10;
+            const response = await axios.get(`/api/relations/details?module=${encodeURIComponent(moduleName)}&id=${recordId}&sourceModule=${encodeURIComponent(sourceModule)}&page=${page}&pageSize=${pageSize}`);
+
+            setModuleRecords(prev => ({
+                ...prev,
+                [sourceModule]: {
+                    records: page === 1 ? response.data : [...prev[sourceModule].records, ...response.data],
+                    page: page,
+                    hasMore: response.data.length === pageSize,
+                    loading: false
+                }
+            }));
+        } catch (err) {
+            console.error(err);
+            setModuleRecords(prev => ({
+                ...prev,
+                [sourceModule]: {
+                    ...prev[sourceModule],
+                    loading: false
+                }
+            }));
+        }
+    };
 
     return (
         <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -42,8 +85,8 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                         <h5 className="modal-title">📎 {t('linked_records_for')} #{recordId}</h5>
                         <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                     </div>
-                    <div className="modal-body">
-                        {loading && (
+                    <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                        {loadingSummary && (
                             <div className="text-center py-4">
                                 <div className="spinner-border text-primary" role="status"></div>
                                 <p className="mt-2 text-muted">{t('loading')}</p>
@@ -54,34 +97,67 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                             <div className="alert alert-danger">{error}</div>
                         )}
 
-                        {!loading && !error && relations.length === 0 && (
+                        {!loadingSummary && !error && summary.length === 0 && (
                             <div className="text-center py-4 text-muted">
                                 <p className="mb-0">{t('no_references_found')}</p>
                             </div>
                         )}
 
-                        {!loading && !error && Object.keys(groupedRelations).map(module => (
-                            <div key={module} className="mb-4">
-                                <h6 className="border-bottom pb-2 mb-3">
-                                    <span className="badge bg-secondary me-2">{module}</span>
-                                    {groupedRelations[module].length} {t('records_count')}
-                                </h6>
-                                <div className="list-group">
-                                    {groupedRelations[module].map(rel => (
-                                        <div key={rel.recordId} className="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <span className="text-muted me-2">#{rel.recordId}</span>
-                                                <strong>{rel.display}</strong>
+                        {!loadingSummary && !error && (
+                            <div className="accordion" id="relationsAccordion">
+                                {summary.map(item => (
+                                    <div className="accordion-item" key={item.module}>
+                                        <h2 className="accordion-header">
+                                            <button
+                                                className={`accordion-button ${expandedModule === item.module ? '' : 'collapsed'}`}
+                                                type="button"
+                                                onClick={() => handleExpand(item.module)}
+                                            >
+                                                <span className="badge bg-secondary me-2">{item.module}</span>
+                                                {item.count} {t('records_count')}
+                                            </button>
+                                        </h2>
+                                        <div className={`accordion-collapse collapse ${expandedModule === item.module ? 'show' : ''}`}>
+                                            <div className="accordion-body p-0">
+                                                <div className="list-group list-group-flush">
+                                                    {(moduleRecords[item.module]?.records || []).map(rel => (
+                                                        <div key={rel.recordId || Math.random()} className="list-group-item d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <span className="text-muted me-2">#{rel.recordId}</span>
+                                                                <strong>{rel.display}</strong>
+                                                            </div>
+                                                            <span className="badge bg-light text-dark border">
+                                                                {t('linked_via_relation')}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {moduleRecords[item.module]?.loading && (
+                                                    <div className="text-center py-2">
+                                                        <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                                    </div>
+                                                )}
+
+                                                {!moduleRecords[item.module]?.loading && moduleRecords[item.module]?.hasMore && (
+                                                    <div className="p-2 text-center">
+                                                        <button
+                                                            className="btn btn-sm btn-outline-primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                loadRecords(item.module, (moduleRecords[item.module]?.page || 1) + 1);
+                                                            }}
+                                                        >
+                                                            {t('load_more')}
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
-                                            {/* Optional: Add a link to the record if we know the module ID */}
-                                            <span className="badge bg-light text-dark border">
-                                                {t('linked_via_relation')}
-                                            </span>
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        )}
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" onClick={onClose}>{t('close')}</button>
