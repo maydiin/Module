@@ -35,7 +35,10 @@ public class ModulesController : ControllerBase
         var module = new Entities.Module
         {
             Name = dto.Name,
-            TenantId = tenantId
+            TenantId = tenantId,
+            AuditCreate = dto.AuditCreate,
+            AuditUpdate = dto.AuditUpdate,
+            AuditDelete = dto.AuditDelete
         };
 
         _context.Modules.Add(module);
@@ -111,7 +114,10 @@ public class ModulesController : ControllerBase
             .Select(m => new ModuleDto
             {
                 Id = m.Id,
-                Name = m.Name
+                Name = m.Name,
+                AuditCreate = m.AuditCreate,
+                AuditUpdate = m.AuditUpdate,
+                AuditDelete = m.AuditDelete
             })
             .ToListAsync();
 
@@ -131,7 +137,119 @@ public class ModulesController : ControllerBase
         return Ok(new ModuleDto
         {
             Id = module.Id,
-            Name = module.Name
+            Name = module.Name,
+            AuditCreate = module.AuditCreate,
+            AuditUpdate = module.AuditUpdate,
+            AuditDelete = module.AuditDelete
+        });
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateModule(int id, [FromBody] UpdateModuleDto dto)
+    {
+        var module = await _context.Modules.FindAsync(id);
+        if (module == null)
+        {
+            return NotFound();
+        }
+
+        // Check permission: Module.{Name}.Manage
+        var permissionName = $"Module.{module.Name}.Manage";
+        var hasPermission = User.HasClaim(c => c.Type == "Permission" && c.Value == permissionName) ||
+                            User.IsInRole("Super Admin");
+
+        if (!hasPermission)
+        {
+            // Also check if user is a tenant admin with this permission assigned via role
+            // The policy/attribute based authorization might have already handled this if we used [HasModulePermission]
+            // but since the module name is dynamic, we need to check manually or use a custom requirement.
+            // For now, let's rely on the manual check logic consistent with other controllers or use the auth service if available.
+            // Assuming the claims are populated correctly on login/refresh.
+            
+            // Re-verify against DB to be sure (since claims might be old)
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var tenantId = _tenantService.GetCurrentTenantId();
+            
+            // Super Admin check again for safety
+            var isSuperAdmin = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == "Super Admin");
+                
+            if (!isSuperAdmin)
+            {
+                var userPermissions = await _context.Database
+                    .SqlQueryRaw<string>(@"
+                        SELECT p.Name 
+                        FROM Permissions p
+                        JOIN RolePermissions rp ON p.Id = rp.PermissionId
+                        JOIN UserRoles ur ON rp.RoleId = ur.RoleId
+                        WHERE ur.UserId = {0} AND p.TenantId = {1}", userId, tenantId)
+                    .ToListAsync();
+                    
+                if (!userPermissions.Contains(permissionName))
+                {
+                    return Forbid();
+                }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Name))
+        {
+            return BadRequest(new { error = "Module name is required" });
+        }
+
+        // Handle Rename
+        if (!string.Equals(module.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            // Check if new name exists
+            if (await _context.Modules.AnyAsync(m => m.Name == dto.Name && m.TenantId == module.TenantId))
+            {
+                return BadRequest(new { error = "Module with this name already exists" });
+            }
+
+            var oldName = module.Name;
+            var newName = dto.Name;
+
+            // Rename permissions
+            var permissions = await _context.Permissions
+                .Where(p => p.Name.StartsWith($"Module.{oldName}."))
+                .ToListAsync();
+
+            foreach (var perm in permissions)
+            {
+                perm.Name = perm.Name.Replace($"Module.{oldName}.", $"Module.{newName}.");
+                perm.Description = perm.Description.Replace(oldName, newName);
+            }
+
+            // Also need to update RecordRelations targetModuleName if applicable?
+            // Existing data might rely on module name strings.
+            // Check ModuleRecordsController uses 'TargetModule' string in RecordRelations.
+            // Yes, RecordRelation has TargetModule (string).
+            var relations = await _context.RecordRelations
+                .Where(r => r.TargetModule == oldName)
+                .ToListAsync();
+            
+            foreach (var rel in relations)
+            {
+                rel.TargetModule = newName;
+            }
+            
+            module.Name = newName;
+        }
+
+        module.AuditCreate = dto.AuditCreate;
+        module.AuditUpdate = dto.AuditUpdate;
+        module.AuditDelete = dto.AuditDelete;
+
+        await _context.SaveChangesAsync();
+        await _auditLogService.LogAsync("Update", "Module", module.Id.ToString(), module.Name);
+
+        return Ok(new ModuleDto
+        {
+            Id = module.Id,
+            Name = module.Name,
+            AuditCreate = module.AuditCreate,
+            AuditUpdate = module.AuditUpdate,
+            AuditDelete = module.AuditDelete
         });
     }
 }

@@ -5,6 +5,11 @@ public class Module
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     
+    // Audit Configuration
+    public bool AuditCreate { get; set; } = true;
+    public bool AuditUpdate { get; set; } = true;
+    public bool AuditDelete { get; set; } = true;
+    
     // Multi-tenant support
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;

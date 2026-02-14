@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModules, createModule, refreshToken } from '../services/api';
+import { getModules, createModule, updateModule, refreshToken } from '../services/api';
 import HasPermission from '../components/HasPermission';
 import { useTenant } from '../components/TenantContext';
 
@@ -10,7 +10,11 @@ function ModulesPage() {
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingModuleId, setEditingModuleId] = useState(null);
   const [moduleName, setModuleName] = useState('');
+  const [auditCreate, setAuditCreate] = useState(true);
+  const [auditUpdate, setAuditUpdate] = useState(true);
+  const [auditDelete, setAuditDelete] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { selectedTenantId } = useTenant();
@@ -43,21 +47,61 @@ function ModulesPage() {
     }
 
     try {
-      const result = await createModule({ name: moduleName.trim() });
+      let result;
+      const payload = {
+        name: moduleName.trim(),
+        auditCreate,
+        auditUpdate,
+        auditDelete
+      };
 
-      // If permissions were added to a role the current user has, refresh their token
+      if (editingModuleId) {
+        result = await updateModule(editingModuleId, payload);
+      } else {
+        result = await createModule(payload);
+      }
+
+      // If permissions were added/renamed (triggering refresh token need), refresh it
+      // Note: UpdateModule currently doesn't return shouldRefreshToken but we might want to reload if name changed
       if (result.shouldRefreshToken) {
         await refreshToken();
         window.location.reload();
       } else {
-        setModuleName('');
-        setShowForm(false);
+        resetForm();
         loadModules();
+        if (editingModuleId) {
+          // If name changed, we really should reload to update permissions in local storage if we want strictly correct state
+          // But for now let's just reload modules.
+          // Actually, if name changed, permissions changed, so we MUST reload to get new token or at least refresh it.
+          // The backend UpdateModule doesn't check for own-role update yet, but renaming affects everyone.
+          // Let's force a reload if we edited.
+          window.location.reload();
+        }
       }
     } catch (err) {
       setError(err.response?.data?.error || t('error'));
       console.error(err);
     }
+  };
+
+  const resetForm = () => {
+    setModuleName('');
+    setAuditCreate(true);
+    setAuditUpdate(true);
+    setAuditDelete(true);
+    setEditingModuleId(null);
+    setShowForm(false);
+  };
+
+  const handleEditClick = (module) => {
+    setEditingModuleId(module.id);
+    setModuleName(module.name);
+    setAuditCreate(module.auditCreate);
+    setAuditUpdate(module.auditUpdate);
+    setAuditDelete(module.auditDelete);
+    setShowForm(true);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleModuleClick = (moduleId) => {
@@ -96,7 +140,10 @@ function ModulesPage() {
         {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
           <button
             className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              if (showForm) resetForm();
+              else setShowForm(true);
+            }}
           >
             {showForm ? (
               <>
@@ -120,7 +167,9 @@ function ModulesPage() {
       {showForm && (
         <div className="card shadow-lg border-0 mb-5 overflow-hidden">
           <div className="card-header bg-primary py-3">
-            <h5 className="card-title mb-0 text-white">{t('new_module_blueprint')}</h5>
+            <h5 className="card-title mb-0 text-white">
+              {editingModuleId ? t('edit_module') : t('new_module_blueprint')}
+            </h5>
           </div>
           <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
@@ -138,17 +187,58 @@ function ModulesPage() {
                   autoFocus
                 />
               </div>
+
+              <div className="mb-4">
+                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-3">
+                  {t('audit_configuration')}
+                </label>
+                <div className="d-flex gap-4">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="auditCreate"
+                      checked={auditCreate}
+                      onChange={(e) => setAuditCreate(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="auditCreate">
+                      {t('log_create')}
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="auditUpdate"
+                      checked={auditUpdate}
+                      onChange={(e) => setAuditUpdate(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="auditUpdate">
+                      {t('log_update')}
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="auditDelete"
+                      checked={auditDelete}
+                      onChange={(e) => setAuditDelete(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="auditDelete">
+                      {t('log_delete')}
+                    </label>
+                  </div>
+                </div>
+              </div>
               <div className="d-flex gap-2">
                 <button type="submit" className="btn btn-primary px-4">
-                  <span>✓</span> {t('finalize_module')}
+                  <span>✓</span> {editingModuleId ? t('update') : t('finalize_module')}
                 </button>
                 <button
                   type="button"
                   className="btn btn-link text-muted text-decoration-none"
-                  onClick={() => {
-                    setShowForm(false);
-                    setModuleName('');
-                  }}
+                  onClick={resetForm}
                 >
                   {t('discard')}
                 </button>
@@ -191,6 +281,12 @@ function ModulesPage() {
                         onClick={() => handleModuleClick(module.id)}
                       >
                         <span className="opacity-75">⚙️</span> {t('fields')}
+                      </button>
+                      <button
+                        className="btn btn-light btn-sm flex-grow-1 border"
+                        onClick={() => handleEditClick(module)}
+                      >
+                        <span className="opacity-75">✏️</span> {t('edit')}
                       </button>
                     </HasPermission>
                     <HasPermission permission={`Module.${module.name}.View`}>

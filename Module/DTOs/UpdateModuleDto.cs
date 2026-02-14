@@ -1,12 +1,9 @@
 namespace Module.DTOs;
 
-public class ModuleDto
+public class UpdateModuleDto
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-
     public bool AuditCreate { get; set; }
     public bool AuditUpdate { get; set; }
     public bool AuditDelete { get; set; }
 }
-

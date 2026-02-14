@@ -157,6 +157,11 @@ export const createModule = async (moduleData) => {
   return response.data;
 };
 
+export const updateModule = async (moduleId, moduleData) => {
+  const response = await api.put(`/modules/${moduleId}`, moduleData);
+  return response.data;
+};
+
 // Module Fields API
 export const getFields = async (moduleId) => {
   const response = await api.get(`/modules/${moduleId}/fields`);

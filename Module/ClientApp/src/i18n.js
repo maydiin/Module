@@ -194,7 +194,17 @@ const resources = {
             "audit_action_update": "Update",
             "audit_action_delete": "Delete",
             "audit_action_login": "Login",
-            "audit_action_register": "Register"
+            "audit_action_create": "Create",
+            "audit_action_update": "Update",
+            "audit_action_delete": "Delete",
+            "audit_action_login": "Login",
+            "audit_action_register": "Register",
+            "audit_configuration": "Audit Configuration",
+            "log_create": "Log Create",
+            "log_update": "Log Update",
+            "log_delete": "Log Delete",
+            "update": "Update",
+            "edit": "Edit"
         }
     },
     tr: {
@@ -363,7 +373,17 @@ const resources = {
             "audit_action_update": "Güncelleme",
             "audit_action_delete": "Silme",
             "audit_action_login": "Giriş",
-            "audit_action_register": "Kayıt"
+            "audit_action_create": "Oluşturma",
+            "audit_action_update": "Güncelleme",
+            "audit_action_delete": "Silme",
+            "audit_action_login": "Giriş",
+            "audit_action_register": "Kayıt",
+            "audit_configuration": "İşlem Geçmişi Ayarları",
+            "log_create": "Oluşturmayı Kaydet",
+            "log_update": "Güncellemeyi Kaydet",
+            "log_delete": "Silmeyi Kaydet",
+            "update": "Güncelle",
+            "edit": "Düzenle"
         }
     }
 };

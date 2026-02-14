@@ -46,7 +46,13 @@ public class ModuleRecordsController : ControllerBase
         try 
         {
             var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
-            await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
+            
+            var module = await _context.Modules.FindAsync(moduleId);
+            if (module != null && module.AuditCreate)
+            {
+                await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
+            }
+            
             return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = result.Id }, result);
         }
         catch (KeyNotFoundException ex)
@@ -378,7 +384,12 @@ public class ModuleRecordsController : ControllerBase
         try
         {
             var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
-            await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
+            
+            var module = await _context.Modules.FindAsync(moduleId);
+            if (module != null && module.AuditUpdate)
+            {
+                await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
+            }
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -398,7 +409,12 @@ public class ModuleRecordsController : ControllerBase
         try
         {
             await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
-            await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
+            
+            var module = await _context.Modules.FindAsync(moduleId);
+            if (module != null && module.AuditDelete)
+            {
+                await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
+            }
             return NoContent();
         }
         catch (KeyNotFoundException ex)
