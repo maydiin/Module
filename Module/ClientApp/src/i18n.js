@@ -204,7 +204,10 @@ const resources = {
             "log_update": "Log Update",
             "log_delete": "Log Delete",
             "update": "Update",
-            "edit": "Edit"
+            "edit": "Edit",
+            "selected": "Selected",
+            "no_results": "No results found",
+            "multi_select_hint": "You can select multiple items"
         }
     },
     tr: {
@@ -383,7 +386,10 @@ const resources = {
             "log_update": "Güncellemeyi Kaydet",
             "log_delete": "Silmeyi Kaydet",
             "update": "Güncelle",
-            "edit": "Düzenle"
+            "edit": "Düzenle",
+            "selected": "Seçildi",
+            "no_results": "Sonuç bulunamadı",
+            "multi_select_hint": "Birden fazla seçim yapabilirsiniz"
         }
     }
 };

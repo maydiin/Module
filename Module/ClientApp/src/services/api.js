@@ -208,8 +208,8 @@ export const deleteRecord = async (moduleId, recordId) => {
   await api.delete(`/modules/${moduleId}/records/${recordId}`);
 };
 
-export const getRecordsByName = async (moduleName) => {
-  const response = await api.get(`/records/by-name/${moduleName}`);
+export const getRecordsByName = async (moduleName, params = {}) => {
+  const response = await api.get(`/records/by-name/${moduleName}`, { params });
   return response.data;
 };
 

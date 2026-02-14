@@ -22,6 +22,7 @@ public class DeleteRecordHandler : IRequestHandler<DeleteRecordCommand>
     public async Task Handle(DeleteRecordCommand request, CancellationToken cancellationToken)
     {
         var record = await _context.ModuleRecords
+            .Include(r => r.Module)
             .FirstOrDefaultAsync(r => r.Id == request.RecordId && r.ModuleId == request.ModuleId, cancellationToken);
 
         if (record == null)
@@ -29,14 +30,19 @@ public class DeleteRecordHandler : IRequestHandler<DeleteRecordCommand>
             throw new KeyNotFoundException($"Record with ID {request.RecordId} not found in module {request.ModuleId}.");
         }
 
+        // Check for incoming relations (Referential Integrity)
+        var hasIncomingRelations = await _context.RecordRelations
+            .AnyAsync(r => r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id, cancellationToken);
+
+        if (hasIncomingRelations)
+        {
+            throw new InvalidOperationException("Cannot delete this record because it is referenced by other records (Referential Integrity).");
+        }
+
         _context.ModuleRecords.Remove(record);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Delete relations for source
-        var module = await _context.Modules.FindAsync(new object[] { request.ModuleId }, cancellationToken);
-        if (module != null)
-        {
-            await _relationService.DeleteRelationsForSource(module.Name, record.Id);
-        }
+        // Delete outgoing relations for source
+        await _relationService.DeleteRelationsForSource(record.Module.Name, record.Id);
     }
 }

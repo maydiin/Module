@@ -429,17 +429,41 @@ public class ModuleRecordsController : ControllerBase
 
     [HttpGet("/api/records/by-name/{moduleName}")]
     [HasModulePermission("View")]
-    public async Task<ActionResult<IEnumerable<ModuleRecordDto>>> ListRecordsByName(string moduleName)
+    public async Task<ActionResult<PagedResult<ModuleRecordDto>>> ListRecordsByName(
+        string moduleName, 
+        [FromQuery] string? search = null, 
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 20)
     {
-        var module = await _context.Modules.FirstOrDefaultAsync(m => m.Name == moduleName);
+        var module = await _context.Modules
+            .Include(m => m.Fields)
+            .FirstOrDefaultAsync(m => m.Name == moduleName);
+            
         if (module == null)
         {
             return NotFound(new { error = $"Module '{moduleName}' not found" });
         }
 
-        var records = await _context.ModuleRecords
+        var query = _context.ModuleRecords
             .Where(r => r.ModuleId == module.Id)
+            .AsNoTracking();
+
+        // Tenant filter
+        var tenantId = _tenantService.GetCurrentTenantId();
+        query = query.Where(r => r.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            // Search in the Data JSON
+            query = query.Where(r => EF.Functions.Like(r.Data, $"%{search}%"));
+        }
+
+        var total = await query.CountAsync();
+        
+        var records = await query
             .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         var recordIds = records.Select(r => r.Id).ToList();
@@ -458,7 +482,16 @@ public class ModuleRecordsController : ControllerBase
             CreatedAt = r.CreatedAt
         }).ToList();
 
-        return Ok(recordDtos);
+        var totalPages = total == 0 ? 1 : (int)Math.Ceiling(total / (double)pageSize);
+
+        return Ok(new PagedResult<ModuleRecordDto>
+        {
+            Items = recordDtos,
+            Total = total,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        });
     }
 
     private static List<RecordFilterDto> ParseFilters(string? filters)

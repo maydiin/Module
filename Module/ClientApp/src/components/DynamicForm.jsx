@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRecordsByName } from '../services/api';
+import AsyncRelationSelect from './AsyncRelationSelect';
 
 function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
   const { t } = useTranslation();
@@ -22,26 +23,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
     });
     setFormData(initialFormData);
 
-    // Fetch relation options
-    const fetchRelations = async () => {
-      const relationFields = fields.filter(f => f.type.toLowerCase() === 'relation' && f.options);
-      if (relationFields.length === 0) return;
-
-      const relationsMap = {};
-      await Promise.all(relationFields.map(async (field) => {
-        try {
-          // Normalize module name (remove quotes if any)
-          const targetModule = field.options.replace(/['"]+/g, '');
-          const records = await getRecordsByName(targetModule);
-          relationsMap[field.name] = records;
-        } catch (err) {
-          console.error(`Failed to fetch records for relation field ${field.name}`, err);
-        }
-      }));
-      setRelationsData(relationsMap);
-    };
-
-    fetchRelations();
+    // Old fetchRelations logic removed for performance
   }, [fields, initialData]);
 
   const handleChange = (fieldName, value) => {
@@ -225,41 +207,20 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
         );
 
       case 'relation':
-        const relationRecords = relationsData[field.name] || [];
-        // Handle multi-select value extraction
-        const handleRelationChange = (e) => {
-          const selectedOptions = Array.from(e.target.selectedOptions).map(opt => Number(opt.value));
-          handleChange(field.name, selectedOptions);
-        };
+        // Normalize module name
+        const targetModule = field.options ? field.options.replace(/['"]+/g, '') : '';
 
         return (
-          <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
-              {field.label}
-              {field.required && <span className="text-danger"> *</span>}
-            </label>
-            <select
-              multiple
-              className={`form-select ${hasError ? 'is-invalid' : ''}`}
-              id={field.name}
-              value={Array.isArray(value) ? value : (value ? [value] : [])}
-              onChange={handleRelationChange}
-              style={{ minHeight: '120px' }}
-            >
-              {relationRecords.map((rec) => {
-                const displayName = rec.data.name || rec.data.title || rec.data.label ||
-                  Object.values(rec.data).find(v => typeof v === 'string') ||
-                  `Record #${rec.id}`;
-                return (
-                  <option key={rec.id} value={rec.id}>
-                    {displayName} (ID: {rec.id})
-                  </option>
-                );
-              })}
-            </select>
-            <div className="form-text small">{t('multi_select_hint')}</div>
-            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
-          </div>
+          <AsyncRelationSelect
+            key={field.id}
+            moduleName={targetModule}
+            label={field.label}
+            required={field.required}
+            multiple={true} // Relations are usually multi-select in this system based on usage
+            value={value}
+            onChange={(val) => handleChange(field.name, val)}
+            error={errors[field.name]}
+          />
         );
 
       case 'textarea':
