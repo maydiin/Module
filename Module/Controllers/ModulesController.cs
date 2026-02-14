@@ -42,15 +42,20 @@ public class ModulesController : ControllerBase
         await _context.SaveChangesAsync();
 
         // Dynamically create permissions for the new module (tenant-scoped)
-        var permissions = new[] { "View", "Create", "Update", "Delete", "Manage" };
+        var permissions = new[] { "View", "Create", "Update", "Delete", "Manage", "Api" };
         var createdPermissions = new List<Entities.Permission>();
 
         foreach (var action in permissions)
         {
             var permName = $"Module.{module.Name}.{action}";
-            var description = action == "Manage" 
-                ? $"Can manage {module.Name} schema" 
-                : $"Can {action.ToLower()} {module.Name} records";
+            string description;
+
+            if (action == "Manage")
+                description = $"Can manage {module.Name} schema";
+            else if (action == "Api")
+                description = $"Can manage {module.Name} API integrations";
+            else
+                description = $"Can {action.ToLower()} {module.Name} records";
 
             var permission = new Entities.Permission
             {

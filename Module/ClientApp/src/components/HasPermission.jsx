@@ -11,7 +11,7 @@ import React from 'react';
  * Supports transforming generic permissions if moduleId or moduleName is provided:
  * <HasPermission permission="Module.Records.Create" moduleId={1}>...</HasPermission>
  */
-const HasPermission = ({ permission, moduleId, moduleName, children, fallback = null }) => {
+const HasPermission = ({ permission, permissions, moduleId, moduleName, children, fallback = null }) => {
     // Super Admin always has full access across all tenants
     const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
     if (isSuperAdmin) {
@@ -23,7 +23,9 @@ const HasPermission = ({ permission, moduleId, moduleName, children, fallback = 
 
     let permissionToCheck = permission;
 
-    const hasPermission = userPermissions.includes(permissionToCheck);
+    const hasPermission =
+        (permissions && Array.isArray(permissions) && permissions.some(p => userPermissions.includes(p))) ||
+        userPermissions.includes(permissionToCheck);
 
     if (!hasPermission) {
         return fallback;

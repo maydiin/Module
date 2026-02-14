@@ -201,7 +201,7 @@ function ModulesPage() {
                         <span className="opacity-75">📋</span> {t('records')}
                       </button>
                     </HasPermission>
-                    <HasPermission permission={`Module.${module.name}.Manage`}>
+                    <HasPermission permission={`Module.${module.name}.Api`}>
                       <button
                         className="btn btn-light btn-sm flex-grow-1 border"
                         onClick={() => navigate(`/modules/${module.id}/api-configs`)}

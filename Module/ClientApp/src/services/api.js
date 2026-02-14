@@ -89,7 +89,14 @@ export const getUsers = async () => {
   return response.data;
 };
 
+
+export const createUser = async (userData) => {
+  const response = await api.post('/users', userData);
+  return response.data;
+};
+
 export const assignRole = async (userId, roleName) => {
+
   const response = await api.post(`/users/${userId}/roles`, { roleName });
   return response.data;
 };

@@ -88,6 +88,52 @@ public class UsersController : ControllerBase
         
         return Ok(new { shouldRefreshToken = shouldRefresh });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateUser([FromBody] Module.DTOs.CreateUserDto dto)
+    {
+        var tenantId = _tenantService.GetCurrentTenantId();
+        if (tenantId == 0) return BadRequest(new { error = "Tenant context required" });
+
+        // Check if username exists
+        if (await _context.Users.AnyAsync(u => u.Username == dto.Username))
+            return BadRequest(new { error = "Username already exists" });
+
+        // Check if email exists
+        if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+            return BadRequest(new { error = "Email already exists" });
+
+        var user = new User
+        {
+            Username = dto.Username,
+            Email = dto.Email,
+            PasswordHash = dto.Password, // TODO: Hash password
+            IsEmailVerified = true, // Admin created users are verified
+            TenantId = tenantId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Assign roles
+        if (dto.Roles != null && dto.Roles.Any())
+        {
+            var validRoles = await _context.Roles
+                .Where(r => r.TenantId == tenantId && dto.Roles.Contains(r.Name))
+                .ToListAsync();
+
+            foreach (var role in validRoles)
+            {
+                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        await _auditLogService.LogAsync("Create", "User", user.Id.ToString(), user.Username, $"User created by admin");
+
+        return Ok(new { message = "User created successfully", userId = user.Id });
+    }
 }
 
 public class RoleAssignmentDto

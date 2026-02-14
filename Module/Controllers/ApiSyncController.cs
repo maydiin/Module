@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace Module.Controllers;
 
 [ApiController]
 [Route("api/sync")]
+[Authorize]
 public class ApiSyncController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -19,6 +21,7 @@ public class ApiSyncController : ControllerBase
     private readonly IRelationService _relationService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMediator _mediator;
+    private readonly IAuthorizationService _authorizationService;
 
     public ApiSyncController(
         AppDbContext context, 
@@ -26,7 +29,8 @@ public class ApiSyncController : ControllerBase
         IModuleService moduleService, 
         IRelationService relationService,
         IHttpClientFactory httpClientFactory,
-        IMediator mediator)
+        IMediator mediator,
+        IAuthorizationService authorizationService)
     {
         _context = context;
         _apiService = apiService;
@@ -34,6 +38,7 @@ public class ApiSyncController : ControllerBase
         _relationService = relationService;
         _httpClientFactory = httpClientFactory;
         _mediator = mediator;
+        _authorizationService = authorizationService;
     }
 
     [HttpPost("{configId}/execute")]
@@ -44,6 +49,15 @@ public class ApiSyncController : ControllerBase
             .FirstOrDefaultAsync(c => c.Id == configId);
  
         if (config == null) return NotFound("API Configuration not found.");
+
+        // Check Permissions
+        var permissionName = $"Module.{config.Module.Name}.Api";
+        var authResult = await _authorizationService.AuthorizeAsync(User, permissionName);
+        
+        if (!authResult.Succeeded)
+        {
+            return Forbid();
+        }
  
         try
         {

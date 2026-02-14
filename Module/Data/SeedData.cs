@@ -143,6 +143,34 @@ public static class SeedData
             }
         }
         await context.SaveChangesAsync();
+        // 6. Backfill "Api" permission for existing modules
+        var allModules = await context.Modules.ToListAsync();
+        foreach (var module in allModules)
+        {
+            var apiPermName = $"Module.{module.Name}.Api";
+            if (!await context.Permissions.AnyAsync(p => p.Name == apiPermName && p.TenantId == module.TenantId))
+            {
+                var apiPerm = new Permission
+                {
+                    Name = apiPermName,
+                    Description = $"Can manage {module.Name} API integrations",
+                    TenantId = module.TenantId
+                };
+                context.Permissions.Add(apiPerm);
+                await context.SaveChangesAsync(); // Save to get Id
+
+                // Assign to Admin role of that tenant
+                var adminRoleForTenant = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == module.TenantId);
+                if (adminRoleForTenant != null)
+                {
+                    context.RolePermissions.Add(new RolePermission { RoleId = adminRoleForTenant.Id, PermissionId = apiPerm.Id });
+                }
+
+                // Assign to Super Admin (Host tenant) - Optional, but good for visibility if Super Admin has access to all tenants
+                // Ideally Super Admin overrides everything, but explicit permission doesn't hurt.
+            }
+        }
+        await context.SaveChangesAsync();
     }
 }
 

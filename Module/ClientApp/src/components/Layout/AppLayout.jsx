@@ -78,28 +78,32 @@ function AppLayout({ children }) {
                   {t('dashboard')}
                 </Link>
               </li>
-              <li className="nav-item">
-                <Link
-                  className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/users'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'hover-bg-accent'
-                    }`}
-                  to="/users"
-                >
-                  Kullanıcılar
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/roles'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'hover-bg-accent'
-                    }`}
-                  to="/roles"
-                >
-                  Roller
-                </Link>
-              </li>
+              <HasPermission permission="User.Manage">
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/users'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'hover-bg-accent'
+                      }`}
+                    to="/users"
+                  >
+                    Kullanıcılar
+                  </Link>
+                </li>
+              </HasPermission>
+              <HasPermission permission="Role.Manage">
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/roles'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'hover-bg-accent'
+                      }`}
+                    to="/roles"
+                  >
+                    Roller
+                  </Link>
+                </li>
+              </HasPermission>
               <HasPermission permission="AuditLog.View">
                 <li className="nav-item">
                   <Link

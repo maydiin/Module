@@ -119,7 +119,7 @@ function RolesPage() {
             <div className="row g-4">
                 {roles.map(role => (
                     <div key={role.id} className="col-md-6">
-                        <div className="card shadow-sm border-0 h-100">
+                        <div className="card shadow-sm border-0 h-100" style={{ overflow: 'visible' }}>
                             <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-start">
                                 <div>
                                     <h5 className="mb-0">{role.name}</h5>
