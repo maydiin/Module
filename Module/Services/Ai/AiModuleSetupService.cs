@@ -44,6 +44,9 @@ public class AiModuleSetupService : IAiModuleSetupService
                     _context.Modules.Add(newModule);
                     await _context.SaveChangesAsync();
                     moduleNameMap[moduleConfig.Name] = newModule.Id;
+
+                    // Automatically create permissions and assign to Admin
+                    await CreateModulePermissions(newModule.Name, tenantId);
                 }
                 else
                 {
@@ -173,6 +176,74 @@ public class AiModuleSetupService : IAiModuleSetupService
         {
             await transaction.RollbackAsync();
             throw;
+        }
+    }
+
+    private async Task CreateModulePermissions(string moduleName, int? tenantId)
+    {
+        // Define standard permissions
+        var actions = new[] { "View", "Create", "Update", "Delete", "Manage", "Api", "Script" };
+        var createdPermissions = new List<Permission>();
+
+        foreach (var action in actions)
+        {
+            var permName = $"Module.{moduleName}.{action}";
+            string description;
+
+            if (action == "Manage")
+                description = $"Can manage {moduleName} schema";
+            else if (action == "Api")
+                description = $"Can manage {moduleName} API integrations";
+            else if (action == "Script")
+                description = $"Can manage {moduleName} dynamic scripts";
+            else
+                description = $"Can {action.ToLower()} {moduleName} records";
+
+            // Check if permission already exists (to be safe, though this is a new module)
+            var existingPerm = await _context.Permissions
+                .FirstOrDefaultAsync(p => p.Name == permName && p.TenantId == tenantId);
+
+            if (existingPerm == null)
+            {
+                var permission = new Permission
+                {
+                    Name = permName,
+                    Description = description,
+                    TenantId = tenantId
+                };
+                _context.Permissions.Add(permission);
+                createdPermissions.Add(permission);
+            }
+            else
+            {
+                createdPermissions.Add(existingPerm);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Assign these permissions to the tenant's Admin role
+        var adminRole = await _context.Roles
+            .FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == tenantId);
+
+        if (adminRole != null)
+        {
+            foreach (var perm in createdPermissions)
+            {
+                // Check if already assigned
+                var exists = await _context.RolePermissions
+                    .AnyAsync(rp => rp.RoleId == adminRole.Id && rp.PermissionId == perm.Id);
+
+                if (!exists)
+                {
+                    _context.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = adminRole.Id,
+                        PermissionId = perm.Id
+                    });
+                }
+            }
+            await _context.SaveChangesAsync();
         }
     }
 }
