@@ -264,4 +264,15 @@ export const deleteScript = async (moduleId, scriptId) => {
   await api.delete(`/modules/${moduleId}/scripts/${scriptId}`);
 };
 
+// AI Setup API
+export const generateAiConfig = async (prompt) => {
+  const response = await api.post('/ai-setup/generate', { prompt });
+  return response.data;
+};
+
+export const applyAiConfig = async (config) => {
+  const response = await api.post('/ai-setup', config);
+  return response.data;
+};
+
 export default api;

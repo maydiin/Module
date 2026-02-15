@@ -23,7 +23,7 @@ public class AiModuleSetupService : IAiModuleSetupService
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. Create Modules
+            // 1. Create or Update Modules
             var moduleNameMap = new Dictionary<string, int>();
 
             foreach (var moduleConfig in config.Modules)
@@ -47,11 +47,19 @@ public class AiModuleSetupService : IAiModuleSetupService
                 }
                 else
                 {
+                    // Update existing module
+                    existingModule.AuditCreate = moduleConfig.AuditCreate;
+                    existingModule.AuditUpdate = moduleConfig.AuditUpdate;
+                    existingModule.AuditDelete = moduleConfig.AuditDelete;
+                    
+                    _context.Modules.Update(existingModule);
+                    await _context.SaveChangesAsync();
+                    
                     moduleNameMap[moduleConfig.Name] = existingModule.Id;
                 }
             }
 
-            // 2. Create Fields
+            // 2. Create or Update Fields
             foreach (var moduleConfig in config.Modules)
             {
                 if (!moduleNameMap.TryGetValue(moduleConfig.Name, out var moduleId)) continue;
@@ -77,11 +85,22 @@ public class AiModuleSetupService : IAiModuleSetupService
                         };
                         _context.ModuleFields.Add(newField);
                     }
+                    else
+                    {
+                        // Update existing field
+                        existingField.Label = fieldConfig.Label;
+                        existingField.Type = fieldConfig.Type;
+                        existingField.Required = fieldConfig.Required;
+                        existingField.Options = fieldConfig.Options;
+                        existingField.OrderNo = fieldConfig.OrderNo;
+                        
+                        _context.ModuleFields.Update(existingField);
+                    }
                 }
             }
             await _context.SaveChangesAsync();
 
-            // 3. Create Scripts
+            // 3. Create or Update Scripts
             foreach (var scriptConfig in config.Scripts)
             {
                 if (!moduleNameMap.TryGetValue(scriptConfig.ModuleName, out var moduleId)) continue;
@@ -101,10 +120,18 @@ public class AiModuleSetupService : IAiModuleSetupService
                     };
                     _context.ModuleScripts.Add(newScript);
                 }
+                else
+                {
+                    // Update existing script
+                    existingScript.ScriptContent = scriptConfig.ScriptContent;
+                    existingScript.IsActive = scriptConfig.IsActive;
+                    
+                    _context.ModuleScripts.Update(existingScript);
+                }
             }
             await _context.SaveChangesAsync();
 
-            // 4. Create API Configs
+            // 4. Create or Update API Configs
             foreach (var apiConfig in config.ApiConfigs)
             {
                 if (!moduleNameMap.TryGetValue(apiConfig.ModuleName, out var moduleId)) continue;
@@ -125,6 +152,17 @@ public class AiModuleSetupService : IAiModuleSetupService
                         ResponseMappingsJson = apiConfig.ResponseMappingsJson
                     };
                     _context.ExternalApiConfigs.Add(newApi);
+                }
+                else
+                {
+                    // Update existing API config
+                    existingApi.Url = apiConfig.Url;
+                    existingApi.Method = apiConfig.Method;
+                    existingApi.HeadersJson = apiConfig.HeadersJson;
+                    existingApi.RequestBodyTemplate = apiConfig.RequestBodyTemplate;
+                    existingApi.ResponseMappingsJson = apiConfig.ResponseMappingsJson;
+                    
+                    _context.ExternalApiConfigs.Update(existingApi);
                 }
             }
             await _context.SaveChangesAsync();

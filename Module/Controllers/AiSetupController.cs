@@ -11,10 +11,12 @@ namespace Module.Controllers;
 public class AiSetupController : ControllerBase
 {
     private readonly IAiModuleSetupService _aiModuleSetupService;
+    private readonly IAiGenerationService _aiGenerationService;
 
-    public AiSetupController(IAiModuleSetupService aiModuleSetupService)
+    public AiSetupController(IAiModuleSetupService aiModuleSetupService, IAiGenerationService aiGenerationService)
     {
         _aiModuleSetupService = aiModuleSetupService;
+        _aiGenerationService = aiGenerationService;
     }
 
     [HttpPost]
@@ -23,4 +25,16 @@ public class AiSetupController : ControllerBase
         await _aiModuleSetupService.ApplyConfigAsync(config);
         return Ok(new { message = "System setup completed successfully." });
     }
+
+    [HttpPost("generate")]
+    public async Task<IActionResult> Generate([FromBody] AiGenerationRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Prompt))
+            return BadRequest("Prompt is required.");
+
+        var config = await _aiGenerationService.GenerateConfigAsync(request.Prompt);
+        return Ok(config);
+    }
 }
+
+

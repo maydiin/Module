@@ -236,7 +236,22 @@ const resources = {
             "click_configure": "Click to configure",
             "back_config": "Back to Configuration",
             "active": "Active",
-            "inactive": "Inactive"
+            "inactive": "Inactive",
+            "ai_architect_btn": "✨ AI Architect",
+            "ai_architect_modal_title": "✨ AI System Architect",
+            "ai_prompt_label": "Describe the improvements or features you want to add:",
+            "ai_prompt_placeholder": "e.g., 'Add a priority field to the Projects module with High, Medium, Low options' or 'Create a new module for Tracking Time linked to Projects'",
+            "ai_analyzing": "Analyzing your system and generating configuration...",
+            "ai_config_generated": "Configuration Generated!",
+            "ai_review_msg": "The AI has proposed the following changes. Please review the JSON configuration below before applying.",
+            "ai_generating": "Generating...",
+            "ai_generate_plan": "Generate Plan",
+            "ai_back_to_edit": "Back to Edit",
+            "ai_applying": "Applying...",
+            "ai_apply_changes": "Apply Changes",
+            "ai_success_msg": "System updated successfully!",
+            "ai_generate_error": "Failed to generate config: ",
+            "ai_apply_error": "Failed to apply config: "
         }
     },
     tr: {
@@ -472,7 +487,22 @@ const resources = {
             "click_configure": "Yapılandırmak için tıklayın",
             "back_config": "Yapılandırmaya Dön",
             "active": "Aktif",
-            "inactive": "Pasif"
+            "inactive": "Pasif",
+            "ai_architect_btn": "✨ AI Mimar",
+            "ai_architect_modal_title": "✨ AI Sistem Mimarı",
+            "ai_prompt_label": "Eklemek istediğiniz iyileştirmeleri veya özellikleri tanımlayın:",
+            "ai_prompt_placeholder": "Örn. 'Projeler modülüne Yüksek, Orta, Düşük seçenekli bir öncelik alanı ekle' veya 'Projeler ile bağlantılı Zaman Takibi için yeni bir modül oluştur'",
+            "ai_analyzing": "Sisteminiz analiz ediliyor ve yapılandırma oluşturuluyor...",
+            "ai_config_generated": "Yapılandırma Oluşturuldu!",
+            "ai_review_msg": "Yapay zeka aşağıdaki değişiklikleri önerdi. Lütfen uygulamadan önce aşağıdaki JSON yapılandırmasını inceleyin.",
+            "ai_generating": "Oluşturuluyor...",
+            "ai_generate_plan": "Plan Oluştur",
+            "ai_back_to_edit": "Düzenlemeye Dön",
+            "ai_applying": "Uygulanıyor...",
+            "ai_apply_changes": "Değişiklikleri Uygula",
+            "ai_success_msg": "Sistem başarıyla güncellendi!",
+            "ai_generate_error": "Yapılandırma oluşturulamadı: ",
+            "ai_apply_error": "Yapılandırma uygulanamadı: "
         }
     }
 };

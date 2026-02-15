@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModules, createModule, updateModule, refreshToken } from '../services/api';
+import { getModules, createModule, updateModule, refreshToken, generateAiConfig, applyAiConfig } from '../services/api';
 import HasPermission from '../components/HasPermission';
 import { useTenant } from '../components/TenantContext';
 
@@ -15,6 +15,10 @@ function ModulesPage() {
   const [auditCreate, setAuditCreate] = useState(true);
   const [auditUpdate, setAuditUpdate] = useState(true);
   const [auditDelete, setAuditDelete] = useState(true);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiPreview, setAiPreview] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { selectedTenantId } = useTenant();
@@ -136,26 +140,35 @@ function ModulesPage() {
           <p className="text-muted lead mb-0">{t('modules_subtitle')}</p>
         </div>
 
-        {/* Dynamic creation button usually requires high-level manage permission */}
-        {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
+        <div className="d-flex gap-2">
           <button
-            className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
-            onClick={() => {
-              if (showForm) resetForm();
-              else setShowForm(true);
-            }}
+            className="btn btn-outline-primary btn-lg px-4 shadow-sm"
+            onClick={() => setShowAiModal(true)}
           >
-            {showForm ? (
-              <>
-                <span className="fs-5">✕</span> {t('cancel')}
-              </>
-            ) : (
-              <>
-                <span className="fs-5">+</span> {t('create_module')}
-              </>
-            )}
+            {t('ai_architect_btn')}
           </button>
-        ) : null}
+
+          {/* Dynamic creation button usually requires high-level manage permission */}
+          {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
+            <button
+              className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
+              onClick={() => {
+                if (showForm) resetForm();
+                else setShowForm(true);
+              }}
+            >
+              {showForm ? (
+                <>
+                  <span className="fs-5">✕</span> {t('cancel')}
+                </>
+              ) : (
+                <>
+                  <span className="fs-5">+</span> {t('create_module')}
+                </>
+              )}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {error && (
@@ -322,6 +335,115 @@ function ModulesPage() {
         </div >
       )
       }
+
+      {/* AI Modal */}
+      {showAiModal && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">{t('ai_architect_modal_title')}</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowAiModal(false)}></button>
+              </div>
+              <div className="modal-body p-4">
+                {!aiPreview ? (
+                  <>
+                    <div className="mb-3">
+                      <label htmlFor="aiPrompt" className="form-label lead">{t('ai_prompt_label')}</label>
+                      <textarea
+                        className="form-control form-control-lg"
+                        id="aiPrompt"
+                        rows="5"
+                        placeholder={t('ai_prompt_placeholder')}
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        disabled={aiLoading}
+                      ></textarea>
+                    </div>
+                    {aiLoading && (
+                      <div className="text-center py-3">
+                        <div className="spinner-border text-primary mb-2" role="status"></div>
+                        <p className="text-muted">{t('ai_analyzing')}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="mb-3">
+                    <div className="alert alert-success">
+                      <h6 className="alert-heading">{t('ai_config_generated')}</h6>
+                      <p className="mb-0">{t('ai_review_msg')}</p>
+                    </div>
+                    <div className="bg-light p-3 rounded border" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                      <pre className="mb-0 small">
+                        {JSON.stringify(aiPreview, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer bg-light">
+                <button type="button" className="btn btn-link text-muted text-decoration-none" onClick={() => setShowAiModal(false)} disabled={aiLoading}>
+                  {t('cancel')}
+                </button>
+                {!aiPreview ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary px-4"
+                    onClick={async () => {
+                      if (!aiPrompt.trim()) return;
+                      setAiLoading(true);
+                      try {
+                        const config = await generateAiConfig(aiPrompt);
+                        setAiPreview(config);
+                      } catch (err) {
+                        alert(t('ai_generate_error') + (err.response?.data || err.message));
+                      } finally {
+                        setAiLoading(false);
+                      }
+                    }}
+                    disabled={aiLoading || !aiPrompt.trim()}
+                  >
+                    {aiLoading ? t('ai_generating') : t('ai_generate_plan')}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setAiPreview(null)}
+                      disabled={aiLoading}
+                    >
+                      {t('ai_back_to_edit')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-success px-4"
+                      onClick={async () => {
+                        setAiLoading(true);
+                        try {
+                          await applyAiConfig(aiPreview);
+                          setShowAiModal(false);
+                          setAiPreview(null);
+                          setAiPrompt('');
+                          loadModules(); // Refresh modules
+                          alert(t('ai_success_msg'));
+                        } catch (err) {
+                          alert(t('ai_apply_error') + (err.response?.data || err.message));
+                        } finally {
+                          setAiLoading(false);
+                        }
+                      }}
+                      disabled={aiLoading}
+                    >
+                      {aiLoading ? t('ai_applying') : t('ai_apply_changes')}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 }
