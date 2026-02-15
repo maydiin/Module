@@ -62,6 +62,7 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<Module.Services.Scripting.IScriptDbHelper, Module.Services.Scripting.ScriptDbHelper>();
 builder.Services.AddScoped<Module.Services.Scripting.IScriptService, Module.Services.Scripting.JintScriptService>();
 builder.Services.AddScoped<Module.Services.Scripting.IScriptApiHelper, Module.Services.Scripting.ScriptApiHelper>();
+builder.Services.AddScoped<Module.Services.Ai.IAiModuleSetupService, Module.Services.Ai.AiModuleSetupService>();
 
 // Add Field Types
 builder.Services.AddScoped<IFieldType, TextFieldType>();
