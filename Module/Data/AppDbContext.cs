@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<ModuleScript> ModuleScripts { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -180,6 +181,20 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.Timestamp);
             entity.HasIndex(e => e.EntityType);
             entity.HasIndex(e => e.Action);
+        });
+
+        modelBuilder.Entity<ModuleScript>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TriggerType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ScriptContent).IsRequired().HasColumnType("nvarchar(max)");
+            
+            entity.HasOne(e => e.Module)
+                .WithMany() // No navigation back from Module needed for now
+                .HasForeignKey(e => e.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasIndex(e => new { e.TenantId, e.ModuleId, e.TriggerType });
         });
     }
 }

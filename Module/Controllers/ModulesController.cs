@@ -45,7 +45,7 @@ public class ModulesController : ControllerBase
         await _context.SaveChangesAsync();
 
         // Dynamically create permissions for the new module (tenant-scoped)
-        var permissions = new[] { "View", "Create", "Update", "Delete", "Manage", "Api" };
+        var permissions = new[] { "View", "Create", "Update", "Delete", "Manage", "Api", "Script" };
         var createdPermissions = new List<Entities.Permission>();
 
         foreach (var action in permissions)
@@ -57,6 +57,8 @@ public class ModulesController : ControllerBase
                 description = $"Can manage {module.Name} schema";
             else if (action == "Api")
                 description = $"Can manage {module.Name} API integrations";
+            else if (action == "Script")
+                description = $"Can manage {module.Name} dynamic scripts";
             else
                 description = $"Can {action.ToLower()} {module.Name} records";
 

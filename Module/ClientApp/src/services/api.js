@@ -239,4 +239,29 @@ export const getAuditLogs = async (params = {}) => {
   return response.data;
 };
 
+// Module Scripts API
+export const getScripts = async (moduleId) => {
+  const response = await api.get(`/modules/${moduleId}/scripts`);
+  return response.data;
+};
+
+export const getScript = async (moduleId, scriptId) => {
+  const response = await api.get(`/modules/${moduleId}/scripts/${scriptId}`);
+  return response.data;
+};
+
+export const createScript = async (moduleId, scriptData) => {
+  const response = await api.post(`/modules/${moduleId}/scripts`, scriptData);
+  return response.data;
+};
+
+export const updateScript = async (moduleId, scriptId, scriptData) => {
+  const response = await api.put(`/modules/${moduleId}/scripts/${scriptId}`, scriptData);
+  return response.data;
+};
+
+export const deleteScript = async (moduleId, scriptId) => {
+  await api.delete(`/modules/${moduleId}/scripts/${scriptId}`);
+};
+
 export default api;

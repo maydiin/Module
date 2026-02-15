@@ -22,8 +22,9 @@ public class ModuleRecordsController : ControllerBase
     private readonly FieldTypeFactory _fieldTypeFactory;
     private readonly ITenantService _tenantService;
     private readonly IAuditLogService _auditLogService;
+    private readonly Module.Services.Scripting.IScriptService _scriptService;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService, IAuditLogService auditLogService)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService, IAuditLogService auditLogService, Module.Services.Scripting.IScriptService scriptService)
     {
         _context = context;
         _moduleService = moduleService;
@@ -32,6 +33,7 @@ public class ModuleRecordsController : ControllerBase
         _fieldTypeFactory = fieldTypeFactory;
         _tenantService = tenantService;
         _auditLogService = auditLogService;
+        _scriptService = scriptService;
     }
 
     [HttpPost]
@@ -45,6 +47,9 @@ public class ModuleRecordsController : ControllerBase
 
         try 
         {
+            // Script Hook: BeforeCreate
+            await _scriptService.ExecuteBeforeHookAsync("BeforeCreate", moduleId, dto.Data);
+
             var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
             
             var module = await _context.Modules.FindAsync(moduleId);
@@ -52,6 +57,9 @@ public class ModuleRecordsController : ControllerBase
             {
                 await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
             }
+            
+            // Script Hook: AfterCreate
+            await _scriptService.ExecuteAfterHookAsync("AfterCreate", moduleId, result.Data);
             
             return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = result.Id }, result);
         }
@@ -77,6 +85,27 @@ public class ModuleRecordsController : ControllerBase
         [FromQuery] string? sortDir = null,
         [FromQuery] string? filters = null)
     {
+        // Script Override: CustomList
+        // Pass query options to the script
+        var queryOptions = new Module.Services.Scripting.RecordQueryOptions 
+        { 
+            Page = page, 
+            PageSize = pageSize, 
+            Search = search, 
+            Filters = filters,
+            SortBy = sortBy,
+            SortDir = sortDir
+        };
+
+        // We need tenantId here for the script check
+        var tenantId = _tenantService.GetCurrentTenantId();
+        
+        var overrideResult = await _scriptService.ExecuteListOverrideAsync(moduleId, tenantId, queryOptions);
+        if (overrideResult != null)
+        {
+            return Ok(overrideResult);
+        }
+
         var module = await _context.Modules
             .Include(m => m.Fields)
             .AsNoTracking()
@@ -95,7 +124,6 @@ public class ModuleRecordsController : ControllerBase
             .AsNoTracking();
             
         // Always apply tenant filter (TenantService handles super admin header override)
-        var tenantId = _tenantService.GetCurrentTenantId();
         query = query.Where(r => r.TenantId == tenantId);
 
         // 1. Global Search (at DB level)
@@ -383,6 +411,9 @@ public class ModuleRecordsController : ControllerBase
 
         try
         {
+            // Script Hook: BeforeUpdate
+            await _scriptService.ExecuteBeforeHookAsync("BeforeUpdate", moduleId, dto.Data);
+
             var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
             
             var module = await _context.Modules.FindAsync(moduleId);
@@ -390,6 +421,10 @@ public class ModuleRecordsController : ControllerBase
             {
                 await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
             }
+            
+            // Script Hook: AfterUpdate
+            await _scriptService.ExecuteAfterHookAsync("AfterUpdate", moduleId, result.Data);
+
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -408,6 +443,12 @@ public class ModuleRecordsController : ControllerBase
     {
         try
         {
+            // Script Hook: BeforeDelete
+            // pass empty dictionary as data context for delete, or maybe fetching record first would be better?
+            // For now, let's pass a minimal context containing ID
+            var deleteContext = new Dictionary<string, object> { { "Id", recordId } };
+            await _scriptService.ExecuteBeforeHookAsync("BeforeDelete", moduleId, deleteContext);
+
             await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
             
             var module = await _context.Modules.FindAsync(moduleId);
@@ -415,6 +456,10 @@ public class ModuleRecordsController : ControllerBase
             {
                 await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
             }
+            
+            // Script Hook: AfterDelete
+            await _scriptService.ExecuteAfterHookAsync("AfterDelete", moduleId, deleteContext);
+
             return NoContent();
         }
         catch (KeyNotFoundException ex)

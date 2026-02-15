@@ -171,6 +171,31 @@ public static class SeedData
             }
         }
         await context.SaveChangesAsync();
+
+        // 7. Backfill "Script" permission for existing modules
+        foreach (var module in allModules)
+        {
+            var scriptPermName = $"Module.{module.Name}.Script";
+            if (!await context.Permissions.AnyAsync(p => p.Name == scriptPermName && p.TenantId == module.TenantId))
+            {
+                var scriptPerm = new Permission
+                {
+                    Name = scriptPermName,
+                    Description = $"Can manage {module.Name} dynamic scripts",
+                    TenantId = module.TenantId
+                };
+                context.Permissions.Add(scriptPerm);
+                await context.SaveChangesAsync(); 
+
+                // Assign to Admin role of that tenant
+                var adminRoleForTenant = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == module.TenantId);
+                if (adminRoleForTenant != null)
+                {
+                    context.RolePermissions.Add(new RolePermission { RoleId = adminRoleForTenant.Id, PermissionId = scriptPerm.Id });
+                }
+            }
+        }
+        await context.SaveChangesAsync();
     }
 }
 

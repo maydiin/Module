@@ -58,6 +58,10 @@ builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
+// Scripting Services
+builder.Services.AddScoped<Module.Services.Scripting.IScriptDbHelper, Module.Services.Scripting.ScriptDbHelper>();
+builder.Services.AddScoped<Module.Services.Scripting.IScriptService, Module.Services.Scripting.JintScriptService>();
+
 // Add Field Types
 builder.Services.AddScoped<IFieldType, TextFieldType>();
 builder.Services.AddScoped<IFieldType, NumberFieldType>();

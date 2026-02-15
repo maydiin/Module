@@ -4,6 +4,7 @@ import ModulesPage from './pages/ModulesPage';
 import ModuleFieldsPage from './pages/ModuleFieldsPage';
 import ModuleRecordsPage from './pages/ModuleRecordsPage';
 import ModuleApiConfigsPage from './pages/ModuleApiConfigsPage';
+import ModuleScriptsPage from './pages/ModuleScriptsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
@@ -31,6 +32,7 @@ function App() {
                     <Route path="/modules/:moduleId/fields" element={<ModuleFieldsPage />} />
                     <Route path="/modules/:moduleId/records" element={<ModuleRecordsPage />} />
                     <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
+                    <Route path="/modules/:moduleId/scripts" element={<ModuleScriptsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/roles" element={<RolesPage />} />
                     <Route path="/audit-logs" element={<AuditLogsPage />} />

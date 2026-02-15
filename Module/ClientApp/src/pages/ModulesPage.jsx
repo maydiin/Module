@@ -305,14 +305,24 @@ function ModulesPage() {
                         <span className="opacity-75">🔌</span> API
                       </button>
                     </HasPermission>
+                    <HasPermission permission={`Module.${module.name}.Script`}>
+                      <button
+                        className="btn btn-light btn-sm flex-grow-1 border"
+                        onClick={() => navigate(`/modules/${module.id}/scripts`)}
+                      >
+                        <span className="opacity-75">📜</span> Scripts
+                      </button>
+                    </HasPermission>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          ))
+          }
+        </div >
+      )
+      }
+    </div >
   );
 }
 
