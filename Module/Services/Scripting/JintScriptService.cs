@@ -11,12 +11,14 @@ public class JintScriptService : IScriptService
     private readonly AppDbContext _context;
     private readonly IScriptDbHelper _dbHelper;
     private readonly ITenantService _tenantService;
+    private readonly IScriptApiHelper _apiHelper;
 
-    public JintScriptService(AppDbContext context, IScriptDbHelper dbHelper, ITenantService tenantService)
+    public JintScriptService(AppDbContext context, IScriptDbHelper dbHelper, ITenantService tenantService, IScriptApiHelper apiHelper)
     {
         _context = context;
         _dbHelper = dbHelper;
         _tenantService = tenantService;
+        _apiHelper = apiHelper;
     }
 
     public async Task<PagedResult<ModuleRecordDto>?> ExecuteListOverrideAsync(int moduleId, int tenantId, RecordQueryOptions options)
@@ -41,6 +43,13 @@ public class JintScriptService : IScriptService
         engine.SetValue("Options", options);
         engine.SetValue("Fail", new Action<string>(context.Fail));
         engine.SetValue("Log", new Action<string>(context.Log));
+        
+        // Inject Api Helper
+        // We create a wrapper to pass the moduleId automatically so the user doesn't have to
+        Func<string, Dictionary<string, object>, object> executeApi = (configName, parameters) => 
+            _apiHelper.ExecuteAsync(moduleId, configName, parameters).GetAwaiter().GetResult();
+            
+        engine.SetValue("Api", new { Execute = executeApi });
 
         try 
         {
@@ -67,7 +76,7 @@ public class JintScriptService : IScriptService
         var script = await GetScript(moduleId, tenantId, trigger);
         if (script == null || !script.IsActive) return;
 
-        ExecuteHook(script.ScriptContent, data);
+        ExecuteHook(script.ScriptContent, moduleId, data);
     }
 
     public async Task ExecuteAfterHookAsync(string trigger, int moduleId, Dictionary<string, object> data)
@@ -76,10 +85,10 @@ public class JintScriptService : IScriptService
         var script = await GetScript(moduleId, tenantId, trigger);
         if (script == null || !script.IsActive) return;
 
-        ExecuteHook(script.ScriptContent, data);
+        ExecuteHook(script.ScriptContent, moduleId, data);
     }
 
-    private void ExecuteHook(string scriptContent, Dictionary<string, object> data)
+    private void ExecuteHook(string scriptContent, int moduleId, Dictionary<string, object> data)
     {
         using var engine = new Engine(cfg => cfg
             .LimitMemory(4_000_000) // 4MB limit
@@ -98,6 +107,12 @@ public class JintScriptService : IScriptService
         engine.SetValue("User", context.User);
         engine.SetValue("Fail", new Action<string>(context.Fail));
         engine.SetValue("Log", new Action<string>(context.Log));
+
+        // Inject Api Helper
+        Func<string, Dictionary<string, object>, object> executeApi = (configName, parameters) => 
+            _apiHelper.ExecuteAsync(moduleId, configName, parameters).GetAwaiter().GetResult();
+            
+        engine.SetValue("Api", new { Execute = executeApi });
 
         engine.Execute(scriptContent);
     }
