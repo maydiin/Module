@@ -264,6 +264,36 @@ export const deleteScript = async (moduleId, scriptId) => {
   await api.delete(`/modules/${moduleId}/scripts/${scriptId}`);
 };
 
+// Module Reports API
+export const getReports = async (moduleId) => {
+  const response = await api.get(`/modules/${moduleId}/reports`);
+  return response.data;
+};
+
+export const getReport = async (moduleId, reportId) => {
+  const response = await api.get(`/modules/${moduleId}/reports/${reportId}`);
+  return response.data;
+};
+
+export const createReport = async (moduleId, reportData) => {
+  const response = await api.post(`/modules/${moduleId}/reports`, reportData);
+  return response.data;
+};
+
+export const updateReport = async (moduleId, reportId, reportData) => {
+  const response = await api.put(`/modules/${moduleId}/reports/${reportId}`, reportData);
+  return response.data;
+};
+
+export const deleteReport = async (moduleId, reportId) => {
+  await api.delete(`/modules/${moduleId}/reports/${reportId}`);
+};
+
+export const getReportData = async (moduleId, reportId) => {
+  const response = await api.get(`/modules/${moduleId}/reports/${reportId}/data`);
+  return response.data;
+};
+
 // AI Setup API
 export const generateAiConfig = async (prompt) => {
   const response = await api.post('/ai-setup/generate', { prompt });

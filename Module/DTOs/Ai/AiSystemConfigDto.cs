@@ -5,6 +5,7 @@ public class AiSystemConfigDto
     public List<AiModuleConfigDto> Modules { get; set; } = new();
     public List<AiScriptConfigDto> Scripts { get; set; } = new();
     public List<AiApiConfigDto> ApiConfigs { get; set; } = new();
+    public List<AiReportConfigDto> Reports { get; set; } = new();
 }
 
 public class AiModuleConfigDto
@@ -43,4 +44,13 @@ public class AiApiConfigDto
     public string? HeadersJson { get; set; }
     public string? RequestBodyTemplate { get; set; }
     public string? ResponseMappingsJson { get; set; }
+}
+
+public class AiReportConfigDto
+{
+    public string ModuleName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = "List"; // List, Chart, Pivot
+    public string Configuration { get; set; } = "{}";
+    public bool IsActive { get; set; } = true;
 }

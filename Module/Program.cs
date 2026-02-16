@@ -57,6 +57,7 @@ builder.Services.AddScoped<IExternalApiService, ExternalApiService>();
 builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Scripting Services
 builder.Services.AddScoped<Module.Services.Scripting.IScriptDbHelper, Module.Services.Scripting.ScriptDbHelper>();

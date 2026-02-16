@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<ModuleScript> ModuleScripts { get; set; }
+    public DbSet<ModuleReport> ModuleReports { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -195,6 +196,26 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
                 
             entity.HasIndex(e => new { e.TenantId, e.ModuleId, e.TriggerType });
+        });
+
+        modelBuilder.Entity<ModuleReport>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Configuration).IsRequired().HasColumnType("nvarchar(max)");
+
+            entity.HasOne(e => e.Module)
+                .WithMany()
+                .HasForeignKey(e => e.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.TenantId, e.ModuleId });
         });
     }
 }

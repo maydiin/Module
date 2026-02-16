@@ -368,6 +368,12 @@ function ModuleRecordsPage() {
             ⚙️ {t('schema')}
           </button>
           <button
+            className="btn btn-outline-info border-2 px-4 shadow-sm"
+            onClick={() => navigate(`/modules/${moduleId}/reports`)}
+          >
+            📊 {t('reports')}
+          </button>
+          <button
             className="btn btn-primary px-4 shadow-sm"
             onClick={() => {
               setEditingRecord(null);

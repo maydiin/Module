@@ -24,7 +24,9 @@ public class AiModuleSetupService : IAiModuleSetupService
         try
         {
             // 1. Create or Update Modules
-            var moduleNameMap = new Dictionary<string, int>();
+            var moduleNameMap = await _context.Modules
+                .Where(m => m.TenantId == tenantId)
+                .ToDictionaryAsync(m => m.Name, m => m.Id);
 
             foreach (var moduleConfig in config.Modules)
             {
@@ -169,6 +171,42 @@ public class AiModuleSetupService : IAiModuleSetupService
                 }
             }
             await _context.SaveChangesAsync();
+
+            // 5. Create or Update Reports
+            if (config.Reports != null)
+            {
+                foreach (var reportConfig in config.Reports)
+                {
+                    if (!moduleNameMap.TryGetValue(reportConfig.ModuleName, out var moduleId)) continue;
+
+                    var existingReport = await _context.ModuleReports
+                        .FirstOrDefaultAsync(r => r.ModuleId == moduleId && r.TenantId == tenantId && r.Name == reportConfig.Name);
+
+                    if (existingReport == null)
+                    {
+                        var newReport = new ModuleReport
+                        {
+                            ModuleId = moduleId,
+                            TenantId = tenantId,
+                            Name = reportConfig.Name,
+                            Type = reportConfig.Type,
+                            Configuration = reportConfig.Configuration,
+                            IsActive = reportConfig.IsActive
+                        };
+                        _context.ModuleReports.Add(newReport);
+                    }
+                    else
+                    {
+                        // Update existing report
+                        existingReport.Type = reportConfig.Type;
+                        existingReport.Configuration = reportConfig.Configuration;
+                        existingReport.IsActive = reportConfig.IsActive;
+
+                        _context.ModuleReports.Update(existingReport);
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
 
             await transaction.CommitAsync();
         }

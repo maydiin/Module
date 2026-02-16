@@ -54,51 +54,87 @@ public class AiGenerationService : IAiGenerationService
 
         var currentConfigJson = JsonSerializer.Serialize(currentConfig, new JsonSerializerOptions { WriteIndented = true });
 
-        var systemPrompt = $@"
+        var systemPrompt = $$$$"""
 You are an AI architect helper. Your goal is to convert a user's verbal description of a CRM or business system into a structured JSON configuration.
 The output MUST be a valid JSON object matching the following structure exactly. Do not include markdown code blocks (```json ... ```), just return the raw JSON.
 
 Structure:
-{{
-  ""Modules"": [
-    {{
-      ""Name"": ""ModuleName"",
-      ""AuditCreate"": true,
-      ""AuditUpdate"": true,
-      ""AuditDelete"": true,
-      ""Fields"": [
-        {{
-          ""Name"": ""fieldName"",
-          ""Label"": ""Field Label"",
-          ""Type"": ""text|number|date|datetime|checkbox|select|email|phone|textarea|file|image|currency|percentage|multiselect|richtext|json|relation|formula"",
-          ""Required"": boolean,
-          ""Options"": ""option1,option2"" (for select/multiselect) OR ""TargetModuleName"" (for relation),
-          ""OrderNo"": integer
-        }}
+{
+  "Modules": [
+    {
+      "Name": "ModuleName",
+      "AuditCreate": true,
+      "AuditUpdate": true,
+      "AuditDelete": true,
+      "Fields": [
+        {
+          "Name": "fieldName",
+          "Label": "Field Label",
+          "Type": "text|number|date|datetime|checkbox|select|email|phone|textarea|file|image|currency|percentage|multiselect|richtext|json|relation|formula",
+          "Required": boolean,
+          "Options": "option1,option2" (for select/multiselect) OR "TargetModuleName" (for relation) OR "{{field1}} * {{field2}}" (for formula),
+          "OrderNo": integer
+        }
       ]
-    }}
+    }
   ],
-  ""Scripts"": [],
-  ""ApiConfigs"": []
-}}
+  "Scripts": [
+    {
+      "ModuleName": "ModuleName",
+      "TriggerType": "BeforeCreate|AfterCreate|BeforeUpdate|AfterUpdate|BeforeDelete|AfterDelete|CustomList",
+      "ScriptContent": "// JS code. Available: Db, Data, User, Fail(msg), Log(msg)",
+      "IsActive": true
+    }
+  ],
+  "ApiConfigs": [
+    {
+      "ModuleName": "ModuleName",
+      "Name": "Config Name",
+      "Url": "https://api.com/v1/{{Field}}",
+      "Method": "GET|POST|PUT|DELETE",
+      "HeadersJson": "{\"Auth\": \"Bearer ...\"}",
+      "RequestBodyTemplate": "{\"id\": {{Id}}}",
+      "ResponseMappingsJson": "{\"result.path\": \"FieldName\"}"
+    }
+  ],
+  "Reports": [
+    {
+      "ModuleName": "ModuleName",
+      "Name": "Report Name",
+      "Type": "List|Chart|Pivot",
+      "Configuration": "{\"columns\": [\"Field1\", \"Field2\"]} for List, OR {\"groupBy\": \"FieldName\"} for Chart" (JSON string),
+      "IsActive": true
+    }
+  ]
+}
 
 Rules:
 1. Identify the entities the user needs (e.g., 'Customers', 'Project', 'Task') and create a Module for each.
 2. For each module, generate appropriate fields based on common business practices and the user's description.
 3. Use the correct 'Type' from the list provided.
 4. For 'relation' type fields, set 'Options' to the exact Name of the related Module.
-5. 'Scripts' and 'ApiConfigs' can be empty arrays for now unless the user explicitly asks for automation or integrations.
+5. For 'formula' type fields, set 'Options' to a calculation expression using field names in curly braces. 
+   Supported syntax: "{{field1}} operator {{field2}}". 
+   Operators: +, -, *, /. 
+   Example: "{{UnitPrice}} * {{Quantity}}" or "{{TotalAmount}} - {{Discount}}".
+6. 'Scripts' should be used for validation or automation logic. Use 'BeforeCreate/Update' for validation (call Fail(msg) to abort). Use 'AfterCreate/Update' for side effects.
+7. 'ApiConfigs' should be used for external integrations. Use {{FieldName}} syntax in Url, HeadersJson, and RequestBodyTemplate for dynamic values.
+8. 'Reports' can be used to create custom views or charts for a module.
+   - If Type is 'List', Configuration must contain a 'columns' array with field names.
+   - If Type is 'Chart', Configuration must contain a 'groupBy' field with the name of the field to aggregate by.
+   - Generate appropriate entries if the user asks for dashboards, reporting, or specific analysis.
+9. For 'ApiConfigs', 'ResponseMappingsJson' is a dictionary where key is the JS path in the JSON response (e.g. 'result.id') and value is the Module field name to update.
 
 CURRENT SYSTEM CONFIGURATION:
 The user already has the following modules and fields configured:
-{currentConfigJson}
+{{{{currentConfigJson}}}}
 
 IMPORTANT:
 - If the user asks to ADD something, generate the JSON for the NEW or MODIFIED parts.
 - If the user asks to MODIFY an existing module (e.g., add a field), include the Module definition with the NEW field added to the list. You do NOT need to list all existing fields unless they are being changed, but keeping them for context is fine.
 - Be careful NOT to duplicates existing fields if they are already present, unless the user wants to change them.
-- If the user's request implies connecting to an existing module (e.g. ""Add a project for a customer"" where 'Customer' exists), use a 'relation' field pointing to the existing 'Customer' module.
-";
+- If the user's request implies connecting to an existing module (e.g. "Add a project for a customer" where 'Customer' exists), use a 'relation' field pointing to the existing 'Customer' module.
+""";
 
         var requestBody = new
         {

@@ -251,7 +251,24 @@ const resources = {
             "ai_apply_changes": "Apply Changes",
             "ai_success_msg": "System updated successfully!",
             "ai_generate_error": "Failed to generate config: ",
-            "ai_apply_error": "Failed to apply config: "
+            "ai_apply_error": "Failed to apply config: ",
+            "reports": "Reports",
+            "custom_reports": "Custom Reports",
+            "reports_subtitle_desc": "Design and view specialized data visualizations for this module.",
+            "add_report": "Add Report",
+            "edit_report": "Edit Report",
+            "new_report": "New Report",
+            "report_name": "Report Name",
+            "report_type": "Report Type",
+            "report_config": "Report Configuration (JSON)",
+            "save_report": "Save Report",
+            "no_reports_yet": "No Reports Yet",
+            "no_reports_desc": "Create specialized views or charts to visualize your data.",
+            "create_first_report": "Create First Report",
+            "loading_reports": "Loading reports...",
+            "failed_load_reports": "Failed to load reports.",
+            "confirm_delete_report": "Are you sure you want to delete this report?",
+            "failed_delete_report": "Failed to delete report"
         }
     },
     tr: {
@@ -502,7 +519,24 @@ const resources = {
             "ai_apply_changes": "Değişiklikleri Uygula",
             "ai_success_msg": "Sistem başarıyla güncellendi!",
             "ai_generate_error": "Yapılandırma oluşturulamadı: ",
-            "ai_apply_error": "Yapılandırma uygulanamadı: "
+            "ai_apply_error": "Yapılandırma uygulanamadı: ",
+            "reports": "Raporlar",
+            "custom_reports": "Özel Raporlar",
+            "reports_subtitle_desc": "Bu modül için özel veri görselleştirmeleri tasarlayın ve inceleyin.",
+            "add_report": "Rapor Ekle",
+            "edit_report": "Raporu Düzenle",
+            "new_report": "Yeni Rapor",
+            "report_name": "Rapor Adı",
+            "report_type": "Rapor Türü",
+            "report_config": "Rapor Yapılandırması (JSON)",
+            "save_report": "Raporu Kaydet",
+            "no_reports_yet": "Henüz Rapor Yok",
+            "no_reports_desc": "Verilerinizi görselleştirmek için özel görünümler veya grafikler oluşturun.",
+            "create_first_report": "İlk Raporu Oluştur",
+            "loading_reports": "Raporlar yükleniyor...",
+            "failed_load_reports": "Raporlar yüklenemedi.",
+            "confirm_delete_report": "Bu raporu silmek istediğinizden emin misiniz?",
+            "failed_delete_report": "Rapor silinemedi"
         }
     }
 };
