@@ -35,6 +35,16 @@ public class AiSetupController : ControllerBase
         var config = await _aiGenerationService.GenerateConfigAsync(request.Prompt);
         return Ok(config);
     }
+
+    [HttpPost("generate-report/{moduleId}")]
+    public async Task<IActionResult> GenerateReport(int moduleId, [FromBody] AiGenerationRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Prompt))
+            return BadRequest("Prompt is required.");
+
+        var config = await _aiGenerationService.GenerateReportConfigAsync(moduleId, request.Prompt);
+        return Ok(config);
+    }
 }
 
 

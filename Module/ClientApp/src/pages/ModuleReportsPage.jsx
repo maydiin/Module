@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getReports, createReport, updateReport, deleteReport, getModule } from '../services/api';
+import { getReports, createReport, updateReport, deleteReport, getModule, generateAiReportConfig } from '../services/api';
 
 const ModuleReportsPage = () => {
     const { t } = useTranslation();
@@ -19,8 +19,21 @@ const ModuleReportsPage = () => {
         configuration: '{}',
         isActive: true
     });
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
 
-    const reportTypes = ['List', 'Chart', 'Pivot'];
+    const reportTypes = [
+        { id: 'List', label: 'report_type_list' },
+        { id: 'Pivot', label: 'report_type_pivot' },
+        { id: 'Chart:Bar', label: 'chart_bar', baseType: 'Chart', chartType: 'bar' },
+        { id: 'Chart:Line', label: 'chart_line', baseType: 'Chart', chartType: 'line' },
+        { id: 'Chart:Pie', label: 'chart_pie', baseType: 'Chart', chartType: 'pie' },
+        { id: 'Chart:Funnel', label: 'chart_funnel', baseType: 'Chart', chartType: 'funnel' },
+        { id: 'Chart:Gauge', label: 'chart_gauge', baseType: 'Chart', chartType: 'gauge' },
+        { id: 'Chart:Heatmap', label: 'chart_heatmap', baseType: 'Chart', chartType: 'heatmap' },
+        { id: 'Chart:Bubble', label: 'chart_bubble', baseType: 'Chart', chartType: 'bubble' }
+    ];
 
     useEffect(() => {
         fetchData();
@@ -59,7 +72,13 @@ const ModuleReportsPage = () => {
         setFormData({
             name: '',
             type: 'List',
-            configuration: '{\n  "columns": [],\n  "filters": []\n}',
+            configuration: JSON.stringify({
+                columns: [],
+                filters: [],
+                sortBy: "",
+                sortOrder: "asc",
+                limit: 100
+            }, null, 2),
             isActive: true
         });
         setShowModal(true);
@@ -92,6 +111,36 @@ const ModuleReportsPage = () => {
         }
     };
 
+    const handleAiGenerate = async () => {
+        try {
+            setAiLoading(true);
+            const config = await generateAiReportConfig(moduleId, aiPrompt);
+
+            if (config.reports && config.reports.length > 0) {
+                const generatedReport = config.reports[0];
+                setEditingReport(null);
+                setFormData({
+                    name: generatedReport.name || '',
+                    type: generatedReport.type || 'List',
+                    configuration: typeof generatedReport.configuration === 'string'
+                        ? generatedReport.configuration
+                        : JSON.stringify(generatedReport.configuration, null, 2),
+                    isActive: true
+                });
+                setShowAiModal(false);
+                setAiPrompt('');
+                setShowModal(true);
+            } else {
+                alert(t('ai_generated_no_reports'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert(t('ai_generation_failed') + ': ' + (err.response?.data?.error || err.message));
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     if (loading) return (
         <div className="text-center py-5">
             <div className="spinner-border text-primary" role="status">
@@ -120,13 +169,74 @@ const ModuleReportsPage = () => {
                     </div>
                 </div>
 
-                <button
-                    onClick={handleAddNew}
-                    className="btn btn-info text-white btn-lg px-4 shadow-sm"
-                >
-                    <span className="fs-5 me-2">+</span> {t('add_report')}
-                </button>
+                <div className="d-flex gap-2">
+                    <button
+                        onClick={() => setShowAiModal(true)}
+                        className="btn btn-outline-info btn-lg px-4 shadow-sm"
+                        title={t('generate_with_ai')}
+                    >
+                        <span className="fs-5 me-2">✨</span> AI {t('report')}
+                    </button>
+                    <button
+                        onClick={handleAddNew}
+                        className="btn btn-info text-white btn-lg px-4 shadow-sm"
+                    >
+                        <span className="fs-5 me-2">+</span> {t('add_report')}
+                    </button>
+                </div>
             </div>
+
+            {/* AI Generation Modal */}
+            {showAiModal && (
+                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content shadow-lg border-0">
+                            <div className="modal-header border-bottom-0">
+                                <h5 className="modal-title fw-bold">✨ AI {t('report_architect')}</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowAiModal(false)}></button>
+                            </div>
+                            <div className="modal-body p-4">
+                                <p className="text-muted small mb-3">
+                                    {t('ai_report_prompt_desc')}
+                                </p>
+                                <textarea
+                                    className="form-control"
+                                    rows="4"
+                                    placeholder={t('ai_report_prompt_placeholder')}
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    disabled={aiLoading}
+                                />
+                            </div>
+                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-light"
+                                    onClick={() => setShowAiModal(false)}
+                                    disabled={aiLoading}
+                                >
+                                    {t('cancel')}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-info text-white px-4"
+                                    onClick={handleAiGenerate}
+                                    disabled={aiLoading || !aiPrompt.trim()}
+                                >
+                                    {aiLoading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm me-2"></span>
+                                            {t('generating')}...
+                                        </>
+                                    ) : (
+                                        t('generate_report')
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Content */}
             {reports.length === 0 ? (
@@ -220,11 +330,55 @@ const ModuleReportsPage = () => {
                                         <div className="col-md-6">
                                             <label className="form-label small fw-bold text-uppercase text-muted">{t('report_type')}</label>
                                             <select
-                                                value={formData.type}
-                                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                                value={editingReport ? (formData.type === 'Chart' ? `Chart:${JSON.parse(formData.configuration || '{}').chartType?.charAt(0).toUpperCase() + JSON.parse(formData.configuration || '{}').chartType?.slice(1) || 'Bar'}` : formData.type) : formData.selectedType || formData.type}
+                                                onChange={(e) => {
+                                                    const selectedId = e.target.value;
+                                                    const selectedOption = reportTypes.find(rt => rt.id === selectedId);
+                                                    const newType = selectedOption?.baseType || selectedId;
+                                                    let newConfig = formData.configuration;
+
+                                                    if (newType === 'Chart') {
+                                                        const chartType = selectedOption?.chartType || 'bar';
+                                                        newConfig = JSON.stringify({
+                                                            chartType: chartType,
+                                                            groupBy: "",
+                                                            aggregateField: "",
+                                                            aggregateType: "count",
+                                                            xAxisField: "",
+                                                            yAxisField: "",
+                                                            zAxisField: "",
+                                                            labelField: "",
+                                                            max: 100,
+                                                            limit: 100,
+                                                            filters: []
+                                                        }, null, 2);
+                                                    } else if (newType === 'List') {
+                                                        newConfig = JSON.stringify({
+                                                            columns: [],
+                                                            filters: [],
+                                                            sortBy: "",
+                                                            sortOrder: "asc",
+                                                            limit: 100
+                                                        }, null, 2);
+                                                    } else if (newType === 'Pivot') {
+                                                        newConfig = JSON.stringify({
+                                                            rows: [],
+                                                            columns: [],
+                                                            values: [],
+                                                            filters: []
+                                                        }, null, 2);
+                                                    }
+
+                                                    setFormData({
+                                                        ...formData,
+                                                        type: newType,
+                                                        configuration: newConfig,
+                                                        selectedType: selectedId
+                                                    });
+                                                }}
                                                 className="form-select"
                                             >
-                                                {reportTypes.map(rt => <option key={rt} value={rt}>{rt}</option>)}
+                                                {reportTypes.map(rt => <option key={rt.id} value={rt.id}>{t(rt.label)}</option>)}
                                             </select>
                                         </div>
 

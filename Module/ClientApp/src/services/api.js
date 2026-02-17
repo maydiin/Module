@@ -300,6 +300,11 @@ export const generateAiConfig = async (prompt) => {
   return response.data;
 };
 
+export const generateAiReportConfig = async (moduleId, prompt) => {
+  const response = await api.post(`/ai-setup/generate-report/${moduleId}`, { prompt });
+  return response.data;
+};
+
 export const applyAiConfig = async (config) => {
   const response = await api.post('/ai-setup', config);
   return response.data;

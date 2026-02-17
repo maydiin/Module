@@ -268,7 +268,24 @@ const resources = {
             "loading_reports": "Loading reports...",
             "failed_load_reports": "Failed to load reports.",
             "confirm_delete_report": "Are you sure you want to delete this report?",
-            "failed_delete_report": "Failed to delete report"
+            "failed_delete_report": "Failed to delete report",
+            "report_type_list": "List",
+            "report_type_pivot": "Pivot",
+            "report_type_chart": "Chart",
+            "chart_bar": "Bar Chart",
+            "chart_line": "Line Chart",
+            "chart_pie": "Pie Chart",
+            "chart_gauge": "Gauge",
+            "chart_funnel": "Funnel",
+            "chart_heatmap": "Heatmap",
+            "chart_bubble": "Bubble",
+            "report": "Report",
+            "generate_with_ai": "Generate with AI",
+            "report_architect": "Report Architect",
+            "ai_report_prompt_desc": "Explain what kind of report you want to create. Mention fields, groupings, and the chart type.",
+            "ai_report_prompt_placeholder": "e.g., 'A bar chart showing total sales by country last month'",
+            "ai_generated_no_reports": "AI could not generate any reports for this prompt.",
+            "ai_generation_failed": "AI generation failed"
         }
     },
     tr: {
@@ -536,7 +553,24 @@ const resources = {
             "loading_reports": "Raporlar yükleniyor...",
             "failed_load_reports": "Raporlar yüklenemedi.",
             "confirm_delete_report": "Bu raporu silmek istediğinizden emin misiniz?",
-            "failed_delete_report": "Rapor silinemedi"
+            "failed_delete_report": "Rapor silinemedi",
+            "report_type_list": "Liste",
+            "report_type_pivot": "Pivot",
+            "report_type_chart": "Grafik",
+            "chart_bar": "Sütun Grafiği",
+            "chart_line": "Çizgi Grafiği",
+            "chart_pie": "Pasta Grafiği",
+            "chart_gauge": "Gösterge",
+            "chart_funnel": "Huni",
+            "chart_heatmap": "Isı Haritası",
+            "chart_bubble": "Kabarcık",
+            "report": "Rapor",
+            "generate_with_ai": "Yapay Zeka ile Oluştur",
+            "report_architect": "Rapor Mimarı",
+            "ai_report_prompt_desc": "Hangi türde bir rapor oluşturmak istediğinizi açıklayın. Alanları, gruplamaları ve grafik türünü belirtebilirsiniz.",
+            "ai_report_prompt_placeholder": "Örn. 'Geçen ayki toplam satışları ülkeye göre gösteren bir sütun grafiği'",
+            "ai_generated_no_reports": "Yapay zeka bu açıklama için herhangi bir rapor oluşturamadı.",
+            "ai_generation_failed": "Yapay zeka rapor oluşturma işlemi başarısız oldu"
         }
     }
 };
