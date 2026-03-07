@@ -32,7 +32,8 @@ const ModuleReportsPage = () => {
         { id: 'Chart:Funnel', label: 'chart_funnel', baseType: 'Chart', chartType: 'funnel' },
         { id: 'Chart:Gauge', label: 'chart_gauge', baseType: 'Chart', chartType: 'gauge' },
         { id: 'Chart:Heatmap', label: 'chart_heatmap', baseType: 'Chart', chartType: 'heatmap' },
-        { id: 'Chart:Bubble', label: 'chart_bubble', baseType: 'Chart', chartType: 'bubble' }
+        { id: 'Chart:Bubble', label: 'chart_bubble', baseType: 'Chart', chartType: 'bubble' },
+        { id: 'Chart:Scatter', label: 'chart_scatter', baseType: 'Chart', chartType: 'scatter' }
     ];
 
     useEffect(() => {

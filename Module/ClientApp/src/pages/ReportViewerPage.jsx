@@ -256,7 +256,7 @@ const ReportViewerPage = () => {
 
             <div className="row">
                 <div className="col-12">
-                    {report?.type === 'List' ? renderList() : renderChart()}
+                    {report?.type === 'List' || report?.type === 'Pivot' ? renderList() : renderChart()}
                 </div>
             </div>
         </div>

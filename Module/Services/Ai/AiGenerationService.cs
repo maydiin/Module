@@ -137,89 +137,9 @@ public class AiGenerationService : IAiGenerationService
                                - If the user's request implies connecting to an existing module (e.g. "Add a project for a customer" where 'Customer' exists), use a 'relation' field pointing to the existing 'Customer' module.
                                """;
 
-        var requestBody = new
-        {
-            contents = new[]
-            {
-                new
-                {
-                    parts = new[]
-                    {
-                        new { text = systemPrompt },
-                        new { text = $"User Request: {userPrompt}" }
-                    }
-                }
-            }
-        };
+        var generatedText = await CallGeminiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
 
-        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync($"{GeminiApiUrl}?key={apiKey}", jsonContent);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                // Try to list available models to help with debugging
-                try
-                {
-                    var listModelsResponse =
-                        await _httpClient.GetAsync(
-                            $"https://generativelanguage.googleapis.com/v1beta/models?key={apiKey}");
-                    if (listModelsResponse.IsSuccessStatusCode)
-                    {
-                        var modelsJson = await listModelsResponse.Content.ReadAsStringAsync();
-                        using var doc = JsonDocument.Parse(modelsJson);
-                        var models = doc.RootElement.GetProperty("models").EnumerateArray()
-                            .Select(m => m.GetProperty("name").GetString())
-                            .Where(n => n != null && n.Contains("gemini"))
-                            .ToList();
-
-                        throw new HttpRequestException(
-                            $"Gemini Model not found. Available models: {string.Join(", ", models)}. Original Error: {error}");
-                    }
-                }
-                catch
-                {
-                    // Ignore failure in error handling
-                }
-            }
-
-            throw new HttpRequestException($"Gemini API Error: {response.StatusCode} - {error}");
-        }
-
-        var responseString = await response.Content.ReadAsStringAsync();
-        var responseJson = JsonDocument.Parse(responseString);
-
-        // Extract the text from the response structure of Gemini API
-        var generatedText = responseJson.RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
-            .GetString();
-
-        if (string.IsNullOrEmpty(generatedText))
-        {
-            throw new InvalidOperationException("Gemini API returned empty text.");
-        }
-
-        // Clean up markdown code blocks if present (just in case the model ignores the prompt)
-        if (generatedText.StartsWith("```json"))
-        {
-            generatedText = generatedText.Replace("```json", "").Replace("```", "").Trim();
-        }
-        else if (generatedText.StartsWith("```"))
-        {
-            generatedText = generatedText.Replace("```", "").Trim();
-        }
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         try
         {
             return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options)
@@ -338,6 +258,18 @@ IMPORTANT:
 - If the user's request is vague, guess likely useful reports for this type of module.
 """;
 
+        var generatedText = await CallGeminiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+    }
+
+    /// <summary>
+    /// Sends a prompt to the Gemini API and returns the cleaned, raw text response.
+    /// Handles HTTP errors, model-not-found diagnostics, and markdown code-block stripping.
+    /// </summary>
+    private async Task<string> CallGeminiAsync(string apiKey, string systemPrompt, string userMessage)
+    {
         var requestBody = new
         {
             contents = new[]
@@ -347,7 +279,7 @@ IMPORTANT:
                     parts = new[]
                     {
                         new { text = systemPrompt },
-                        new { text = $"User Request: {userPrompt}" }
+                        new { text = userMessage }
                     }
                 }
             }
@@ -359,30 +291,58 @@ IMPORTANT:
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                try
+                {
+                    var listModelsResponse = await _httpClient.GetAsync(
+                        $"https://generativelanguage.googleapis.com/v1beta/models?key={apiKey}");
+                    if (listModelsResponse.IsSuccessStatusCode)
+                    {
+                        var modelsJson = await listModelsResponse.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(modelsJson);
+                        var models = doc.RootElement.GetProperty("models").EnumerateArray()
+                            .Select(m => m.GetProperty("name").GetString())
+                            .Where(n => n != null && n.Contains("gemini"))
+                            .ToList();
+
+                        throw new HttpRequestException(
+                            $"Gemini Model not found. Available models: {string.Join(", ", models)}. Original Error: {error}");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    throw;
+                }
+                catch
+                {
+                    // Ignore failure in error diagnostic fallback
+                }
+            }
+
             throw new HttpRequestException($"Gemini API Error: {response.StatusCode} - {error}");
         }
 
         var responseString = await response.Content.ReadAsStringAsync();
         var responseJson = JsonDocument.Parse(responseString);
-        
+
         var generatedText = responseJson.RootElement
             .GetProperty("candidates")[0]
             .GetProperty("content")
             .GetProperty("parts")[0]
             .GetProperty("text")
             .GetString();
-            
-        if (string.IsNullOrEmpty(generatedText))
-        {
-             throw new InvalidOperationException("Gemini API returned empty text.");
-        }
 
+        if (string.IsNullOrEmpty(generatedText))
+            throw new InvalidOperationException("Gemini API returned empty text.");
+
+        // Strip markdown code blocks the model may wrap output in despite instructions
         if (generatedText.StartsWith("```json"))
             generatedText = generatedText.Replace("```json", "").Replace("```", "").Trim();
         else if (generatedText.StartsWith("```"))
             generatedText = generatedText.Replace("```", "").Trim();
 
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+        return generatedText;
     }
 }

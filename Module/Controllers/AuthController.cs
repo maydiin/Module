@@ -242,15 +242,8 @@ public class AuthController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        // Send verification email
-        try
-        {
-            await _emailService.SendVerificationEmailAsync(user.Email, user.Username, verificationCode);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = "E-posta gönderilirken bir hata oluştu" });
-        }
+        // Send verification email — exceptions bubble up to ExceptionHandlingMiddleware
+        await _emailService.SendVerificationEmailAsync(user.Email, user.Username, verificationCode);
 
         return Ok(new { message = "Yeni doğrulama kodu e-posta adresinize gönderildi" });
     }

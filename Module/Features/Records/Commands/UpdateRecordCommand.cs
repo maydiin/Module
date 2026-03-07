@@ -45,6 +45,13 @@ public class UpdateRecordHandler : IRequestHandler<UpdateRecordCommand, ModuleRe
              throw new KeyNotFoundException($"Module with ID {request.ModuleId} not found.");
         }
 
+        // 0. Initial Validation (Required fields, etc.)
+        var errors = await _moduleService.ValidateDataAsync(request.ModuleId, request.Data);
+        if (errors.Any())
+        {
+            throw new Module.Common.Exceptions.ValidationException(string.Join(", ", errors));
+        }
+
         // 0. Compute All Fields First
         // Ordered by OrderNo to ensure dependencies are calculated first
         foreach (var field in module.Fields.OrderBy(f => f.OrderNo))

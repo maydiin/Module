@@ -41,6 +41,10 @@ public class ReportService : IReportService
         {
             await ExecuteChartReport(moduleId, tenantId, config, result);
         }
+        else if (report.Type == "Pivot")
+        {
+            await ExecutePivotReport(moduleId, tenantId, config, result);
+        }
 
         return result;
     }
@@ -183,31 +187,57 @@ public class ReportService : IReportService
         var aggregateField = config.TryGetProperty("aggregateField", out var af) ? af.GetString() : null;
         var aggregateType = config.TryGetProperty("aggregateType", out var at) ? at.GetString()?.ToLower() : "count";
 
-        if (aggregateType == "sum" && !string.IsNullOrEmpty(aggregateField))
+        if (string.IsNullOrEmpty(aggregateField) && aggregateType != "count")
         {
-            var aggPath = $"$.{aggregateField}";
-            var data = await query
-                .GroupBy(r => AppDbContext.JsonValue(r.Data, jsonPath))
-                .Select(g => new ChartDataPointDto
-                {
-                    Label = g.Key ?? "Unknown",
-                    Value = g.Sum(r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, aggPath)))
-                })
-                .ToListAsync();
-            result.ChartData = data;
+            result.ChartData = new List<ChartDataPointDto>();
+            return;
         }
-        else
-        {
-            var data = await query
-                .GroupBy(r => AppDbContext.JsonValue(r.Data, jsonPath))
-                .Select(g => new ChartDataPointDto
+
+        var records = await query.ToListAsync();
+        var dataList = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
+
+        var groupedData = dataList.GroupBy(d => d.TryGetValue(groupByField, out var val) ? val?.ToString() : "Unknown");
+
+        result.ChartData = groupedData.Select(g => {
+            var point = new ChartDataPointDto { Label = g.Key ?? "Unknown" };
+            
+            if (aggregateType == "count")
+            {
+                point.Value = g.Count();
+            }
+            else if (!string.IsNullOrEmpty(aggregateField))
+            {
+                var valuesInGroup = g.Select(d => d.TryGetValue(aggregateField, out var v) ? v : null)
+                                     .Where(v => v != null)
+                                     .Select(v => decimal.TryParse(v!.ToString(), out var d) ? d : 0)
+                                     .ToList();
+
+                switch (aggregateType)
                 {
-                    Label = g.Key ?? "Unknown",
-                    Value = g.Count()
-                })
-                .ToListAsync();
-            result.ChartData = data;
-        }
+                    case "sum":
+                        point.Value = valuesInGroup.Sum();
+                        break;
+                    case "avg":
+                        point.Value = valuesInGroup.Count > 0 ? valuesInGroup.Average() : 0;
+                        break;
+                    case "min":
+                        point.Value = valuesInGroup.Count > 0 ? valuesInGroup.Min() : 0;
+                        break;
+                    case "max":
+                        point.Value = valuesInGroup.Count > 0 ? valuesInGroup.Max() : 0;
+                        break;
+                    default:
+                        point.Value = g.Count();
+                        break;
+                }
+            }
+            else
+            {
+                point.Value = g.Count();
+            }
+            
+            return point;
+        }).ToList();
     }
 
     private async Task ExecuteTotalAggregate(int moduleId, int tenantId, JsonElement config, IQueryable<ModuleRecord> query, ReportDataDto result)
@@ -272,5 +302,106 @@ public class ReportService : IReportService
             
             return point;
         }).ToList();
+    }
+
+    private async Task ExecutePivotReport(int moduleId, int tenantId, JsonElement config, ReportDataDto result)
+    {
+        var query = _context.ModuleRecords
+            .Where(r => r.ModuleId == moduleId && r.TenantId == tenantId);
+
+        ApplyFilters(ref query, config);
+
+        var limit = 2000; // Pivot reports might need more data for aggregation
+        if (config.TryGetProperty("limit", out var limitProp) && limitProp.TryGetInt32(out var l))
+        {
+            limit = l;
+        }
+
+        var records = await query.OrderByDescending(r => r.CreatedAt).Take(limit).ToListAsync();
+        var dataList = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
+
+        if (dataList.Count == 0)
+        {
+            result.Rows = new List<Dictionary<string, object>>();
+            result.Columns = new List<string>();
+            return;
+        }
+
+        var rowsConfig = config.TryGetProperty("rows", out var rProp) ? rProp.EnumerateArray().Select(x => x.GetString()).Where(x => x != null).ToList() : new List<string?>();
+        var colsConfig = config.TryGetProperty("columns", out var cProp) ? cProp.EnumerateArray().Select(x => x.GetString()).Where(x => x != null).ToList() : new List<string?>();
+        var values = config.TryGetProperty("values", out var vProp) ? vProp.EnumerateArray().ToList() : new List<JsonElement>();
+
+        // Group by both rows and columns
+        var groupByFields = rowsConfig.Concat(colsConfig).Where(x => x != null).Cast<string>().ToList();
+
+        if (groupByFields.Count == 0 && values.Count == 0)
+        {
+            // Fallback to simple list if no pivot config
+            result.Rows = dataList;
+            result.Columns = dataList[0].Keys.ToList();
+            return;
+        }
+
+        var groupedData = dataList.GroupBy(d => {
+            var keyObj = new Dictionary<string, object?>();
+            foreach (var field in groupByFields)
+            {
+                keyObj[field] = d.TryGetValue(field, out var val) ? val : null;
+            }
+            return JsonSerializer.Serialize(keyObj);
+        });
+
+        var pivotResult = new List<Dictionary<string, object>>();
+        foreach (var group in groupedData)
+        {
+            var rowData = JsonSerializer.Deserialize<Dictionary<string, object?>>(group.Key) ?? new Dictionary<string, object?>();
+            var newRow = new Dictionary<string, object>();
+            foreach (var kvp in rowData)
+            {
+                newRow[kvp.Key] = kvp.Value ?? "";
+            }
+
+            foreach (var valConfig in values)
+            {
+                var field = valConfig.GetProperty("field").GetString();
+                var aggType = valConfig.GetProperty("type").GetString()?.ToLower() ?? "sum";
+                var label = valConfig.TryGetProperty("label", out var lab) ? lab.GetString() : $"{aggType}({field})";
+
+                if (string.IsNullOrEmpty(field)) continue;
+
+                object finalVal = 0;
+                var valuesInGroup = group.Select(g => g.TryGetValue(field, out var v) ? v : null).ToList();
+
+                switch (aggType)
+                {
+                    case "sum":
+                        finalVal = valuesInGroup.Sum(v => v != null && decimal.TryParse(v.ToString(), out var d) ? d : 0);
+                        break;
+                    case "count":
+                        finalVal = valuesInGroup.Count(v => v != null);
+                        break;
+                    case "avg":
+                        var nonNulls = valuesInGroup.Where(v => v != null && decimal.TryParse(v.ToString(), out var d)).Select(v => decimal.Parse(v!.ToString()!)).ToList();
+                        finalVal = nonNulls.Count > 0 ? nonNulls.Average() : 0;
+                        break;
+                    case "min":
+                        var nonNullMin = valuesInGroup.Where(v => v != null && decimal.TryParse(v.ToString(), out var d)).Select(v => decimal.Parse(v!.ToString()!)).ToList();
+                        finalVal = nonNullMin.Count > 0 ? nonNullMin.Min() : 0;
+                        break;
+                    case "max":
+                        var nonNullMax = valuesInGroup.Where(v => v != null && decimal.TryParse(v.ToString(), out var d)).Select(v => decimal.Parse(v!.ToString()!)).ToList();
+                        finalVal = nonNullMax.Count > 0 ? nonNullMax.Max() : 0;
+                        break;
+                }
+                newRow[label!] = finalVal;
+            }
+            pivotResult.Add(newRow);
+        }
+
+        result.Rows = pivotResult;
+        if (pivotResult.Count > 0)
+        {
+            result.Columns = pivotResult[0].Keys.ToList();
+        }
     }
 }

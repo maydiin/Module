@@ -45,33 +45,41 @@ public class ModuleRecordsController : ControllerBase
             return BadRequest(new { error = "Data is required" });
         }
 
-        try 
-        {
-            // Script Hook: BeforeCreate
-            await _scriptService.ExecuteBeforeHookAsync("BeforeCreate", moduleId, dto.Data);
+        // Script Hook: BeforeCreate
+        await _scriptService.ExecuteBeforeHookAsync("BeforeCreate", moduleId, dto.Data);
 
-            var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
-            
-            var module = await _context.Modules.FindAsync(moduleId);
-            if (module != null && module.AuditCreate)
-            {
-                await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
-            }
-            
-            // Script Hook: AfterCreate
-            await _scriptService.ExecuteAfterHookAsync("AfterCreate", moduleId, result.Data);
-            
-            return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = result.Id }, result);
-        }
-        catch (KeyNotFoundException ex)
+        var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
+        
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null && module.AuditCreate)
         {
-            return NotFound(new { error = ex.Message });
+            await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
         }
-        catch (Exception ex)
+        
+        // Script Hook: AfterCreate
+        await _scriptService.ExecuteAfterHookAsync("AfterCreate", moduleId, result.Data);
+        
+        return CreatedAtAction(nameof(GetRecord), new { moduleId, recordId = result.Id }, result);
+    }
+
+    [HttpPost("bulk")]
+    [HasModulePermission("Create")]
+    public async Task<ActionResult<List<ModuleRecordDto>>> BulkCreateRecords(int moduleId, [FromBody] List<Dictionary<string, object>> recordsData)
+    {
+        if (recordsData == null || !recordsData.Any())
         {
-            // In a real app, logic inside the handler would throw specific validation exceptions
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(new { error = "Records data is required" });
         }
+
+        var result = await _mediator.Send(new Features.Records.Commands.BulkCreateRecordsCommand(moduleId, recordsData));
+        
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null && module.AuditCreate)
+        {
+            await _auditLogService.LogAsync("BulkCreate", "Record", $"{result.Count} records", $"Module:{moduleId}");
+        }
+        
+        return Ok(result);
     }
 
     [HttpGet]
@@ -257,9 +265,13 @@ public class ModuleRecordsController : ControllerBase
         {
             if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var decimalValue))
             {
-                // We use dynamic selection because EF Core won't easily cast JsonValue in a generic way inside Where
-                // But for now, let's try standard string comparison for simple cases or use raw SQL if it fails
-                // Actually, SQL Server JSON_VALUE returns NVARCHAR.
+                if (op == "between" && decimal.TryParse(valueTo, NumberStyles.Any, CultureInfo.InvariantCulture, out var decimalValueTo))
+                {
+                    return query.Where(r =>
+                        Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) >= decimalValue &&
+                        Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) <= decimalValueTo);
+                }
+
                 return op switch
                 {
                     "eq" or "equals" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == value),
@@ -277,6 +289,13 @@ public class ModuleRecordsController : ControllerBase
         {
             if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dateValue))
             {
+                if (op == "between" && DateTime.TryParse(valueTo, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var dateValueTo))
+                {
+                    return query.Where(r =>
+                        Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) >= dateValue &&
+                        Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) <= dateValueTo);
+                }
+
                 return op switch
                 {
                     "before" or "lt" => query.Where(r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) < dateValue),
@@ -324,6 +343,11 @@ public class ModuleRecordsController : ControllerBase
         {
             if (DateTime.TryParse(value, out var date))
             {
+                if (op == "between" && DateTime.TryParse(valueTo, out var dateTo))
+                {
+                    return query.Where(r => r.CreatedAt >= date && r.CreatedAt <= dateTo);
+                }
+
                 return op switch
                 {
                     "before" or "lt" => query.Where(r => r.CreatedAt < date),
@@ -409,67 +433,83 @@ public class ModuleRecordsController : ControllerBase
             return BadRequest(new { error = "Data is required" });
         }
 
-        try
-        {
-            // Script Hook: BeforeUpdate
-            await _scriptService.ExecuteBeforeHookAsync("BeforeUpdate", moduleId, dto.Data);
+        // Script Hook: BeforeUpdate
+        await _scriptService.ExecuteBeforeHookAsync("BeforeUpdate", moduleId, dto.Data);
 
-            var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
-            
-            var module = await _context.Modules.FindAsync(moduleId);
-            if (module != null && module.AuditUpdate)
-            {
-                await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
-            }
-            
-            // Script Hook: AfterUpdate
-            await _scriptService.ExecuteAfterHookAsync("AfterUpdate", moduleId, result.Data);
+        var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
+        
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null && module.AuditUpdate)
+        {
+            await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
+        }
+        
+        // Script Hook: AfterUpdate
+        await _scriptService.ExecuteAfterHookAsync("AfterUpdate", moduleId, result.Data);
 
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
+        return Ok(result);
+    }
+
+    [HttpPut("bulk")]
+    [HasModulePermission("Update")]
+    public async Task<ActionResult<List<ModuleRecordDto>>> BulkUpdateRecords(int moduleId, [FromBody] List<Features.Records.Commands.BulkUpdateItem> updates)
+    {
+        if (updates == null || !updates.Any())
         {
-            return NotFound(new { error = ex.Message });
+            return BadRequest(new { error = "Updates are required" });
         }
-        catch (Exception ex)
+
+        var result = await _mediator.Send(new Features.Records.Commands.BulkUpdateRecordsCommand(moduleId, updates));
+        
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null && module.AuditUpdate)
         {
-            return BadRequest(new { error = ex.Message });
+            await _auditLogService.LogAsync("BulkUpdate", "Record", $"{result.Count} records", $"Module:{moduleId}");
         }
+
+        return Ok(result);
     }
 
     [HttpDelete("{recordId}")]
     [HasModulePermission("Delete")]
     public async Task<IActionResult> DeleteRecord(int moduleId, int recordId)
     {
-        try
-        {
-            // Script Hook: BeforeDelete
-            // pass empty dictionary as data context for delete, or maybe fetching record first would be better?
-            // For now, let's pass a minimal context containing ID
-            var deleteContext = new Dictionary<string, object> { { "Id", recordId } };
-            await _scriptService.ExecuteBeforeHookAsync("BeforeDelete", moduleId, deleteContext);
+        // Script Hook: BeforeDelete
+        var deleteContext = new Dictionary<string, object> { { "Id", recordId } };
+        await _scriptService.ExecuteBeforeHookAsync("BeforeDelete", moduleId, deleteContext);
 
-            await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
-            
-            var module = await _context.Modules.FindAsync(moduleId);
-            if (module != null && module.AuditDelete)
-            {
-                await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
-            }
-            
-            // Script Hook: AfterDelete
-            await _scriptService.ExecuteAfterHookAsync("AfterDelete", moduleId, deleteContext);
+        await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
+        
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null && module.AuditDelete)
+        {
+            await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
+        }
+        
+        // Script Hook: AfterDelete
+        await _scriptService.ExecuteAfterHookAsync("AfterDelete", moduleId, deleteContext);
 
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
+        return NoContent();
+    }
+
+    [HttpDelete("bulk")]
+    [HasModulePermission("Delete")]
+    public async Task<IActionResult> BulkDeleteRecords(int moduleId, [FromBody] List<int> recordIds)
+    {
+        if (recordIds == null || !recordIds.Any())
         {
-            return NotFound(new { error = ex.Message });
+            return BadRequest(new { error = "Record IDs are required" });
         }
-        catch (Exception ex)
+
+        await _mediator.Send(new Features.Records.Commands.BulkDeleteRecordsCommand(moduleId, recordIds));
+        
+        var module = await _context.Modules.FindAsync(moduleId);
+        if (module != null && module.AuditDelete)
         {
-             return BadRequest(new { error = ex.Message });
+            await _auditLogService.LogAsync("BulkDelete", "Record", $"{recordIds.Count} records", $"Module:{moduleId}");
         }
+
+        return NoContent();
     }
 
     [HttpGet("/api/records/by-name/{moduleName}")]
