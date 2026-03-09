@@ -11,23 +11,23 @@ namespace Module.Controllers;
 [Route("api/[controller]")]
 public class ModulesController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ITenantService _tenantService;
     private readonly IAuditLogService _auditLogService;
 
-    public ModulesController(AppDbContext context, ITenantService tenantService, IAuditLogService auditLogService)
+    public ModulesController(IUnitOfWork unitOfWork, ITenantService tenantService, IAuditLogService auditLogService)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
         _tenantService = tenantService;
         _auditLogService = auditLogService;
     }
 
     [HttpPost]
-    public async Task<ActionResult<ModuleDto>> CreateModule([FromBody] CreateModuleDto dto)
+    public async Task<IActionResult> CreateModule([FromBody] CreateModuleDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
         {
-            return BadRequest(new { error = "Module name is required" });
+            return BadRequest(ApiResponse<object>.Fail("Module name is required"));
         }
 
         var tenantId = _tenantService.GetCurrentTenantId();
@@ -41,8 +41,8 @@ public class ModulesController : ControllerBase
             AuditDelete = dto.AuditDelete
         };
 
-        _context.Modules.Add(module);
-        await _context.SaveChangesAsync();
+        await _unitOfWork.Modules.AddAsync(module);
+        await _unitOfWork.CompleteAsync();
 
         // Dynamically create permissions for the new module (tenant-scoped)
         var permissions = new[] { "View", "Create", "Update", "Delete", "Manage", "Api", "Script" };
@@ -68,49 +68,49 @@ public class ModulesController : ControllerBase
                 Description = description,
                 TenantId = tenantId
             };
-            _context.Permissions.Add(permission);
+            await _unitOfWork.Permissions.AddAsync(permission);
             createdPermissions.Add(permission);
         }
 
-        await _context.SaveChangesAsync();
+        await _unitOfWork.CompleteAsync();
 
         // Assign these permissions to the tenant's Admin role
-        var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == tenantId);
+        var adminRole = await _unitOfWork.Roles.AsQueryable().FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == tenantId);
         bool shouldRefreshToken = false;
         
         if (adminRole != null)
         {
             foreach (var perm in createdPermissions)
             {
-                _context.RolePermissions.Add(new Entities.RolePermission
+                await _unitOfWork.RolePermissions.AddAsync(new Entities.RolePermission
                 {
                     RoleId = adminRole.Id,
                     PermissionId = perm.Id
                 });
             }
-            await _context.SaveChangesAsync();
+            await _unitOfWork.CompleteAsync();
             
             // Check if the current user has the Admin role
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            shouldRefreshToken = await _context.UserRoles.AnyAsync(ur => ur.UserId == currentUserId && ur.RoleId == adminRole.Id);
+            shouldRefreshToken = await _unitOfWork.UserRoles.AsQueryable().AnyAsync(ur => ur.UserId == currentUserId && ur.RoleId == adminRole.Id);
         }
 
         await _auditLogService.LogAsync("Create", "Module", module.Id.ToString(), module.Name);
 
-        return CreatedAtAction(nameof(GetModule), new { id = module.Id }, new
+        return CreatedAtAction(nameof(GetModule), new { id = module.Id }, ApiResponse<object>.Ok(new
         {
             id = module.Id,
             name = module.Name,
             shouldRefreshToken = shouldRefreshToken
-        });
+        }));
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ModuleDto>>> ListModules()
+    public async Task<IActionResult> ListModules()
     {
         var tenantId = _tenantService.GetCurrentTenantId();
         
-        var modules = await _context.Modules
+        var modules = await _unitOfWork.Modules.AsQueryable()
             .Where(m => m.TenantId == tenantId)
             .OrderBy(m => m.Name)
             .Select(m => new ModuleDto
@@ -123,36 +123,36 @@ public class ModulesController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(modules);
+        return Ok(ApiResponse<IEnumerable<ModuleDto>>.Ok(modules));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ModuleDto>> GetModule(int id)
+    public async Task<IActionResult> GetModule(int id)
     {
-        var module = await _context.Modules.FindAsync(id);
+        var module = await _unitOfWork.Modules.GetByIdAsync(id);
 
         if (module == null)
         {
-            return NotFound();
+            return NotFound(ApiResponse<object>.Fail("Module not found"));
         }
 
-        return Ok(new ModuleDto
+        return Ok(ApiResponse<ModuleDto>.Ok(new ModuleDto
         {
             Id = module.Id,
             Name = module.Name,
             AuditCreate = module.AuditCreate,
             AuditUpdate = module.AuditUpdate,
             AuditDelete = module.AuditDelete
-        });
+        }));
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateModule(int id, [FromBody] UpdateModuleDto dto)
     {
-        var module = await _context.Modules.FindAsync(id);
+        var module = await _unitOfWork.Modules.GetByIdAsync(id);
         if (module == null)
         {
-            return NotFound();
+            return NotFound(ApiResponse<object>.Fail("Module not found"));
         }
 
         // Check permission: Module.{Name}.Manage
@@ -162,29 +162,19 @@ public class ModulesController : ControllerBase
 
         if (!hasPermission)
         {
-            // Also check if user is a tenant admin with this permission assigned via role
-            // The policy/attribute based authorization might have already handled this if we used [HasModulePermission]
-            // but since the module name is dynamic, we need to check manually or use a custom requirement.
-            // For now, let's rely on the manual check logic consistent with other controllers or use the auth service if available.
-            // Assuming the claims are populated correctly on login/refresh.
-            
-            // Re-verify against DB to be sure (since claims might be old)
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var tenantId = _tenantService.GetCurrentTenantId();
             
             // Super Admin check again for safety
-            var isSuperAdmin = await _context.UserRoles
+            var isSuperAdmin = await _unitOfWork.UserRoles.AsQueryable()
                 .AnyAsync(ur => ur.UserId == userId && ur.Role.Name == "Super Admin");
                 
             if (!isSuperAdmin)
             {
-                var userPermissions = await _context.Database
-                    .SqlQueryRaw<string>(@"
-                        SELECT p.Name 
-                        FROM Permissions p
-                        JOIN RolePermissions rp ON p.Id = rp.PermissionId
-                        JOIN UserRoles ur ON rp.RoleId = ur.RoleId
-                        WHERE ur.UserId = {0} AND p.TenantId = {1}", userId, tenantId)
+                var userPermissions = await _unitOfWork.UserRoles.AsQueryable()
+                    .Where(ur => ur.UserId == userId)
+                    .Join(_unitOfWork.RolePermissions.AsQueryable(), ur => ur.RoleId, rp => rp.RoleId, (ur, rp) => rp.PermissionId)
+                    .Join(_unitOfWork.Permissions.AsQueryable().Where(p => p.TenantId == tenantId), pid => pid, p => p.Id, (pid, p) => p.Name)
                     .ToListAsync();
                     
                 if (!userPermissions.Contains(permissionName))
@@ -196,23 +186,23 @@ public class ModulesController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(dto.Name))
         {
-            return BadRequest(new { error = "Module name is required" });
+            return BadRequest(ApiResponse<object>.Fail("Module name is required"));
         }
 
         // Handle Rename
         if (!string.Equals(module.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
         {
             // Check if new name exists
-            if (await _context.Modules.AnyAsync(m => m.Name == dto.Name && m.TenantId == module.TenantId))
+            if (await _unitOfWork.Modules.AsQueryable().AnyAsync(m => m.Name == dto.Name && m.TenantId == module.TenantId))
             {
-                return BadRequest(new { error = "Module with this name already exists" });
+                return BadRequest(ApiResponse<object>.Fail("Module with this name already exists"));
             }
 
             var oldName = module.Name;
             var newName = dto.Name;
 
             // Rename permissions
-            var permissions = await _context.Permissions
+            var permissions = await _unitOfWork.Permissions.AsQueryable()
                 .Where(p => p.Name.StartsWith($"Module.{oldName}."))
                 .ToListAsync();
 
@@ -220,19 +210,17 @@ public class ModulesController : ControllerBase
             {
                 perm.Name = perm.Name.Replace($"Module.{oldName}.", $"Module.{newName}.");
                 perm.Description = perm.Description.Replace(oldName, newName);
+                _unitOfWork.Permissions.Update(perm);
             }
 
-            // Also need to update RecordRelations targetModuleName if applicable?
-            // Existing data might rely on module name strings.
-            // Check ModuleRecordsController uses 'TargetModule' string in RecordRelations.
-            // Yes, RecordRelation has TargetModule (string).
-            var relations = await _context.RecordRelations
+            var relations = await _unitOfWork.RecordRelations.AsQueryable()
                 .Where(r => r.TargetModule == oldName)
                 .ToListAsync();
             
             foreach (var rel in relations)
             {
                 rel.TargetModule = newName;
+                _unitOfWork.RecordRelations.Update(rel);
             }
             
             module.Name = newName;
@@ -242,17 +230,18 @@ public class ModulesController : ControllerBase
         module.AuditUpdate = dto.AuditUpdate;
         module.AuditDelete = dto.AuditDelete;
 
-        await _context.SaveChangesAsync();
+        _unitOfWork.Modules.Update(module);
+        await _unitOfWork.CompleteAsync();
+        
         await _auditLogService.LogAsync("Update", "Module", module.Id.ToString(), module.Name);
 
-        return Ok(new ModuleDto
+        return Ok(ApiResponse<ModuleDto>.Ok(new ModuleDto
         {
             Id = module.Id,
             Name = module.Name,
             AuditCreate = module.AuditCreate,
             AuditUpdate = module.AuditUpdate,
             AuditDelete = module.AuditDelete
-        });
+        }));
     }
 }
-

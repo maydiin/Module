@@ -12,7 +12,7 @@ public class AiGenerationService : IAiGenerationService
     private readonly IConfiguration _configuration;
     private readonly AppDbContext _context;
     private readonly ITenantService _tenantService;
-    private const string GeminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+    private const string DefaultGeminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/";
 
     public AiGenerationService(HttpClient httpClient, IConfiguration configuration, AppDbContext context, ITenantService tenantService)
     {
@@ -24,10 +24,10 @@ public class AiGenerationService : IAiGenerationService
 
     public async Task<AiSystemConfigDto> GenerateConfigAsync(string userPrompt)
     {
-        var apiKey = _configuration["Gemini:ApiKey"];
+        var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
         {
-            throw new InvalidOperationException("Gemini API Key is not configured.");
+            throw new InvalidOperationException("AI API Key is not configured.");
         }
 
         // 1. Fetch current system configuration
@@ -137,7 +137,7 @@ public class AiGenerationService : IAiGenerationService
                                - If the user's request implies connecting to an existing module (e.g. "Add a project for a customer" where 'Customer' exists), use a 'relation' field pointing to the existing 'Customer' module.
                                """;
 
-        var generatedText = await CallGeminiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         try
@@ -154,10 +154,10 @@ public class AiGenerationService : IAiGenerationService
 
     public async Task<AiSystemConfigDto> GenerateReportConfigAsync(int moduleId, string userPrompt)
     {
-        var apiKey = _configuration["Gemini:ApiKey"];
+        var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
         {
-            throw new InvalidOperationException("Gemini API Key is not configured.");
+            throw new InvalidOperationException("AI API Key is not configured.");
         }
 
         var tenantId = _tenantService.GetCurrentTenantId();
@@ -258,10 +258,80 @@ IMPORTANT:
 - If the user's request is vague, guess likely useful reports for this type of module.
 """;
 
-        var generatedText = await CallGeminiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+    }
+
+    /// <summary>
+    /// Routes the request to the configured AI provider.
+    /// </summary>
+    private async Task<string> CallAiAsync(string apiKey, string systemPrompt, string userMessage)
+    {
+        var provider = _configuration["Ai:Provider"]?.ToLowerInvariant() ?? "gemini";
+        
+        if (provider == "openai")
+        {
+            return await CallOpenAiAsync(apiKey, systemPrompt, userMessage);
+        }
+        else
+        {
+            return await CallGeminiAsync(apiKey, systemPrompt, userMessage);
+        }
+    }
+
+    /// <summary>
+    /// Sends a prompt to an OpenAI-compatible API and returns the cleaned, raw text response.
+    /// </summary>
+    private async Task<string> CallOpenAiAsync(string apiKey, string systemPrompt, string userMessage)
+    {
+        var baseUrl = _configuration["Ai:BaseUrl"];
+        if (string.IsNullOrEmpty(baseUrl))
+        {
+            throw new InvalidOperationException("AI BaseUrl is not configured for OpenAI provider.");
+        }
+
+        var model = _configuration["Ai:Model"] ?? "gpt-3.5-turbo"; // Default to a standard model name if not provided
+        var apiUrl = baseUrl.TrimEnd('/') + "/chat/completions";
+
+        var requestBody = new
+        {
+            model = model,
+            messages = new[]
+            {
+                new { role = "system", content = systemPrompt },
+                new { role = "user", content = userMessage }
+            }
+        };
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        
+        // Use a HttpRequestMessage object to add Headers safely
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
+        {
+            Content = jsonContent
+        };
+        requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+        var response = await _httpClient.SendAsync(requestMessage);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"OpenAI-Compatible API Error: {response.StatusCode} - {error}");
+        }
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        using var responseJson = JsonDocument.Parse(responseString);
+
+        var generatedText = responseJson.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString();
+
+        return CleanResponseText(generatedText);
     }
 
     /// <summary>
@@ -278,15 +348,21 @@ IMPORTANT:
                 {
                     parts = new[]
                     {
-                        new { text = systemPrompt },
-                        new { text = userMessage }
+                        new { text = systemPrompt + "\n\n" + userMessage }
                     }
                 }
             }
         };
 
         var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync($"{GeminiApiUrl}?key={apiKey}", jsonContent);
+        
+        var baseUrl = _configuration["Ai:BaseUrl"] ?? DefaultGeminiApiUrl;
+        var model = _configuration["Ai:Model"] ?? "gemini-2.0-flash";
+        
+        // Ensure BaseUrl ends with / and construct full URL format expected by Gemini
+        var apiUrl = $"{baseUrl.TrimEnd('/')}/{model}:generateContent?key={apiKey}";
+        
+        var response = await _httpClient.PostAsync(apiUrl, jsonContent);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -325,7 +401,7 @@ IMPORTANT:
         }
 
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseJson = JsonDocument.Parse(responseString);
+        using var responseJson = JsonDocument.Parse(responseString);
 
         var generatedText = responseJson.RootElement
             .GetProperty("candidates")[0]
@@ -334,8 +410,13 @@ IMPORTANT:
             .GetProperty("text")
             .GetString();
 
+        return CleanResponseText(generatedText);
+    }
+    
+    private string CleanResponseText(string? generatedText)
+    {
         if (string.IsNullOrEmpty(generatedText))
-            throw new InvalidOperationException("Gemini API returned empty text.");
+            throw new InvalidOperationException("API returned empty text.");
 
         // Strip markdown code blocks the model may wrap output in despite instructions
         if (generatedText.StartsWith("```json"))

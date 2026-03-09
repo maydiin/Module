@@ -144,22 +144,22 @@ export const deleteRole = async (id) => {
 // Modules API
 export const getModules = async () => {
   const response = await api.get('/modules');
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const getModule = async (id) => {
   const response = await api.get(`/modules/${id}`);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const createModule = async (moduleData) => {
   const response = await api.post('/modules', moduleData);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 export const updateModule = async (moduleId, moduleData) => {
   const response = await api.put(`/modules/${moduleId}`, moduleData);
-  return response.data;
+  return response.data.data || response.data;
 };
 
 // Module Fields API
