@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { logout, getTenants } from '../../services/api';
 import { useTenant } from '../TenantContext';
 import HasPermission from '../HasPermission';
+import Sidebar from './Sidebar';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
@@ -13,6 +14,9 @@ function AppLayout({ children }) {
   const { selectedTenantId, setSelectedTenantId, isSuperAdmin } = useTenant();
   const [tenants, setTenants] = useState([]);
   const [tenantsLoaded, setTenantsLoaded] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
     if (isSuperAdmin && !tenantsLoaded) {
@@ -51,12 +55,26 @@ function AppLayout({ children }) {
     <div className="min-vh-100 d-flex flex-column bg-light">
       <nav className="navbar navbar-expand-lg navbar-light glass sticky-top py-3">
         <div className="container">
-          <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center" to="/">
-            <span className="me-2 text-primary">📦</span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-              {t('app_name')}
-            </span>
-          </Link>
+          <div className="d-flex align-items-center">
+            <button
+              className="btn btn-light border-0 me-3 d-flex align-items-center justify-content-center text-secondary shadow-sm transition-all hover-scale"
+              onClick={toggleSidebar}
+              style={{ width: '38px', height: '38px', borderRadius: '50%' }}
+              title="Menüyü Aç/Kapat"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+            <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center m-0" to="/">
+              <span className="me-2 text-primary">📦</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                {t('app_name')}
+              </span>
+            </Link>
+          </div>
           <button
             className="navbar-toggler border-0"
             type="button"
@@ -170,16 +188,21 @@ function AppLayout({ children }) {
           </div>
         </div>
       </nav>
-      <main className="container my-5 flex-grow-1 fade-in">
-        {children}
-      </main>
-      <footer className="py-5 border-top bg-white">
-        <div className="container text-center">
-          <p className="text-muted mb-0 small">
-            &copy; {new Date().getFullYear()} {t('footer_text')}
-          </p>
+      <div className="d-flex flex-grow-1 overflow-hidden">
+        <Sidebar className="flex-shrink-0" isOpen={isSidebarOpen} />
+        <div className="d-flex flex-column flex-grow-1 w-100 overflow-auto">
+          <main className="container-fluid py-4 px-lg-5 flex-grow-1 fade-in">
+            {children}
+          </main>
+          <footer className="py-4 border-top bg-white mt-auto">
+            <div className="container-fluid text-center">
+              <p className="text-muted mb-0 small">
+                &copy; {new Date().getFullYear()} {t('footer_text')}
+              </p>
+            </div>
+          </footer>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
