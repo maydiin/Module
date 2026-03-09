@@ -65,7 +65,8 @@ public class ModuleFieldsController : ControllerBase
             Type = dto.Type.ToLower(),
             Required = dto.Required,
             Options = dto.Options,
-            OrderNo = dto.OrderNo
+            OrderNo = dto.OrderNo,
+            IsDisplayField = dto.IsDisplayField
         };
 
         _context.ModuleFields.Add(field);
@@ -82,7 +83,8 @@ public class ModuleFieldsController : ControllerBase
             Type = field.Type,
             Required = field.Required,
             Options = field.Options,
-            OrderNo = field.OrderNo
+            OrderNo = field.OrderNo,
+            IsDisplayField = field.IsDisplayField
         });
     }
 
@@ -108,7 +110,8 @@ public class ModuleFieldsController : ControllerBase
                 Type = f.Type,
                 Required = f.Required,
                 Options = f.Options,
-                OrderNo = f.OrderNo
+                OrderNo = f.OrderNo,
+                IsDisplayField = f.IsDisplayField
             })
             .ToListAsync();
 
@@ -135,7 +138,44 @@ public class ModuleFieldsController : ControllerBase
             Type = field.Type,
             Required = field.Required,
             Options = field.Options,
-            OrderNo = field.OrderNo
+            OrderNo = field.OrderNo,
+            IsDisplayField = field.IsDisplayField
+        });
+    }
+
+    [HttpPut("{id}")]
+    [HasModulePermission("Manage")]
+    public async Task<ActionResult<ModuleFieldDto>> UpdateField(int moduleId, int id, [FromBody] UpdateModuleFieldDto dto)
+    {
+        var field = await _context.ModuleFields
+            .FirstOrDefaultAsync(f => f.Id == id && f.ModuleId == moduleId);
+
+        if (field == null)
+        {
+            return NotFound(new { error = "Field not found" });
+        }
+
+        field.Label = string.IsNullOrWhiteSpace(dto.Label) ? field.Name : dto.Label;
+        field.Required = dto.Required;
+        field.Options = dto.Options;
+        field.OrderNo = dto.OrderNo;
+        field.IsDisplayField = dto.IsDisplayField;
+
+        await _context.SaveChangesAsync();
+
+        await _auditLogService.LogAsync("Update", "Field", field.Id.ToString(), $"{field.Label} ({field.Name})");
+
+        return Ok(new ModuleFieldDto
+        {
+            Id = field.Id,
+            ModuleId = field.ModuleId,
+            Name = field.Name,
+            Label = field.Label,
+            Type = field.Type,
+            Required = field.Required,
+            Options = field.Options,
+            OrderNo = field.OrderNo,
+            IsDisplayField = field.IsDisplayField
         });
     }
 

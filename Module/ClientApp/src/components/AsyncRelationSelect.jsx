@@ -68,6 +68,9 @@ function AsyncRelationSelect({
     };
 
     const getDisplayValue = (record) => {
+        if (record.data && record.data.__displayValue) {
+            return record.data.__displayValue;
+        }
         return record.data.name || record.data.title || record.data.label ||
             Object.values(record.data).find(v => typeof v === 'string') ||
             `Record #${record.id}`;

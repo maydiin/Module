@@ -109,14 +109,37 @@ public class RelationService : IRelationService
                 var data = _moduleService.DeserializeData(record.Data);
                 var displayValue = record.Id.ToString();
 
-                // Find first text field for display
-                var displayField = record.Module.Fields
+                var displayFields = record.Module.Fields
+                    .Where(f => f.IsDisplayField)
                     .OrderBy(f => f.OrderNo)
-                    .FirstOrDefault(f => f.Type == "text");
+                    .ToList();
 
-                if (displayField != null && data.TryGetValue(displayField.Name, out var val) && val != null)
+                if (displayFields.Any())
                 {
-                    displayValue = val.ToString() ?? record.Id.ToString();
+                    var values = new List<string>();
+                    foreach (var f in displayFields)
+                    {
+                        if (data.TryGetValue(f.Name, out var val) && val != null && !string.IsNullOrWhiteSpace(val.ToString()))
+                        {
+                            values.Add(val.ToString()!);
+                        }
+                    }
+                    if (values.Any())
+                    {
+                        displayValue = string.Join(" - ", values);
+                    }
+                }
+                else
+                {
+                    // Find first text field for display fallback
+                    var displayField = record.Module.Fields
+                        .OrderBy(f => f.OrderNo)
+                        .FirstOrDefault(f => f.Type == "text");
+
+                    if (displayField != null && data.TryGetValue(displayField.Name, out var val) && val != null)
+                    {
+                        displayValue = val.ToString() ?? record.Id.ToString();
+                    }
                 }
 
                 result.Add(new RelationDto
@@ -186,14 +209,37 @@ public class RelationService : IRelationService
             var data = _moduleService.DeserializeData(record.Data);
             var displayValue = record.Id.ToString();
 
-            // Find first text field for display
-            var displayField = record.Module.Fields
+            var displayFields = record.Module.Fields
+                .Where(f => f.IsDisplayField)
                 .OrderBy(f => f.OrderNo)
-                .FirstOrDefault(f => f.Type == "text");
+                .ToList();
 
-            if (displayField != null && data.TryGetValue(displayField.Name, out var val) && val != null)
+            if (displayFields.Any())
             {
-                displayValue = val.ToString() ?? record.Id.ToString();
+                var values = new List<string>();
+                foreach (var f in displayFields)
+                {
+                    if (data.TryGetValue(f.Name, out var val) && val != null && !string.IsNullOrWhiteSpace(val.ToString()))
+                    {
+                        values.Add(val.ToString()!);
+                    }
+                }
+                if (values.Any())
+                {
+                    displayValue = string.Join(" - ", values);
+                }
+            }
+            else
+            {
+                // Find first text field for display fallback
+                var displayField = record.Module.Fields
+                    .OrderBy(f => f.OrderNo)
+                    .FirstOrDefault(f => f.Type == "text");
+
+                if (displayField != null && data.TryGetValue(displayField.Name, out var val) && val != null)
+                {
+                    displayValue = val.ToString() ?? record.Id.ToString();
+                }
             }
 
             result.Add(new RelationDto

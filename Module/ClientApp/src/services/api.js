@@ -173,6 +173,11 @@ export const addField = async (moduleId, fieldData) => {
   return response.data;
 };
 
+export const updateField = async (moduleId, fieldId, fieldData) => {
+  const response = await api.put(`/modules/${moduleId}/fields/${fieldId}`, fieldData);
+  return response.data;
+};
+
 export const getField = async (moduleId, fieldId) => {
   const response = await api.get(`/modules/${moduleId}/fields/${fieldId}`);
   return response.data;

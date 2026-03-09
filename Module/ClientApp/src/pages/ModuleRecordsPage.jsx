@@ -667,9 +667,11 @@ function ModuleRecordsPage() {
                               )
                             ) : (
                               <span>
-                                {Array.isArray(record.data[field.name])
-                                  ? record.data[field.name].join(', ')
-                                  : (record.data[field.name] || <span className="text-muted">-</span>)}
+                                {record.data[`__display_${field.name}`]
+                                  ? record.data[`__display_${field.name}`]
+                                  : Array.isArray(record.data[field.name])
+                                    ? record.data[field.name].join(', ')
+                                    : (record.data[field.name] || <span className="text-muted">-</span>)}
                               </span>
                             )}
                           </td>

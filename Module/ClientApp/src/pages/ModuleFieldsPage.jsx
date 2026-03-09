@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModule, getFields, addField, getFieldTypes } from '../services/api';
+import { getModule, getFields, addField, updateField, getFieldTypes } from '../services/api';
 
 function ModuleFieldsPage() {
   const { t } = useTranslation();
@@ -20,8 +20,10 @@ function ModuleFieldsPage() {
     required: false,
     options: '',
     isStored: true,
+    isDisplayField: false,
     orderNo: 0
   });
+  const [editingFieldId, setEditingFieldId] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -82,7 +84,13 @@ function ModuleFieldsPage() {
         orderNo: parseInt(formData.orderNo) || fields.length,
         isStored: formData.type === 'formula' ? formData.isStored : true
       };
-      await addField(moduleId, fieldData);
+
+      if (editingFieldId) {
+        await updateField(moduleId, editingFieldId, fieldData);
+      } else {
+        await addField(moduleId, fieldData);
+      }
+
       setFormData({
         name: '',
         label: '',
@@ -90,14 +98,32 @@ function ModuleFieldsPage() {
         required: false,
         options: '',
         isStored: true,
+        isDisplayField: false,
         orderNo: fields.length
       });
       setShowForm(false);
+      setEditingFieldId(null);
       loadData();
     } catch (err) {
       setError(err.response?.data?.error || t('error'));
       console.error(err);
     }
+  };
+
+  const handleEdit = (field) => {
+    setFormData({
+      name: field.name,
+      label: field.label || '',
+      type: field.type,
+      required: field.required || false,
+      options: field.options || '',
+      isStored: field.isStored ?? true,
+      isDisplayField: field.isDisplayField || false,
+      orderNo: field.orderNo || 0
+    });
+    setEditingFieldId(field.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
@@ -142,7 +168,10 @@ function ModuleFieldsPage() {
         </div>
         <button
           className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            if (showForm) setEditingFieldId(null);
+          }}
         >
           {showForm ? (
             <>
@@ -165,7 +194,9 @@ function ModuleFieldsPage() {
       {showForm && (
         <div className="card shadow-lg border-0 mb-5 overflow-hidden">
           <div className="card-header bg-primary py-3">
-            <h5 className="card-title mb-0 text-white">{t('configure_new_attribute')}</h5>
+            <h5 className="card-title mb-0 text-white">
+              {editingFieldId ? t('edit_attribute', { defaultValue: 'Edit Field' }) : t('configure_new_attribute')}
+            </h5>
           </div>
           <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
@@ -184,6 +215,7 @@ function ModuleFieldsPage() {
                     placeholder="e.g. firstName"
                     required
                     autoFocus
+                    disabled={!!editingFieldId}
                   />
                   <small className="form-text text-muted">{t('technical_name_help')}</small>
                 </div>
@@ -214,6 +246,7 @@ function ModuleFieldsPage() {
                     value={formData.type}
                     onChange={handleInputChange}
                     required
+                    disabled={!!editingFieldId}
                   >
                     {fieldTypes.map(type => (
                       <option key={type} value={type}>
@@ -281,6 +314,20 @@ function ModuleFieldsPage() {
                       {t('mandatory')}
                     </label>
                   </div>
+                  <div className="form-check form-switch p-2 ps-5 rounded bg-light border w-100 mt-2">
+                    <input
+                      className="form-check-input ms-0"
+                      type="checkbox"
+                      id="isDisplayField"
+                      name="isDisplayField"
+                      checked={formData.isDisplayField}
+                      onChange={handleInputChange}
+                      style={{ float: 'none', marginRight: '10px' }}
+                    />
+                    <label className="form-check-label fw-bold text-muted small text-uppercase" htmlFor="isDisplayField">
+                      {t('is_display_field')}
+                    </label>
+                  </div>
                 </div>
                 {formData.type === 'formula' && (
                   <div className="col-md-4 d-flex align-items-center pt-md-4">
@@ -304,13 +351,14 @@ function ModuleFieldsPage() {
 
               <div className="d-flex gap-2 mt-5 pt-4 border-top">
                 <button type="submit" className="btn btn-primary px-4">
-                  <span>✓</span> {t('add_to_schema')}
+                  <span>✓</span> {editingFieldId ? t('save_changes', { defaultValue: 'Save Changes' }) : t('add_to_schema')}
                 </button>
                 <button
                   type="button"
                   className="btn btn-link text-muted text-decoration-none"
                   onClick={() => {
                     setShowForm(false);
+                    setEditingFieldId(null);
                     setFormData({
                       name: '',
                       label: '',
@@ -318,6 +366,7 @@ function ModuleFieldsPage() {
                       required: false,
                       options: '',
                       isStored: true,
+                      isDisplayField: false,
                       orderNo: fields.length
                     });
                   }}
@@ -361,6 +410,7 @@ function ModuleFieldsPage() {
                     <th>{t('field_type')}</th>
                     <th>Options</th>
                     <th>{t('status')}</th>
+                    <th>{t('actions', { defaultValue: 'Actions' })}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -384,11 +434,25 @@ function ModuleFieldsPage() {
                         )}
                       </td>
                       <td>
-                        {field.required ? (
-                          <span className="badge bg-danger">{t('required')}</span>
-                        ) : (
-                          <span className="badge bg-secondary">{t('optional')}</span>
-                        )}
+                        <div className="d-flex flex-column gap-1 align-items-start">
+                          {field.required ? (
+                            <span className="badge bg-danger">{t('required')}</span>
+                          ) : (
+                            <span className="badge bg-secondary">{t('optional')}</span>
+                          )}
+                          {field.isDisplayField && (
+                            <span className="badge bg-info text-dark">{t('is_display_field')}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => handleEdit(field)}
+                          title={t('edit', { defaultValue: 'Edit' })}
+                        >
+                          ✎
+                        </button>
                       </td>
                     </tr>
                   ))}

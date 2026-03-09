@@ -11,6 +11,7 @@ public class ModuleField
     public string? Options { get; set; } // JSON array of options
     public bool IsStored { get; set; } = true; // For formula fields: true = save to DB, false = compute on-the-fly
     public int OrderNo { get; set; }
+    public bool IsDisplayField { get; set; } // Identifies if this field is used for related record display
     
     public Module Module { get; set; } = null!;
 }
