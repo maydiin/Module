@@ -74,7 +74,8 @@ public class AiGenerationService : IAiGenerationService
                                          "Type": "text|number|date|datetime|checkbox|select|email|phone|textarea|file|image|currency|percentage|multiselect|richtext|json|relation|formula",
                                          "Required": boolean,
                                          "Options": "option1,option2" (for select/multiselect) OR "TargetModuleName" (for relation) OR "{{field1}} * {{field2}}" (for formula),
-                                         "OrderNo": integer
+                                         "OrderNo": integer,
+                                         "IsDisplayField": boolean // true if this field should be used to display or identify the record (e.g., Name, Title, Reference Number)
                                        }
                                      ]
                                    }

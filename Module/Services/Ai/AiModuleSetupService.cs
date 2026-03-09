@@ -86,7 +86,8 @@ public class AiModuleSetupService : IAiModuleSetupService
                             Required = fieldConfig.Required,
                             Options = fieldConfig.Options,
                             OrderNo = fieldConfig.OrderNo,
-                            IsStored = true // Default to true based on logic
+                            IsStored = true, // Default to true based on logic
+                            IsDisplayField = fieldConfig.IsDisplayField
                         };
                         _context.ModuleFields.Add(newField);
                     }
@@ -98,6 +99,7 @@ public class AiModuleSetupService : IAiModuleSetupService
                         existingField.Required = fieldConfig.Required;
                         existingField.Options = fieldConfig.Options;
                         existingField.OrderNo = fieldConfig.OrderNo;
+                        existingField.IsDisplayField = fieldConfig.IsDisplayField;
                         
                         _context.ModuleFields.Update(existingField);
                     }

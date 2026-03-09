@@ -25,6 +25,7 @@ public class AiModuleFieldConfigDto
     public bool Required { get; set; }
     public string? Options { get; set; } // JSON array or target module name
     public int OrderNo { get; set; }
+    public bool IsDisplayField { get; set; }
 }
 
 public class AiScriptConfigDto
