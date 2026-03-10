@@ -286,7 +286,11 @@ const resources = {
             "ai_report_prompt_desc": "Explain what kind of report you want to create. Mention fields, groupings, and the chart type.",
             "ai_report_prompt_placeholder": "e.g., 'A bar chart showing total sales by country last month'",
             "ai_generated_no_reports": "AI could not generate any reports for this prompt.",
-            "ai_generation_failed": "AI generation failed"
+            "ai_generation_failed": "AI generation failed",
+            "cards_view": "Card View",
+            "summaries_view": "Summary View",
+            "view_all": "View All",
+            "no_records_found": "No records found"
         }
     },
     tr: {
@@ -572,7 +576,11 @@ const resources = {
             "ai_report_prompt_desc": "Hangi türde bir rapor oluşturmak istediğinizi açıklayın. Alanları, gruplamaları ve grafik türünü belirtebilirsiniz.",
             "ai_report_prompt_placeholder": "Örn. 'Geçen ayki toplam satışları ülkeye göre gösteren bir sütun grafiği'",
             "ai_generated_no_reports": "Yapay zeka bu açıklama için herhangi bir rapor oluşturamadı.",
-            "ai_generation_failed": "Yapay zeka rapor oluşturma işlemi başarısız oldu"
+            "ai_generation_failed": "Yapay zeka rapor oluşturma işlemi başarısız oldu",
+            "cards_view": "Kart Görünümü",
+            "summaries_view": "Özet Görünümü",
+            "view_all": "Hepsini Gör",
+            "no_records_found": "Kayıt bulunamadı"
         }
     }
 };

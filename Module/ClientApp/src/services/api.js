@@ -147,6 +147,11 @@ export const getModules = async () => {
   return response.data.data || response.data;
 };
 
+export const getModuleSummaries = async () => {
+  const response = await api.get('/modules/summaries');
+  return response.data.data || response.data;
+};
+
 export const getModule = async (id) => {
   const response = await api.get(`/modules/${id}`);
   return response.data.data || response.data;

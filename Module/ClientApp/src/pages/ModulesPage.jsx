@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModules, createModule, updateModule, refreshToken, generateAiConfig, applyAiConfig } from '../services/api';
+import { getModules, getModuleSummaries, createModule, updateModule, refreshToken, generateAiConfig, applyAiConfig } from '../services/api';
 import HasPermission from '../components/HasPermission';
 import { useTenant } from '../components/TenantContext';
 
@@ -20,6 +20,15 @@ function ModulesPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState(localStorage.getItem('modulesViewMode') || 'cards');
+  const [summaries, setSummaries] = useState([]);
+  const [collapsedModules, setCollapsedModules] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('collapsedModules')) || [];
+    } catch {
+      return [];
+    }
+  });
   const navigate = useNavigate();
   const { selectedTenantId } = useTenant();
 
@@ -31,14 +40,39 @@ function ModulesPage() {
   const loadModules = async () => {
     try {
       setLoading(true);
-      const data = await getModules();
-      setModules(data);
+      if (viewMode === 'summaries') {
+        const data = await getModuleSummaries();
+        setSummaries(data);
+        // Also update regular modules list for creation/permission logic
+        setModules(data.map(s => ({ id: s.moduleId, name: s.moduleName })));
+      } else {
+        const data = await getModules();
+        setModules(data);
+      }
     } catch (err) {
       setError(t('error'));
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    localStorage.setItem('modulesViewMode', viewMode);
+    loadModules();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
+
+  useEffect(() => {
+    localStorage.setItem('collapsedModules', JSON.stringify(collapsedModules));
+  }, [collapsedModules]);
+
+  const toggleModuleCollapse = (moduleId) => {
+    setCollapsedModules(prev =>
+      prev.includes(moduleId)
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId]
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -147,6 +181,34 @@ function ModulesPage() {
           >
             {t('ai_architect_btn')}
           </button>
+
+          <div className="btn-group shadow-sm" role="group">
+            <button
+              type="button"
+              className={`btn btn-lg px-4 ${viewMode === 'cards' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setViewMode('cards')}
+              title={t('cards_view')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </button>
+            <button
+              type="button"
+              className={`btn btn-lg px-4 ${viewMode === 'summaries' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setViewMode('summaries')}
+              title={t('summaries_view')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          </div>
 
           {/* Dynamic creation button usually requires high-level manage permission */}
           {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
@@ -269,69 +331,149 @@ function ModulesPage() {
         </div>
       ) : (
         <div className="row g-4">
-          {visibleModules.map((module) => (
-            <div key={module.id} className="col-lg-4 col-md-6">
-              <div className="card h-100 border-0 shadow-soft-hover">
-                <div className="card-body p-4">
-                  <div className="d-flex align-items-center mb-4">
-                    <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                      </svg>
+          {viewMode === 'cards' ? (
+            visibleModules.map((module) => (
+              <div key={module.id} className="col-lg-4 col-md-6">
+                <div className="card h-100 border-0 shadow-soft-hover">
+                  <div className="card-body p-4">
+                    <div className="d-flex align-items-center mb-4">
+                      <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                      </div>
+                      <div>
+                        <h5 className="card-title mb-1 fw-bold">{module.name}</h5>
+                        <div className="badge bg-light text-muted fw-normal border">ID: {module.id}</div>
+                      </div>
                     </div>
-                    <div>
-                      <h5 className="card-title mb-1 fw-bold">{module.name}</h5>
-                      <div className="badge bg-light text-muted fw-normal border">ID: {module.id}</div>
-                    </div>
-                  </div>
 
-                  <div className="d-flex flex-wrap gap-2 mt-auto">
-                    <HasPermission permission={`Module.${module.name}.Manage`}>
-                      <button
-                        className="btn btn-light btn-sm flex-grow-1 border"
-                        onClick={() => handleModuleClick(module.id)}
-                      >
-                        <span className="opacity-75">⚙️</span> {t('fields')}
-                      </button>
-                      <button
-                        className="btn btn-light btn-sm flex-grow-1 border"
-                        onClick={() => handleEditClick(module)}
-                      >
-                        <span className="opacity-75">✏️</span> {t('edit')}
-                      </button>
-                    </HasPermission>
-                    <HasPermission permission={`Module.${module.name}.View`}>
-                      <button
-                        className="btn btn-light btn-sm flex-grow-1 border"
-                        onClick={() => navigate(`/modules/${module.id}/records`)}
-                      >
-                        <span className="opacity-75">📋</span> {t('records')}
-                      </button>
-                    </HasPermission>
-                    <HasPermission permission={`Module.${module.name}.Api`}>
-                      <button
-                        className="btn btn-light btn-sm flex-grow-1 border"
-                        onClick={() => navigate(`/modules/${module.id}/api-configs`)}
-                      >
-                        <span className="opacity-75">🔌</span> API
-                      </button>
-                    </HasPermission>
-                    <HasPermission permission={`Module.${module.name}.Script`}>
-                      <button
-                        className="btn btn-light btn-sm flex-grow-1 border"
-                        onClick={() => navigate(`/modules/${module.id}/scripts`)}
-                      >
-                        <span className="opacity-75">📜</span> Scripts
-                      </button>
-                    </HasPermission>
+                    <div className="d-flex flex-wrap gap-2 mt-auto">
+                      <HasPermission permission={`Module.${module.name}.Manage`}>
+                        <button
+                          className="btn btn-light btn-sm flex-grow-1 border"
+                          onClick={() => handleModuleClick(module.id)}
+                        >
+                          <span className="opacity-75">⚙️</span> {t('fields')}
+                        </button>
+                        <button
+                          className="btn btn-light btn-sm flex-grow-1 border"
+                          onClick={() => handleEditClick(module)}
+                        >
+                          <span className="opacity-75">✏️</span> {t('edit')}
+                        </button>
+                      </HasPermission>
+                      <HasPermission permission={`Module.${module.name}.View`}>
+                        <button
+                          className="btn btn-light btn-sm flex-grow-1 border"
+                          onClick={() => navigate(`/modules/${module.id}/records`)}
+                        >
+                          <span className="opacity-75">📋</span> {t('records')}
+                        </button>
+                      </HasPermission>
+                      <HasPermission permission={`Module.${module.name}.Api`}>
+                        <button
+                          className="btn btn-light btn-sm flex-grow-1 border"
+                          onClick={() => navigate(`/modules/${module.id}/api-configs`)}
+                        >
+                          <span className="opacity-75">🔌</span> API
+                        </button>
+                      </HasPermission>
+                      <HasPermission permission={`Module.${module.name}.Script`}>
+                        <button
+                          className="btn btn-light btn-sm flex-grow-1 border"
+                          onClick={() => navigate(`/modules/${module.id}/scripts`)}
+                        >
+                          <span className="opacity-75">📜</span> Scripts
+                        </button>
+                      </HasPermission>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="col-12">
+              <div className="d-flex flex-column gap-3">
+                {summaries.map((summary) => {
+                  const isCollapsed = collapsedModules.includes(summary.moduleId);
+                  const displayCols = summary.fields.filter(f => f.isDisplayField).length > 0
+                    ? summary.fields.filter(f => f.isDisplayField)
+                    : summary.fields.slice(0, 3);
+
+                  return (
+                    <div key={summary.moduleId} className="card border-0 shadow-sm overflow-hidden">
+                      <div
+                        className="card-header bg-white py-2 d-flex justify-content-between align-items-center cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleModuleCollapse(summary.moduleId)}
+                      >
+                        <div className="d-flex align-items-center">
+                          <div className="bg-primary bg-opacity-10 text-primary rounded-2 p-1 me-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                          </div>
+                          <h6 className="mb-0 fw-bold">{summary.moduleName}</h6>
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                          <button
+                            className="btn btn-sm btn-link text-primary text-decoration-none py-0 px-2 fw-bold"
+                            style={{ fontSize: '0.8rem' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/modules/${summary.moduleId}/records`);
+                            }}
+                          >
+                            {t('view_all')}
+                          </button>
+                          <span className={`transform-transition ${isCollapsed ? '' : 'rotate-180'} d-flex`}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                          </span>
+                        </div>
+                      </div>
+                      {!isCollapsed && (
+                        <div className="card-body p-0 border-top">
+                          {summary.latestRecords.length === 0 ? (
+                            <div className="p-3 text-center text-muted small">
+                              {t('no_records_found')}
+                            </div>
+                          ) : (
+                            <div className="table-responsive">
+                              <table className="table table-hover align-middle mb-0 table-sm">
+                                <thead className="table-light">
+                                  <tr>
+                                    {displayCols.map(col => (
+                                      <th key={col.id} className="px-3 py-2 x-small fw-bold text-uppercase text-muted" style={{ fontSize: '0.65rem' }}>{col.label || col.name}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {summary.latestRecords.map(record => (
+                                    <tr key={record.id} className="cursor-pointer" onClick={() => navigate(`/modules/${summary.moduleId}/records`)}>
+                                      {displayCols.map(col => (
+                                        <td key={col.id} className="px-3 py-1 small text-truncate" style={{ maxWidth: '200px' }}>
+                                          {record.data[col.name] !== undefined ? String(record.data[col.name]) : '-'}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ))
-          }
+          )}
         </div >
       )
       }
