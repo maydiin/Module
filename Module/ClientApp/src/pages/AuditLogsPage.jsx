@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuditLogs } from '../services/api';
 import { useTenant } from '../components/TenantContext';
+import { Modal, Button } from 'react-bootstrap';
 
 const ACTION_BADGES = {
     Create: { bg: 'linear-gradient(135deg, #10b981, #059669)', icon: '➕' },
@@ -36,6 +37,20 @@ function AuditLogsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+
+    // Modal state
+    const [showModal, setShowModal] = useState(false);
+    const [selectedLog, setSelectedLog] = useState(null);
+
+    const handleShowModal = (log) => {
+        setSelectedLog(log);
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedLog(null);
+    };
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -242,22 +257,32 @@ function AuditLogsPage() {
                                                     </span>
                                                 </td>
                                                 <td className="py-3">
-                                                    <span className="text-truncate d-inline-block" style={{ maxWidth: '200px' }}>
-                                                        {log.entityName || '—'}
-                                                    </span>
+                                                    <div className="d-flex align-items-center">
+                                                        <span className="text-truncate d-inline-block me-2" style={{ maxWidth: '150px' }}>
+                                                            {log.entityName || '—'}
+                                                        </span>
+                                                    </div>
                                                 </td>
                                                 <td className="py-3">
-                                                    {log.details ? (
-                                                        <span
-                                                            className="text-muted small text-truncate d-inline-block"
-                                                            style={{ maxWidth: '250px' }}
-                                                            title={log.details}
-                                                        >
-                                                            {log.details}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-muted">—</span>
-                                                    )}
+                                                    <div className="d-flex align-items-center justify-content-between">
+                                                        {log.details ? (
+                                                            <span className="text-muted small text-truncate d-inline-block me-2" style={{ maxWidth: '200px' }}>
+                                                                {log.details}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-muted me-2">—</span>
+                                                        )}
+                                                        {(log.details || log.entityName?.length > 20) && (
+                                                            <button 
+                                                                className="btn btn-sm btn-light rounded-circle shadow-sm p-1 d-flex align-items-center justify-content-center"
+                                                                onClick={() => handleShowModal(log)}
+                                                                title={t('view_details', 'View Details')}
+                                                                style={{ width: '28px', height: '28px' }}
+                                                            >
+                                                                👁️
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="pe-4 py-3">
                                                     <code className="small">{log.ipAddress || '—'}</code>
@@ -296,6 +321,66 @@ function AuditLogsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Details Modal */}
+            <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
+                <Modal.Header closeButton className="border-bottom-0 bg-light">
+                    <Modal.Title className="h5 mb-0">
+                        📋 {t('audit_log_details', 'Audit Log Details')}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="p-4">
+                    {selectedLog && (
+                        <div className="d-flex flex-column gap-3">
+                            <div>
+                                <h6 className="text-muted mb-1 text-uppercase small fw-bold">{t('audit_col_entity_name', 'Entity Name')}</h6>
+                                <div className="p-3 bg-light rounded text-break">
+                                    {selectedLog.entityName || '—'}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h6 className="text-muted mb-1 text-uppercase small fw-bold">{t('audit_col_details', 'Details')}</h6>
+                                <div className="p-3 bg-dark text-light rounded overflow-auto" style={{ maxHeight: '400px' }}>
+                                    <pre className="mb-0" style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                                        {(() => {
+                                            if (!selectedLog.details) return '—';
+                                            try {
+                                                // Try to format as JSON if it is a JSON string
+                                                const parsed = JSON.parse(selectedLog.details);
+                                                return JSON.stringify(parsed, null, 2);
+                                            } catch (e) {
+                                                // If not JSON, just show the raw string
+                                                return selectedLog.details;
+                                            }
+                                        })()}
+                                    </pre>
+                                </div>
+                            </div>
+                            
+                            <div className="row mt-2">
+                                <div className="col-md-4">
+                                    <span className="text-muted small d-block">{t('audit_col_time', 'Time')}</span>
+                                    <span className="fw-medium">{formatDate(selectedLog.timestamp)}</span>
+                                </div>
+                                <div className="col-md-4">
+                                    <span className="text-muted small d-block">{t('audit_col_user', 'User')}</span>
+                                    <span className="fw-medium">{selectedLog.username || '—'}</span>
+                                </div>
+                                <div className="col-md-4">
+                                    <span className="text-muted small d-block">IP</span>
+                                    <span className="fw-medium">{selectedLog.ipAddress || '—'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer className="border-top-0 bg-light">
+                    <Button variant="secondary" onClick={handleCloseModal}>
+                        {t('close', 'Close')}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }

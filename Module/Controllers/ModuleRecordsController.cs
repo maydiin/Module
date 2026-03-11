@@ -50,10 +50,13 @@ public class ModuleRecordsController : ControllerBase
 
         var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
         
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module != null && module.AuditCreate)
         {
-            await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), $"Module:{moduleId}");
+            var displayValue = GetRecordDisplayValue(module, result.Data);
+            var entityName = string.IsNullOrEmpty(displayValue) ? $"{module.Name} #{result.Id}" : $"{module.Name} - {displayValue}";
+            var details = JsonSerializer.Serialize(dto.Data);
+            await _auditLogService.LogAsync("Create", "Record", result.Id.ToString(), entityName, details);
         }
         
         // Script Hook: AfterCreate
@@ -76,7 +79,8 @@ public class ModuleRecordsController : ControllerBase
         var module = await _context.Modules.FindAsync(moduleId);
         if (module != null && module.AuditCreate)
         {
-            await _auditLogService.LogAsync("BulkCreate", "Record", $"{result.Count} records", $"Module:{moduleId}");
+            var details = JsonSerializer.Serialize(new { Count = result.Count, Sample = recordsData.FirstOrDefault() });
+            await _auditLogService.LogAsync("BulkCreate", "Record", $"{result.Count} records", $"{module.Name} (Bulk)", details);
         }
         
         return Ok(result);
@@ -484,10 +488,13 @@ public class ModuleRecordsController : ControllerBase
 
         var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
         
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module != null && module.AuditUpdate)
         {
-            await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), $"Module:{moduleId}");
+            var displayValue = GetRecordDisplayValue(module, result.Data);
+            var entityName = string.IsNullOrEmpty(displayValue) ? $"{module.Name} #{recordId}" : $"{module.Name} - {displayValue}";
+            var details = JsonSerializer.Serialize(dto.Data);
+            await _auditLogService.LogAsync("Update", "Record", recordId.ToString(), entityName, details);
         }
         
         // Script Hook: AfterUpdate
@@ -510,7 +517,8 @@ public class ModuleRecordsController : ControllerBase
         var module = await _context.Modules.FindAsync(moduleId);
         if (module != null && module.AuditUpdate)
         {
-            await _auditLogService.LogAsync("BulkUpdate", "Record", $"{result.Count} records", $"Module:{moduleId}");
+            var details = JsonSerializer.Serialize(new { Count = result.Count, Sample = updates.FirstOrDefault()?.Data });
+            await _auditLogService.LogAsync("BulkUpdate", "Record", $"{result.Count} records", $"{module.Name} (Bulk)", details);
         }
 
         return Ok(result);
@@ -529,7 +537,8 @@ public class ModuleRecordsController : ControllerBase
         var module = await _context.Modules.FindAsync(moduleId);
         if (module != null && module.AuditDelete)
         {
-            await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"Module:{moduleId}");
+            var details = JsonSerializer.Serialize(new { RecordId = recordId });
+            await _auditLogService.LogAsync("Delete", "Record", recordId.ToString(), $"{module.Name} #{recordId}", details);
         }
         
         // Script Hook: AfterDelete
@@ -552,7 +561,8 @@ public class ModuleRecordsController : ControllerBase
         var module = await _context.Modules.FindAsync(moduleId);
         if (module != null && module.AuditDelete)
         {
-            await _auditLogService.LogAsync("BulkDelete", "Record", $"{recordIds.Count} records", $"Module:{moduleId}");
+            var details = JsonSerializer.Serialize(new { Count = recordIds.Count, Ids = recordIds });
+            await _auditLogService.LogAsync("BulkDelete", "Record", $"{recordIds.Count} records", $"{module.Name} (Bulk)", details);
         }
 
         return NoContent();
@@ -768,6 +778,31 @@ public class ModuleRecordsController : ControllerBase
                 }
             }
         }
+    }
+
+    private string? GetRecordDisplayValue(Module.Entities.Module module, Dictionary<string, object> data)
+    {
+        if (module.Fields == null || !module.Fields.Any()) return null;
+
+        var displayFields = module.Fields.Where(f => f.IsDisplayField).OrderBy(f => f.OrderNo).ToList();
+        if (displayFields.Any())
+        {
+            var vals = new List<string>();
+            foreach (var df in displayFields)
+            {
+                if (data.TryGetValue(df.Name, out var dfVal) && dfVal != null && !string.IsNullOrWhiteSpace(dfVal.ToString()))
+                    vals.Add(dfVal.ToString()!);
+            }
+            if (vals.Any()) return string.Join(" - ", vals);
+        }
+        else
+        {
+            var fallbackField = module.Fields.OrderBy(f => f.OrderNo).FirstOrDefault(f => f.Type == "text");
+            if (fallbackField != null && data.TryGetValue(fallbackField.Name, out var val) && val != null)
+                return val.ToString();
+        }
+        
+        return null;
     }
 
     private static List<RecordFilterDto> ParseFilters(string? filters)
