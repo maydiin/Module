@@ -290,7 +290,15 @@ const resources = {
             "cards_view": "Card View",
             "summaries_view": "Summary View",
             "view_all": "View All",
-            "no_records_found": "No records found"
+            "no_records_found": "No records found",
+            "record_details": "Record Details",
+            "details": "Details",
+            "back_to_records": "Back to Records",
+            "primary_details": "Primary Details",
+            "related_data": "Related Data",
+            "no_primary_fields": "No primary fields to display.",
+            "edit": "Edit",
+            "delete": "Delete"
         }
     },
     tr: {
@@ -580,7 +588,15 @@ const resources = {
             "cards_view": "Kart Görünümü",
             "summaries_view": "Özet Görünümü",
             "view_all": "Hepsini Gör",
-            "no_records_found": "Kayıt bulunamadı"
+            "no_records_found": "Kayıt bulunamadı",
+            "record_details": "Kayıt Detayları",
+            "details": "Detaylar",
+            "back_to_records": "Kayıtlara Geri Dön",
+            "primary_details": "Temel Detaylar",
+            "related_data": "İlgili Veriler",
+            "no_primary_fields": "Görüntülenecek temel alan yok.",
+            "edit": "Düzenle",
+            "delete": "Sil"
         }
     }
 };

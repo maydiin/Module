@@ -119,7 +119,11 @@ public class RelationService : IRelationService
                     var values = new List<string>();
                     foreach (var f in displayFields)
                     {
-                        if (data.TryGetValue(f.Name, out var val) && val != null && !string.IsNullOrWhiteSpace(val.ToString()))
+                        if (data.TryGetValue($"__display_{f.Name}", out var displayVal) && displayVal != null && !string.IsNullOrWhiteSpace(displayVal.ToString()))
+                        {
+                            values.Add(displayVal.ToString()!);
+                        }
+                        else if (data.TryGetValue(f.Name, out var val) && val != null && !string.IsNullOrWhiteSpace(val.ToString()))
                         {
                             values.Add(val.ToString()!);
                         }
@@ -219,7 +223,11 @@ public class RelationService : IRelationService
                 var values = new List<string>();
                 foreach (var f in displayFields)
                 {
-                    if (data.TryGetValue(f.Name, out var val) && val != null && !string.IsNullOrWhiteSpace(val.ToString()))
+                    if (data.TryGetValue($"__display_{f.Name}", out var displayVal) && displayVal != null && !string.IsNullOrWhiteSpace(displayVal.ToString()))
+                    {
+                        values.Add(displayVal.ToString()!);
+                    }
+                    else if (data.TryGetValue(f.Name, out var val) && val != null && !string.IsNullOrWhiteSpace(val.ToString()))
                     {
                         values.Add(val.ToString()!);
                     }

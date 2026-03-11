@@ -3,6 +3,7 @@ import AppLayout from './components/Layout/AppLayout';
 import ModulesPage from './pages/ModulesPage';
 import ModuleFieldsPage from './pages/ModuleFieldsPage';
 import ModuleRecordsPage from './pages/ModuleRecordsPage';
+import RecordDetailPage from './pages/RecordDetailPage';
 import ModuleApiConfigsPage from './pages/ModuleApiConfigsPage';
 import ModuleScriptsPage from './pages/ModuleScriptsPage';
 import ModuleReportsPage from './pages/ModuleReportsPage';
@@ -33,6 +34,7 @@ function App() {
                     <Route path="/" element={<ModulesPage />} />
                     <Route path="/modules/:moduleId/fields" element={<ModuleFieldsPage />} />
                     <Route path="/modules/:moduleId/records" element={<ModuleRecordsPage />} />
+                    <Route path="/modules/:moduleId/records/:recordId" element={<RecordDetailPage />} />
                     <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
                     <Route path="/modules/:moduleId/scripts" element={<ModuleScriptsPage />} />
                     <Route path="/modules/:moduleId/reports" element={<ModuleReportsPage />} />

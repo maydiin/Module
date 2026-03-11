@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getRecordsByName } from '../services/api';
+import { getRecordsByName, uploadFile } from '../services/api';
 import AsyncRelationSelect from './AsyncRelationSelect';
 
 function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
@@ -8,6 +8,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [relationsData, setRelationsData] = useState({});
+  const [uploading, setUploading] = useState({});
 
   useEffect(() => {
     // Initialize form data with initial values or empty values
@@ -68,6 +69,10 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (Object.values(uploading).some(isUp => isUp)) {
+      alert(t('please_wait_upload_finishes') || 'Please wait for file upload to finish.');
+      return;
+    }
     if (validate()) {
       // Create a copy of the data and convert empty strings to null
       const sanitizedData = { ...formData };
@@ -311,13 +316,33 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
                 type="file"
                 className={`form-control ${hasError ? 'is-invalid' : ''}`}
                 id={field.name}
-                onChange={(e) => {
-                  const fileName = e.target.files[0]?.name || '';
-                  handleChange(field.name, fileName);
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) {
+                    handleChange(field.name, '');
+                    return;
+                  }
+                  
+                  try {
+                    setUploading(prev => ({ ...prev, [field.name]: true }));
+                    const response = await uploadFile(file);
+                    handleChange(field.name, response.url);
+                  } catch (err) {
+                    console.error('File upload failed', err);
+                    setErrors(prev => ({ ...prev, [field.name]: t('upload_failed') || 'Upload failed' }));
+                  } finally {
+                    setUploading(prev => ({ ...prev, [field.name]: false }));
+                  }
                 }}
+                disabled={uploading[field.name]}
               />
+              {uploading[field.name] && (
+                <span className="input-group-text bg-white">
+                  <div className="spinner-border spinner-border-sm text-primary" role="status" />
+                </span>
+              )}
             </div>
-            {value && <div className="form-text mt-1 text-success small">{t('selected_file')}: {value}</div>}
+            {value && <div className="form-text mt-1 text-success small text-truncate">{t('selected_file')}: {value}</div>}
             {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
           </div>
         );

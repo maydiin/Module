@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord } from '../services/api';
+import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord, HOST_URL } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
 import LinkedRecordsModal from '../components/LinkedRecordsModal';
 import { useTenant } from '../components/TenantContext';
@@ -29,7 +29,7 @@ function ModuleRecordsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDrafts, setFilterDrafts] = useState([]);
   const [filters, setFilters] = useState([]);
-  const [showFilterPanel, setShowFilterPanel] = useState(true);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
   const { selectedTenantId } = useTenant();
 
   useEffect(() => {
@@ -46,7 +46,7 @@ function ModuleRecordsPage() {
     setSearchQuery('');
     setFilterDrafts([]);
     setFilters([]);
-    setShowFilterPanel(true);
+    setShowFilterPanel(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId]);
 
@@ -657,15 +657,52 @@ function ModuleRecordsPage() {
                             📎 {record.linkedCount || 0}
                           </button>
                         </td>
-                        {fields.map(field => (
-                          <td key={field.id}>
-                            {field.type === 'checkbox' ? (
-                              record.data[field.name] ? (
-                                <span className="badge bg-success">✓ {t('yes')}</span>
-                              ) : (
-                                <span className="badge bg-secondary">✗ {t('no')}</span>
-                              )
-                            ) : (
+                        {fields.map(field => {
+                          if (field.type === 'checkbox') {
+                            return (
+                              <td key={field.id}>
+                                {record.data[field.name] ? (
+                                  <span className="badge bg-success">✓ {t('yes')}</span>
+                                ) : (
+                                  <span className="badge bg-secondary">✗ {t('no')}</span>
+                                )}
+                              </td>
+                            );
+                          }
+
+                          if ((field.type === 'image' || field.type === 'file') && record.data[field.name]) {
+                            const val = record.data[field.name];
+                            const files = Array.isArray(val) ? val : typeof val === 'string' ? val.split(',') : [val];
+                            return (
+                              <td key={field.id}>
+                                <div className="d-flex flex-wrap gap-1">
+                                  {files.map((f, i) => {
+                                    let src = typeof f === 'string' ? f.trim() : f;
+                                    if (!src) return null;
+                                    if (src.startsWith('/')) src = HOST_URL + src;
+                                    const isImg = field.type === 'image';
+                                    const fileName = src.split('/').pop()?.split('\\').pop() || t('view');
+                                    return (
+                                      <a
+                                        key={i}
+                                        href={src}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-sm btn-outline-secondary text-truncate"
+                                        style={{ maxWidth: '120px' }}
+                                        title={fileName}
+                                      >
+                                        {isImg ? '🖼️' : '📎'} {t('view')}
+                                      </a>
+                                    );
+                                  })}
+                                </div>
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={field.id}>
                               <span>
                                 {record.data[`__display_${field.name}`]
                                   ? record.data[`__display_${field.name}`]
@@ -673,9 +710,9 @@ function ModuleRecordsPage() {
                                     ? record.data[field.name].join(', ')
                                     : (record.data[field.name] || <span className="text-muted">-</span>)}
                               </span>
-                            )}
-                          </td>
-                        ))}
+                            </td>
+                          );
+                        })}
                         <td>
                           <small className="text-muted">
                             {new Date(record.createdAt).toLocaleString()}
@@ -683,6 +720,13 @@ function ModuleRecordsPage() {
                         </td>
                         <td>
                           <div className="btn-group btn-group-sm" role="group">
+                            <button
+                              className="btn btn-outline-info"
+                              onClick={() => navigate(`/modules/${moduleId}/records/${record.id}`)}
+                              title={t('details')}
+                            >
+                              👁️
+                            </button>
                             <button
                               className="btn btn-outline-primary"
                               onClick={() => handleEdit(record)}

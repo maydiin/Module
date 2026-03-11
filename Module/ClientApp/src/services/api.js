@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api';
+export const HOST_URL =  window.location.hostname === 'localhost' ? 'http://localhost:5287' : '';
+export const API_BASE_URL = HOST_URL + '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -317,6 +318,19 @@ export const generateAiReportConfig = async (moduleId, prompt) => {
 
 export const applyAiConfig = async (config) => {
   const response = await api.post('/ai-setup', config);
+  return response.data;
+};
+
+// Files API
+export const uploadFile = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await api.post('/files/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 

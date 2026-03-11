@@ -1,0 +1,410 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { getModule, getFields, getRecord, getModules, HOST_URL } from '../services/api';
+import axios from 'axios';
+
+function RecordDetailPage() {
+    const { t } = useTranslation();
+    const { moduleId, recordId } = useParams();
+    const navigate = useNavigate();
+    
+    const [module, setModule] = useState(null);
+    const [fields, setFields] = useState([]);
+    const [record, setRecord] = useState(null);
+    
+    const [summary, setSummary] = useState([]);
+    const [moduleRecords, setModuleRecords] = useState({});
+    const [allModules, setAllModules] = useState([]);
+    
+    const [loading, setLoading] = useState(true);
+    const [loadingSummary, setLoadingSummary] = useState(true);
+    const [error, setError] = useState('');
+    const [expandedModule, setExpandedModule] = useState(null);
+
+    useEffect(() => {
+        loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [moduleId, recordId]);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const [moduleData, fieldsData, recordData, moduleslistData] = await Promise.all([
+                getModule(moduleId),
+                getFields(moduleId),
+                getRecord(moduleId, recordId),
+                getModules()
+            ]);
+            setModule(moduleData);
+            setFields(fieldsData);
+            setRecord(recordData);
+            setAllModules(moduleslistData || []);
+            
+            if (moduleData && moduleData.name) {
+                fetchSummary(moduleData.name, recordData.id);
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || t('error'));
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSummary = async (moduleName, rId) => {
+        try {
+            setLoadingSummary(true);
+            const response = await axios.get(`/api/relations/summary?module=${encodeURIComponent(moduleName)}&id=${rId}`);
+            const summaryData = response.data || [];
+            setSummary(summaryData);
+            
+            // Auto expand the first module containing linked records to show at least something initially
+            if (summaryData.length > 0) {
+               handleExpand(summaryData[0].module, moduleName, rId);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingSummary(false);
+        }
+    };
+
+    const handleExpand = async (sourceModule, modName = module?.name, rId = record?.id) => {
+        if (!modName || !rId) return;
+
+        if (expandedModule === sourceModule) {
+            setExpandedModule(null);
+            return;
+        }
+
+        setExpandedModule(sourceModule);
+
+        if (!moduleRecords[sourceModule]) {
+            await loadRecords(sourceModule, modName, rId, 1);
+        }
+    };
+
+    const loadRecords = async (sourceModule, modName, rId, page) => {
+        setModuleRecords(prev => ({
+            ...prev,
+            [sourceModule]: {
+                ...prev[sourceModule],
+                loading: true,
+                records: page === 1 ? [] : (prev[sourceModule]?.records || [])
+            }
+        }));
+
+        try {
+            const pageSize = 10;
+            const response = await axios.get(`/api/relations/details?module=${encodeURIComponent(modName)}&id=${rId}&sourceModule=${encodeURIComponent(sourceModule)}&page=${page}&pageSize=${pageSize}`);
+
+            setModuleRecords(prev => ({
+                ...prev,
+                [sourceModule]: {
+                    records: page === 1 ? response.data : [...(prev[sourceModule]?.records || []), ...response.data],
+                    page: page,
+                    hasMore: response.data.length === pageSize,
+                    loading: false
+                }
+            }));
+        } catch (err) {
+            console.error(err);
+            setModuleRecords(prev => ({
+                ...prev,
+                [sourceModule]: {
+                    ...prev[sourceModule],
+                    loading: false
+                }
+            }));
+        }
+    };
+
+    const renderFieldValue = (field, recordData) => {
+        if (!recordData || !recordData.data) return <span className="text-muted">-</span>;
+        
+        const value = recordData.data[field.name];
+        const displayValue = recordData.data[`__display_${field.name}`];
+        
+        if (field.type === 'checkbox') {
+            return value ? (
+                <span className="badge bg-success">✓ {t('yes')}</span>
+            ) : (
+                <span className="badge bg-secondary">✗ {t('no')}</span>
+            );
+        }
+
+        if (field.type === 'image' && value) {
+            const images = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [value];
+            return (
+                <div className="d-flex flex-wrap gap-2 mt-2">
+                    {images.map((img, idx) => {
+                        let imgSrc = typeof img === 'string' ? img.trim() : img;
+                        if (!imgSrc) return null;
+                        if (imgSrc.startsWith('/')) imgSrc = HOST_URL + imgSrc;
+                        return (
+                            <div key={idx} className="position-relative d-inline-block" style={{ width: '120px', height: '120px' }}>
+                                <img 
+                                    src={imgSrc} 
+                                    alt={field.label} 
+                                    className="img-thumbnail shadow-sm w-100 h-100 object-fit-cover rounded" 
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => window.open(imgSrc, '_blank')}
+                                    title={t('click_to_preview')}
+                                />
+                                <a 
+                                    href={imgSrc} 
+                                    download 
+                                    className="btn btn-sm btn-dark position-absolute bottom-0 end-0 m-1 rounded-circle bg-opacity-75"
+                                    onClick={e => e.stopPropagation()}
+                                    title={t('download')}
+                                    style={{ width: '28px', height: '28px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" className="bi bi-download" viewBox="0 0 16 16">
+                                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        if (field.type === 'file' && value) {
+            const files = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [value];
+            return (
+                <div className="d-flex flex-wrap gap-2 mt-2">
+                    {files.map((f, idx) => {
+                        let fileSrc = typeof f === 'string' ? f.trim() : f;
+                        if (!fileSrc) return null;
+                        if (fileSrc.startsWith('/')) fileSrc = HOST_URL + fileSrc;
+                        const fileName = fileSrc.split('/').pop()?.split('\\').pop() || t('file');
+                        return (
+                            <div key={idx} className="btn-group shadow-sm">
+                                <a 
+                                    href={fileSrc} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="btn btn-outline-secondary d-flex align-items-center gap-2"
+                                    title={t('click_to_preview')}
+                                >
+                                    <span>📎</span>
+                                    <span className="text-truncate" style={{ maxWidth: '200px' }}>{fileName}</span>
+                                </a>
+                                <a 
+                                    href={fileSrc} 
+                                    download
+                                    className="btn btn-secondary d-flex align-items-center px-2"
+                                    title={t('download')}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-download" viewBox="0 0 16 16">
+                                      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        if (displayValue) {
+            return <span>{displayValue}</span>;
+        }
+
+        if (Array.isArray(value)) {
+            return <span>{value.join(', ')}</span>;
+        }
+
+        return value ? <span>{value}</span> : <span className="text-muted">-</span>;
+    };
+
+    if (loading) {
+        return (
+            <div className="text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">{t('loading')}</span>
+                </div>
+                <p className="mt-2 text-muted">{t('loading')}</p>
+            </div>
+        );
+    }
+
+    if (error || !module || !record) {
+        return (
+            <div className="alert alert-danger shadow-sm">
+                <h5 className="alert-heading">{error || t('record_not_found')}</h5>
+                <p className="mb-0">{t('record_not_found_desc')}</p>
+                <hr />
+                <button className="btn btn-outline-danger" onClick={() => navigate(`/modules/${moduleId}/records`)}>
+                    ← {t('back_to_records')}
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="fade-in pb-5">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                <div>
+                    <button
+                        className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
+                        onClick={() => navigate(`/modules/${moduleId}/records`)}
+                    >
+                        <span>←</span> {t('back_to_records')}
+                    </button>
+                    <h1 className="display-6 mb-1 d-flex align-items-center gap-3">
+                        <span className="opacity-50">📄</span>
+                        {t('record_details')} <span className="text-muted fs-4">#{record.id}</span>
+                    </h1>
+                    <p className="text-muted mb-0">{module.name} Module</p>
+                </div>
+            </div>
+
+            <div className="row g-4 mb-4">
+                <div className="col-lg-6">
+                    <div className="card shadow-sm border-0 h-100">
+                        <div className="card-header bg-white py-3 border-bottom">
+                            <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
+                                <span className="opacity-75">📋</span> {t('primary_details')}
+                            </h5>
+                        </div>
+                        <div className="card-body p-0">
+                            {fields.length === 0 ? (
+                                <div className="p-4 text-center text-muted">
+                                    {t('no_primary_fields')}
+                                </div>
+                            ) : (
+                                <ul className="list-group list-group-flush">
+                                    {fields.map(field => (
+                                        <li key={field.id} className="list-group-item d-flex justify-content-between align-items-start py-3">
+                                            <div className="ms-2 me-auto">
+                                                <div className="fw-bold text-muted small text-uppercase mb-1">{field.label}</div>
+                                                <div className="fs-6 text-dark">{renderFieldValue(field, record)}</div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                    <li className="list-group-item d-flex justify-content-between align-items-start py-3 bg-light">
+                                         <div className="ms-2 me-auto">
+                                                <div className="fw-bold text-muted small text-uppercase mb-1">{t('created_at')}</div>
+                                                <div className="fs-6 text-dark">{new Date(record.createdAt).toLocaleString()}</div>
+                                          </div>
+                                    </li>
+                                </ul>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-lg-6">
+                    <div className="card shadow-sm border-0 h-100">
+                        <div className="card-header bg-primary text-white py-3 border-bottom">
+                            <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
+                                <span className="opacity-75">🔗</span> {t('related_data')}
+                            </h5>
+                        </div>
+                        <div className="card-body p-4 bg-light">
+                            {loadingSummary ? (
+                                <div className="text-center py-4">
+                                     <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                </div>
+                            ) : summary.length === 0 ? (
+                                <div className="text-center py-5 text-muted bg-white rounded shadow-sm border">
+                                    <p className="mb-0 fs-5 opacity-50">📂</p>
+                                    <p className="mb-0 mt-2">{t('no_references_found')}</p>
+                                </div>
+                            ) : (
+                                <div className="accordion rounded shadow-sm" id="relationsAccordion">
+                                    {summary.map((item, index) => (
+                                        <div className="accordion-item border-0 mb-2 rounded overflow-hidden" key={item.module}>
+                                            <h2 className="accordion-header">
+                                                <button
+                                                    className={`accordion-button bg-white ${expandedModule === item.module ? 'text-primary fw-bold' : 'text-dark collapsed'}`}
+                                                    type="button"
+                                                    onClick={() => handleExpand(item.module)}
+                                                    style={{ boxShadow: 'none' }}
+                                                >
+                                                    <div className="d-flex w-100 justify-content-between align-items-center pe-3">
+                                                        <span>
+                                                            <span className="me-2 opacity-50">📦</span>
+                                                            {item.module}
+                                                        </span>
+                                                        <span className={`badge ${expandedModule === item.module ? 'bg-primary' : 'bg-secondary'} rounded-pill`}>
+                                                            {item.count} {t('records_count')}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div className={`accordion-collapse collapse ${expandedModule === item.module ? 'show' : ''}`}>
+                                                <div className="accordion-body p-0 border-top">
+                                                    <div className="list-group list-group-flush">
+                                                        {(moduleRecords[item.module]?.records || []).map(rel => {
+                                                            const targetModule = allModules.find(m => m.name === item.module);
+                                                            return (
+                                                                <div key={rel.recordId || Math.random()} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                                                                    <div>
+                                                                        <span className="text-muted small me-3">#{rel.recordId}</span>
+                                                                        <span className="fw-medium text-dark">{rel.display}</span>
+                                                                    </div>
+                                                                    <div className="d-flex align-items-center gap-2">
+                                                                        <span className="badge bg-light text-muted border px-2 py-1">
+                                                                            <small>🔗 {t('linked_via_relation')}</small>
+                                                                        </span>
+                                                                        {targetModule && (
+                                                                            <button 
+                                                                                className="btn btn-sm btn-outline-info"
+                                                                                onClick={() => navigate(`/modules/${targetModule.id}/records/${rel.recordId}`)}
+                                                                                title={t('details')}
+                                                                            >
+                                                                                👁️
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    {moduleRecords[item.module]?.loading && (
+                                                        <div className="text-center py-3 bg-light">
+                                                            <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                                        </div>
+                                                    )}
+
+                                                    {!moduleRecords[item.module]?.loading && moduleRecords[item.module]?.hasMore && (
+                                                        <div className="p-3 text-center bg-light">
+                                                            <button
+                                                                className="btn btn-sm btn-outline-primary px-4 rounded-pill"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    loadRecords(item.module, module.name, record.id, (moduleRecords[item.module]?.page || 1) + 1);
+                                                                }}
+                                                            >
+                                                                ⬇ {t('load_more')}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {!moduleRecords[item.module]?.loading && !moduleRecords[item.module]?.hasMore && (moduleRecords[item.module]?.records?.length > 0) && (
+                                                        <div className="p-2 text-center bg-light border-top">
+                                                            <small className="text-muted">{t('no_more_records') || 'No more records'}</small>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default RecordDetailPage;

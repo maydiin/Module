@@ -20,7 +20,7 @@ function ModulesPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null);
   const [error, setError] = useState('');
-  const [viewMode, setViewMode] = useState(localStorage.getItem('modulesViewMode') || 'cards');
+  const [viewMode] = useState('summaries');
   const [summaries, setSummaries] = useState([]);
   const [collapsedModules, setCollapsedModules] = useState(() => {
     try {
@@ -58,10 +58,9 @@ function ModulesPage() {
   };
 
   useEffect(() => {
-    localStorage.setItem('modulesViewMode', viewMode);
     loadModules();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('collapsedModules', JSON.stringify(collapsedModules));
@@ -142,9 +141,7 @@ function ModulesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleModuleClick = (moduleId) => {
-    navigate(`/modules/${moduleId}/fields`);
-  };
+
 
   if (loading) {
     return (
@@ -182,33 +179,7 @@ function ModulesPage() {
             {t('ai_architect_btn')}
           </button>
 
-          <div className="btn-group shadow-sm" role="group">
-            <button
-              type="button"
-              className={`btn btn-lg px-4 ${viewMode === 'cards' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => setViewMode('cards')}
-              title={t('cards_view')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={`btn btn-lg px-4 ${viewMode === 'summaries' ? 'btn-primary' : 'btn-outline-primary'}`}
-              onClick={() => setViewMode('summaries')}
-              title={t('summaries_view')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
-          </div>
+
 
           {/* Dynamic creation button usually requires high-level manage permission */}
           {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
@@ -331,71 +302,7 @@ function ModulesPage() {
         </div>
       ) : (
         <div className="row g-4">
-          {viewMode === 'cards' ? (
-            visibleModules.map((module) => (
-              <div key={module.id} className="col-lg-4 col-md-6">
-                <div className="card h-100 border-0 shadow-soft-hover">
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center mb-4">
-                      <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                          <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                      </div>
-                      <div>
-                        <h5 className="card-title mb-1 fw-bold">{module.name}</h5>
-                        <div className="badge bg-light text-muted fw-normal border">ID: {module.id}</div>
-                      </div>
-                    </div>
-
-                    <div className="d-flex flex-wrap gap-2 mt-auto">
-                      <HasPermission permission={`Module.${module.name}.Manage`}>
-                        <button
-                          className="btn btn-light btn-sm flex-grow-1 border"
-                          onClick={() => handleModuleClick(module.id)}
-                        >
-                          <span className="opacity-75">⚙️</span> {t('fields')}
-                        </button>
-                        <button
-                          className="btn btn-light btn-sm flex-grow-1 border"
-                          onClick={() => handleEditClick(module)}
-                        >
-                          <span className="opacity-75">✏️</span> {t('edit')}
-                        </button>
-                      </HasPermission>
-                      <HasPermission permission={`Module.${module.name}.View`}>
-                        <button
-                          className="btn btn-light btn-sm flex-grow-1 border"
-                          onClick={() => navigate(`/modules/${module.id}/records`)}
-                        >
-                          <span className="opacity-75">📋</span> {t('records')}
-                        </button>
-                      </HasPermission>
-                      <HasPermission permission={`Module.${module.name}.Api`}>
-                        <button
-                          className="btn btn-light btn-sm flex-grow-1 border"
-                          onClick={() => navigate(`/modules/${module.id}/api-configs`)}
-                        >
-                          <span className="opacity-75">🔌</span> API
-                        </button>
-                      </HasPermission>
-                      <HasPermission permission={`Module.${module.name}.Script`}>
-                        <button
-                          className="btn btn-light btn-sm flex-grow-1 border"
-                          onClick={() => navigate(`/modules/${module.id}/scripts`)}
-                        >
-                          <span className="opacity-75">📜</span> Scripts
-                        </button>
-                      </HasPermission>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-12">
+          <div className="col-12">
               <div className="d-flex flex-column gap-3">
                 {summaries.map((summary) => {
                   const isCollapsed = collapsedModules.includes(summary.moduleId);
@@ -473,7 +380,6 @@ function ModulesPage() {
                 })}
               </div>
             </div>
-          )}
         </div >
       )
       }
