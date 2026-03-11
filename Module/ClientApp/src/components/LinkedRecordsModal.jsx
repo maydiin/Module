@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getModules } from '../services/api';
 import axios from 'axios';
 
 function LinkedRecordsModal({ moduleName, recordId, onClose }) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [summary, setSummary] = useState([]);
     const [loadingSummary, setLoadingSummary] = useState(true);
     const [error, setError] = useState('');
     const [expandedModule, setExpandedModule] = useState(null);
     const [moduleRecords, setModuleRecords] = useState({}); // { moduleName: { records: [], page: 1, hasMore: true, loading: false } }
+    const [allModules, setAllModules] = useState([]);
+
+    useEffect(() => {
+        getModules().then(res => setAllModules(res || [])).catch(console.error);
+    }, []);
 
     useEffect(() => {
         const fetchSummary = async () => {
@@ -120,17 +128,34 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                                         <div className={`accordion-collapse collapse ${expandedModule === item.module ? 'show' : ''}`}>
                                             <div className="accordion-body p-0">
                                                 <div className="list-group list-group-flush">
-                                                    {(moduleRecords[item.module]?.records || []).map(rel => (
-                                                        <div key={rel.recordId || Math.random()} className="list-group-item d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <span className="text-muted me-2">#{rel.recordId}</span>
-                                                                <strong>{rel.display}</strong>
+                                                    {(moduleRecords[item.module]?.records || []).map(rel => {
+                                                        const targetModule = allModules.find(m => m.name === item.module);
+                                                        return (
+                                                            <div key={rel.recordId || Math.random()} className="list-group-item d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <span className="text-muted me-2">#{rel.recordId}</span>
+                                                                    <strong>{rel.display}</strong>
+                                                                </div>
+                                                                <div className="d-flex align-items-center gap-2">
+                                                                    <span className="badge bg-light text-muted border px-2 py-1">
+                                                                        <small>🔗 {t('linked_via_relation')}</small>
+                                                                    </span>
+                                                                    {targetModule && (
+                                                                        <button 
+                                                                            className="btn btn-sm btn-outline-info"
+                                                                            onClick={() => {
+                                                                                if (onClose) onClose();
+                                                                                navigate(`/modules/${targetModule.id}/records/${rel.recordId}`);
+                                                                            }}
+                                                                            title={t('details')}
+                                                                        >
+                                                                            👁️
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                            <span className="badge bg-light text-dark border">
-                                                                {t('linked_via_relation')}
-                                                            </span>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
 
                                                 {moduleRecords[item.module]?.loading && (
