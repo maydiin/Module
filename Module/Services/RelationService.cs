@@ -260,4 +260,122 @@ public class RelationService : IRelationService
 
         return result;
     }
+
+    public async Task EnrichWithDisplayValuesAsync(Entities.Module module, List<Dictionary<string, object>> recordsData)
+    {
+        var relationFields = module.Fields.Where(f => f.Type == "relation" || f.Type == "multiselect-relation").ToList();
+        if (!relationFields.Any() || !recordsData.Any()) return;
+        
+        var targetRecordIds = new Dictionary<string, HashSet<int>>(); 
+        
+        foreach (var data in recordsData)
+        {
+            foreach (var field in relationFields)
+            {
+                if (string.IsNullOrWhiteSpace(field.Options)) continue;
+                var targetModule = field.Options.Trim('\"');
+                
+                if (data.TryGetValue(field.Name, out var val) && val != null)
+                {
+                    if (!targetRecordIds.ContainsKey(targetModule)) targetRecordIds[targetModule] = new HashSet<int>();
+                    
+                    if (val is JsonElement el)
+                    {
+                        if (el.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var item in el.EnumerateArray())
+                                if (item.TryGetInt32(out var tid)) targetRecordIds[targetModule].Add(tid);
+                        }
+                        else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var tid))
+                        {
+                            targetRecordIds[targetModule].Add(tid);
+                        }
+                    }
+                    else if (int.TryParse(val.ToString(), out var tid))
+                    {
+                        targetRecordIds[targetModule].Add(tid);
+                    }
+                }
+            }
+        }
+        
+        var displayValuesMap = new Dictionary<string, Dictionary<int, string>>();
+        foreach (var kvp in targetRecordIds)
+        {
+            var targetModule = kvp.Key;
+            var ids = kvp.Value.ToList();
+            if (!ids.Any()) continue;
+            
+            var targetRecords = await _context.ModuleRecords
+                .Include(tr => tr.Module)
+                .ThenInclude(trM => trM.Fields)
+                .Where(tr => tr.Module.Name == targetModule && ids.Contains(tr.Id))
+                .ToListAsync();
+                
+            displayValuesMap[targetModule] = new Dictionary<int, string>();
+            foreach (var tr in targetRecords)
+            {
+                var trData = _moduleService.DeserializeData(tr.Data);
+                var displayFields = tr.Module.Fields.Where(f => f.IsDisplayField).OrderBy(f => f.OrderNo).ToList();
+                string displayStr = tr.Id.ToString();
+                
+                if (displayFields.Any())
+                {
+                    var vals = new List<string>();
+                    foreach (var df in displayFields)
+                    {
+                         if (trData.TryGetValue(df.Name, out var dfVal) && dfVal != null && !string.IsNullOrWhiteSpace(dfVal.ToString()))
+                             vals.Add(dfVal.ToString()!);
+                    }
+                    if (vals.Any()) displayStr = string.Join(" - ", vals);
+                }
+                else
+                {
+                     var fallbackField = tr.Module.Fields.OrderBy(f => f.OrderNo).FirstOrDefault(f => f.Type == "text");
+                     if (fallbackField != null && trData.TryGetValue(fallbackField.Name, out var val) && val != null)
+                         displayStr = val.ToString() ?? tr.Id.ToString();
+                }
+                
+                displayValuesMap[targetModule][tr.Id] = displayStr;
+            }
+        }
+
+        foreach (var data in recordsData)
+        {
+            foreach (var field in relationFields)
+            {
+                if (string.IsNullOrWhiteSpace(field.Options)) continue;
+                var targetModule = field.Options.Trim('\"');
+                if (!displayValuesMap.ContainsKey(targetModule)) continue;
+                
+                if (data.TryGetValue(field.Name, out var val) && val != null)
+                {
+                    var displayStrings = new List<string>();
+                    
+                    if (val is JsonElement el)
+                    {
+                        if (el.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var item in el.EnumerateArray())
+                                if (item.TryGetInt32(out var tid) && displayValuesMap[targetModule].ContainsKey(tid)) 
+                                    displayStrings.Add(displayValuesMap[targetModule][tid]);
+                        }
+                        else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var tid) && displayValuesMap[targetModule].ContainsKey(tid))
+                        {
+                            displayStrings.Add(displayValuesMap[targetModule][tid]);
+                        }
+                    }
+                    else if (int.TryParse(val.ToString(), out var tid) && displayValuesMap[targetModule].ContainsKey(tid))
+                    {
+                        displayStrings.Add(displayValuesMap[targetModule][tid]);
+                    }
+                    
+                    if (displayStrings.Any())
+                    {
+                        data[$"__display_{field.Name}"] = string.Join(", ", displayStrings);
+                    }
+                }
+            }
+        }
+    }
 }

@@ -207,46 +207,13 @@ public class ModuleRecordsController : ControllerBase
             .ToDictionaryAsync(x => x.RecordId, x => x.Count);
 
         var recordsData = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
-        await EnrichWithDisplayValues(module, records, recordsData);
+        await _relationService.EnrichWithDisplayValuesAsync(module, recordsData);
 
         var pageItems = records.Select((r, i) =>
         {
             var data = recordsData[i];
             
-            // Compute non-stored formula fields at runtime (only for these records)
-            foreach (var field in module.Fields.Where(f => !f.IsStored).OrderBy(f => f.OrderNo))
-            {
-                try
-                {
-                    var fieldType = _fieldTypeFactory.Get(field.Type);
-                    var computedValue = fieldType.Compute(field, data);
-                    if (computedValue != null)
-                    {
-                        data[field.Name] = computedValue;
-                    }
-                }
-                catch (Exception) { /* ignore */ }
-            }
-            
-            var displayFields = module.Fields.Where(f => f.IsDisplayField).OrderBy(f => f.OrderNo).ToList();
-            if (displayFields.Any())
-            {
-                var vals = new List<string>();
-                foreach (var df in displayFields)
-                {
-                    if (data.TryGetValue(df.Name, out var dfVal) && dfVal != null && !string.IsNullOrWhiteSpace(dfVal.ToString()))
-                        vals.Add(dfVal.ToString()!);
-                }
-                if (vals.Any()) data["__displayValue"] = string.Join(" - ", vals);
-            }
-            else
-            {
-                var fallbackField = module.Fields.OrderBy(f => f.OrderNo).FirstOrDefault(f => f.Type == "text");
-                if (fallbackField != null && data.TryGetValue(fallbackField.Name, out var val) && val != null)
-                    data["__displayValue"] = val.ToString() ?? r.Id.ToString();
-                else
-                    data["__displayValue"] = r.Id.ToString();
-            }
+            _moduleService.ComputeFormulas(module, data);
 
             return new ModuleRecordDto
             {
@@ -431,6 +398,7 @@ public class ModuleRecordsController : ControllerBase
     {
         var record = await _context.ModuleRecords
             .Include(r => r.Module)
+            .ThenInclude(m => m.Fields)
             .FirstOrDefaultAsync(r => r.Id == recordId && r.ModuleId == moduleId);
 
         if (record == null)
@@ -442,27 +410,9 @@ public class ModuleRecordsController : ControllerBase
             .CountAsync(r => r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id);
 
         var data = _moduleService.DeserializeData(record.Data);
-        await EnrichWithDisplayValues(record.Module, new List<Module.Entities.ModuleRecord> { record }, new List<Dictionary<string, object>> { data });
-
-        var displayFields = record.Module.Fields.Where(f => f.IsDisplayField).OrderBy(f => f.OrderNo).ToList();
-        if (displayFields.Any())
-        {
-            var vals = new List<string>();
-            foreach (var df in displayFields)
-            {
-                if (data.TryGetValue(df.Name, out var dfVal) && dfVal != null && !string.IsNullOrWhiteSpace(dfVal.ToString()))
-                    vals.Add(dfVal.ToString()!);
-            }
-            if (vals.Any()) data["__displayValue"] = string.Join(" - ", vals);
-        }
-        else
-        {
-            var fallbackField = record.Module.Fields.OrderBy(f => f.OrderNo).FirstOrDefault(f => f.Type == "text");
-            if (fallbackField != null && data.TryGetValue(fallbackField.Name, out var val) && val != null)
-                data["__displayValue"] = val.ToString() ?? record.Id.ToString();
-            else
-                data["__displayValue"] = record.Id.ToString();
-        }
+        var recordsData = new List<Dictionary<string, object>> { data };
+        await _relationService.EnrichWithDisplayValuesAsync(record.Module, recordsData);
+        _moduleService.ComputeFormulas(record.Module, data);
 
         return Ok(new ModuleRecordDto
         {
@@ -615,30 +565,12 @@ public class ModuleRecordsController : ControllerBase
             .ToDictionaryAsync(x => x.RecordId, x => x.Count);
 
         var recordsData = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
-        await EnrichWithDisplayValues(module, records, recordsData);
+        await _relationService.EnrichWithDisplayValuesAsync(module, recordsData);
 
         var recordDtos = records.Select((r, i) =>
         {
             var data = recordsData[i];
-            var displayFields = module.Fields.Where(f => f.IsDisplayField).OrderBy(f => f.OrderNo).ToList();
-            if (displayFields.Any())
-            {
-                var vals = new List<string>();
-                foreach (var df in displayFields)
-                {
-                    if (data.TryGetValue(df.Name, out var dfVal) && dfVal != null && !string.IsNullOrWhiteSpace(dfVal.ToString()))
-                        vals.Add(dfVal.ToString()!);
-                }
-                if (vals.Any()) data["__displayValue"] = string.Join(" - ", vals);
-            }
-            else
-            {
-                var fallbackField = module.Fields.OrderBy(f => f.OrderNo).FirstOrDefault(f => f.Type == "text");
-                if (fallbackField != null && data.TryGetValue(fallbackField.Name, out var val) && val != null)
-                    data["__displayValue"] = val.ToString() ?? r.Id.ToString();
-                else
-                    data["__displayValue"] = r.Id.ToString();
-            }
+            _moduleService.ComputeFormulas(module, data);
 
             return new ModuleRecordDto
             {
@@ -662,123 +594,6 @@ public class ModuleRecordsController : ControllerBase
         });
     }
 
-    private async Task EnrichWithDisplayValues(Module.Entities.Module module, List<Module.Entities.ModuleRecord> records, List<Dictionary<string, object>> recordsData)
-    {
-        var relationFields = module.Fields.Where(f => f.Type == "relation" || f.Type == "multiselect-relation").ToList();
-        if (!relationFields.Any() || !records.Any()) return;
-        
-        var targetRecordIds = new Dictionary<string, HashSet<int>>(); 
-        
-        foreach (var data in recordsData)
-        {
-            foreach (var field in relationFields)
-            {
-                if (string.IsNullOrWhiteSpace(field.Options)) continue;
-                var targetModule = field.Options.Trim('\"');
-                
-                if (data.TryGetValue(field.Name, out var val) && val != null)
-                {
-                    if (!targetRecordIds.ContainsKey(targetModule)) targetRecordIds[targetModule] = new HashSet<int>();
-                    
-                    if (val is JsonElement el)
-                    {
-                        if (el.ValueKind == JsonValueKind.Array)
-                        {
-                            foreach (var item in el.EnumerateArray())
-                                if (item.TryGetInt32(out var tid)) targetRecordIds[targetModule].Add(tid);
-                        }
-                        else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var tid))
-                        {
-                            targetRecordIds[targetModule].Add(tid);
-                        }
-                    }
-                    else if (int.TryParse(val.ToString(), out var tid))
-                    {
-                        targetRecordIds[targetModule].Add(tid);
-                    }
-                }
-            }
-        }
-        
-        var displayValuesMap = new Dictionary<string, Dictionary<int, string>>();
-        foreach (var kvp in targetRecordIds)
-        {
-            var targetModule = kvp.Key;
-            var ids = kvp.Value.ToList();
-            if (!ids.Any()) continue;
-            
-            var targetRecords = await _context.ModuleRecords
-                .Include(tr => tr.Module)
-                .ThenInclude(trM => trM.Fields)
-                .Where(tr => tr.Module.Name == targetModule && ids.Contains(tr.Id))
-                .ToListAsync();
-                
-            displayValuesMap[targetModule] = new Dictionary<int, string>();
-            foreach (var tr in targetRecords)
-            {
-                var trData = _moduleService.DeserializeData(tr.Data);
-                var displayFields = tr.Module.Fields.Where(f => f.IsDisplayField).OrderBy(f => f.OrderNo).ToList();
-                string displayStr = tr.Id.ToString();
-                
-                if (displayFields.Any())
-                {
-                    var vals = new List<string>();
-                    foreach (var df in displayFields)
-                    {
-                         if (trData.TryGetValue(df.Name, out var dfVal) && dfVal != null && !string.IsNullOrWhiteSpace(dfVal.ToString()))
-                             vals.Add(dfVal.ToString()!);
-                    }
-                    if (vals.Any()) displayStr = string.Join(" - ", vals);
-                }
-                else
-                {
-                     var fallbackField = tr.Module.Fields.OrderBy(f => f.OrderNo).FirstOrDefault(f => f.Type == "text");
-                     if (fallbackField != null && trData.TryGetValue(fallbackField.Name, out var val) && val != null)
-                         displayStr = val.ToString() ?? tr.Id.ToString();
-                }
-                
-                displayValuesMap[targetModule][tr.Id] = displayStr;
-            }
-        }
-
-        foreach (var data in recordsData)
-        {
-            foreach (var field in relationFields)
-            {
-                if (string.IsNullOrWhiteSpace(field.Options)) continue;
-                var targetModule = field.Options.Trim('\"');
-                if (!displayValuesMap.ContainsKey(targetModule)) continue;
-                
-                if (data.TryGetValue(field.Name, out var val) && val != null)
-                {
-                    var displayStrings = new List<string>();
-                    
-                    if (val is JsonElement el)
-                    {
-                        if (el.ValueKind == JsonValueKind.Array)
-                        {
-                            foreach (var item in el.EnumerateArray())
-                                if (item.TryGetInt32(out var tid) && displayValuesMap[targetModule].ContainsKey(tid)) 
-                                    displayStrings.Add(displayValuesMap[targetModule][tid]);
-                        }
-                        else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var tid) && displayValuesMap[targetModule].ContainsKey(tid))
-                        {
-                            displayStrings.Add(displayValuesMap[targetModule][tid]);
-                        }
-                    }
-                    else if (int.TryParse(val.ToString(), out var tid) && displayValuesMap[targetModule].ContainsKey(tid))
-                    {
-                        displayStrings.Add(displayValuesMap[targetModule][tid]);
-                    }
-                    
-                    if (displayStrings.Any())
-                    {
-                        data[$"__display_{field.Name}"] = string.Join(", ", displayStrings);
-                    }
-                }
-            }
-        }
-    }
 
     private string? GetRecordDisplayValue(Module.Entities.Module module, Dictionary<string, object> data)
     {

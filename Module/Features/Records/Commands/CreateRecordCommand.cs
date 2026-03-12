@@ -105,27 +105,8 @@ public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRe
 
         // 4. Return DTO with runtime-computed fields
         var resultData = _moduleService.DeserializeData(record.Data);
-        
-        // Compute non-stored formula fields at runtime
-        foreach (var field in module.Fields)
-        {
-            if (!field.IsStored && field.Type == "formula")
-            {
-                try
-                {
-                    var fieldType = _fieldTypeFactory.Get(field.Type);
-                    var computedValue = fieldType.Compute(field, resultData);
-                    if (computedValue != null)
-                    {
-                        resultData[field.Name] = computedValue;
-                    }
-                }
-                catch (ArgumentException)
-                {
-                    // Field type not supported, ignore
-                }
-            }
-        }
+        await _relationService.EnrichWithDisplayValuesAsync(module, new List<Dictionary<string, object>> { resultData });
+        _moduleService.ComputeFormulas(module, resultData);
         
         return new ModuleRecordDto
         {
