@@ -149,6 +149,7 @@ public class RelationService : IRelationService
                 result.Add(new RelationDto
                 {
                     Module = sourceModuleName,
+                    ModuleId = record.ModuleId,
                     RecordId = record.Id,
                     Display = displayValue
                 });
@@ -253,6 +254,7 @@ public class RelationService : IRelationService
             result.Add(new RelationDto
             {
                 Module = sourceModule,
+                ModuleId = record.ModuleId,
                 RecordId = record.Id,
                 Display = displayValue
             });
@@ -299,7 +301,7 @@ public class RelationService : IRelationService
             }
         }
         
-        var displayValuesMap = new Dictionary<string, Dictionary<int, string>>();
+        var targetInfoMap = new Dictionary<string, Dictionary<int, (string display, int moduleId)>>();
         foreach (var kvp in targetRecordIds)
         {
             var targetModule = kvp.Key;
@@ -312,7 +314,7 @@ public class RelationService : IRelationService
                 .Where(tr => tr.Module.Name == targetModule && ids.Contains(tr.Id))
                 .ToListAsync();
                 
-            displayValuesMap[targetModule] = new Dictionary<int, string>();
+            targetInfoMap[targetModule] = new Dictionary<int, (string display, int moduleId)>();
             foreach (var tr in targetRecords)
             {
                 var trData = _moduleService.DeserializeData(tr.Data);
@@ -336,7 +338,7 @@ public class RelationService : IRelationService
                          displayStr = val.ToString() ?? tr.Id.ToString();
                 }
                 
-                displayValuesMap[targetModule][tr.Id] = displayStr;
+                targetInfoMap[targetModule][tr.Id] = (displayStr, tr.ModuleId);
             }
         }
 
@@ -346,33 +348,44 @@ public class RelationService : IRelationService
             {
                 if (string.IsNullOrWhiteSpace(field.Options)) continue;
                 var targetModule = field.Options.Trim('\"');
-                if (!displayValuesMap.ContainsKey(targetModule)) continue;
+                if (!targetInfoMap.ContainsKey(targetModule)) continue;
                 
                 if (data.TryGetValue(field.Name, out var val) && val != null)
                 {
                     var displayStrings = new List<string>();
+                    var links = new List<object>();
                     
+                    var idsToLookup = new List<int>();
                     if (val is JsonElement el)
                     {
                         if (el.ValueKind == JsonValueKind.Array)
                         {
                             foreach (var item in el.EnumerateArray())
-                                if (item.TryGetInt32(out var tid) && displayValuesMap[targetModule].ContainsKey(tid)) 
-                                    displayStrings.Add(displayValuesMap[targetModule][tid]);
+                                if (item.TryGetInt32(out var tid)) idsToLookup.Add(tid);
                         }
-                        else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var tid) && displayValuesMap[targetModule].ContainsKey(tid))
+                        else if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var tid))
                         {
-                            displayStrings.Add(displayValuesMap[targetModule][tid]);
+                            idsToLookup.Add(tid);
                         }
                     }
-                    else if (int.TryParse(val.ToString(), out var tid) && displayValuesMap[targetModule].ContainsKey(tid))
+                    else if (int.TryParse(val.ToString(), out var tid))
                     {
-                        displayStrings.Add(displayValuesMap[targetModule][tid]);
+                        idsToLookup.Add(tid);
+                    }
+
+                    foreach (var tid in idsToLookup)
+                    {
+                        if (targetInfoMap[targetModule].TryGetValue(tid, out var info))
+                        {
+                            displayStrings.Add(info.display);
+                            links.Add(new { moduleId = info.moduleId, recordId = tid, display = info.display });
+                        }
                     }
                     
                     if (displayStrings.Any())
                     {
                         data[$"__display_{field.Name}"] = string.Join(", ", displayStrings);
+                        data[$"__links_{field.Name}"] = links;
                     }
                 }
             }

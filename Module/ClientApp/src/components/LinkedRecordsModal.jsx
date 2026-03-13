@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModules } from '../services/api';
 import axios from 'axios';
@@ -132,27 +132,25 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                                                         const targetModule = allModules.find(m => m.name === item.module);
                                                         return (
                                                             <div key={rel.recordId || Math.random()} className="list-group-item d-flex justify-content-between align-items-center">
-                                                                <div>
-                                                                    <span className="text-muted me-2">#{rel.recordId}</span>
-                                                                    <strong>{rel.display}</strong>
-                                                                </div>
-                                                                <div className="d-flex align-items-center gap-2">
-                                                                    <span className="badge bg-light text-muted border px-2 py-1">
-                                                                        <small>🔗 {t('linked_via_relation')}</small>
-                                                                    </span>
-                                                                    {targetModule && (
-                                                                        <button 
-                                                                            className="btn btn-sm btn-outline-info"
-                                                                            onClick={() => {
-                                                                                if (onClose) onClose();
-                                                                                navigate(`/modules/${targetModule.id}/records/${rel.recordId}`);
-                                                                            }}
-                                                                            title={t('details')}
-                                                                        >
-                                                                            👁️
-                                                                        </button>
-                                                                    )}
-                                                                </div>
+                                                                    <div>
+                                                                        <span className="text-muted me-2">#{rel.recordId}</span>
+                                                                        {targetModule ? (
+                                                                            <Link 
+                                                                                to={`/modules/${targetModule.id}/records/${rel.recordId}`}
+                                                                                onClick={onClose}
+                                                                                className="fw-bold text-primary text-decoration-none"
+                                                                            >
+                                                                                {rel.display}
+                                                                            </Link>
+                                                                        ) : (
+                                                                            <strong>{rel.display}</strong>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="d-flex align-items-center gap-2">
+                                                                        <span className="badge bg-light text-muted border px-2 py-1">
+                                                                            <small>🔗 {t('linked_via_relation')}</small>
+                                                                        </span>
+                                                                    </div>
                                                             </div>
                                                         );
                                                     })}

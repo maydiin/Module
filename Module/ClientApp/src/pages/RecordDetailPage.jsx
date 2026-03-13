@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModule, getFields, getRecord, getModules, HOST_URL } from '../services/api';
 import axios from 'axios';
@@ -211,6 +211,24 @@ function RecordDetailPage() {
             );
         }
 
+        const linkData = recordData.data[`__links_${field.name}`];
+
+        if (linkData && linkData.length > 0) {
+            return (
+                <div className="d-flex flex-wrap gap-1">
+                    {linkData.map((link, idx) => (
+                        <Link 
+                            key={idx} 
+                            to={`/modules/${link.moduleId}/records/${link.recordId}`}
+                            className="badge bg-light text-primary border text-decoration-none"
+                        >
+                            🔗 {link.display}
+                        </Link>
+                    ))}
+                </div>
+            );
+        }
+
         if (displayValue) {
             return <span>{displayValue}</span>;
         }
@@ -347,21 +365,21 @@ function RecordDetailPage() {
                                                                 <div key={rel.recordId || Math.random()} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
                                                                     <div>
                                                                         <span className="text-muted small me-3">#{rel.recordId}</span>
-                                                                        <span className="fw-medium text-dark">{rel.display}</span>
+                                                                        {targetModule ? (
+                                                                            <Link 
+                                                                                to={`/modules/${targetModule.id}/records/${rel.recordId}`}
+                                                                                className="fw-medium text-primary text-decoration-none"
+                                                                            >
+                                                                                {rel.display}
+                                                                            </Link>
+                                                                        ) : (
+                                                                            <span className="fw-medium text-dark">{rel.display}</span>
+                                                                        )}
                                                                     </div>
                                                                     <div className="d-flex align-items-center gap-2">
                                                                         <span className="badge bg-light text-muted border px-2 py-1">
                                                                             <small>🔗 {t('linked_via_relation')}</small>
                                                                         </span>
-                                                                        {targetModule && (
-                                                                            <button 
-                                                                                className="btn btn-sm btn-outline-info"
-                                                                                onClick={() => navigate(`/modules/${targetModule.id}/records/${rel.recordId}`)}
-                                                                                title={t('details')}
-                                                                            >
-                                                                                👁️
-                                                                            </button>
-                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             );

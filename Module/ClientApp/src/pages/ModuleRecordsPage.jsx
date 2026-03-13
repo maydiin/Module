@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord, HOST_URL } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
@@ -701,14 +701,31 @@ function ModuleRecordsPage() {
                             );
                           }
 
+                          const displayVal = record.data[`__display_${field.name}`];
+                          const linkData = record.data[`__links_${field.name}`];
+
                           return (
                             <td key={field.id}>
                               <span>
-                                {record.data[`__display_${field.name}`]
-                                  ? record.data[`__display_${field.name}`]
-                                  : Array.isArray(record.data[field.name])
-                                    ? record.data[field.name].join(', ')
-                                    : (record.data[field.name] || <span className="text-muted">-</span>)}
+                                {linkData && linkData.length > 0 ? (
+                                  <div className="d-flex flex-wrap gap-1">
+                                    {linkData.map((link, idx) => (
+                                      <Link 
+                                        key={idx} 
+                                        to={`/modules/${link.moduleId}/records/${link.recordId}`}
+                                        className="badge bg-light text-primary border text-decoration-none"
+                                      >
+                                        🔗 {link.display}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                ) : displayVal ? (
+                                  displayVal
+                                ) : Array.isArray(record.data[field.name]) ? (
+                                  record.data[field.name].join(', ')
+                                ) : (
+                                  record.data[field.name] || <span className="text-muted">-</span>
+                                )}
                               </span>
                             </td>
                           );
