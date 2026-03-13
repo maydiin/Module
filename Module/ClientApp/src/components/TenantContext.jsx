@@ -1,13 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const TenantContext = createContext();
 
 export function TenantProvider({ children }) {
+    const { isSuperAdmin } = useAuth();
     const [selectedTenantId, setSelectedTenantId] = useState(() => {
         return localStorage.getItem('selectedTenantId') || null;
     });
-
-    const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
 
     useEffect(() => {
         if (selectedTenantId) {

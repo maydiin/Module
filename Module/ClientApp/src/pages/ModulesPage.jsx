@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getModules, getModuleSummaries, createModule, updateModule, refreshToken, generateAiConfig, applyAiConfig } from '../services/api';
 import HasPermission from '../components/HasPermission';
 import { useTenant } from '../components/TenantContext';
+import { useAuth } from '../components/AuthContext';
 
 function ModulesPage() {
   const { t } = useTranslation();
@@ -31,6 +32,8 @@ function ModulesPage() {
   });
   const navigate = useNavigate();
   const { selectedTenantId } = useTenant();
+  const { permissions: userPermissions, isSuperAdmin, hasPermission } = useAuth();
+
 
   useEffect(() => {
     loadModules();
@@ -154,14 +157,11 @@ function ModulesPage() {
     );
   }
 
-  // Filter modules based on View permission (Super Admin sees all)
-  const permissionsJson = localStorage.getItem('permissions');
-  const userPermissions = permissionsJson ? JSON.parse(permissionsJson) : [];
-  const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
+
 
   const visibleModules = isSuperAdmin
     ? modules
-    : modules.filter(m => userPermissions.includes(`Module.${m.name}.View`));
+    : modules.filter(m => hasPermission(`Module.${m.name}.View`));
 
   return (
     <div className="fade-in">
@@ -182,7 +182,7 @@ function ModulesPage() {
 
 
           {/* Dynamic creation button usually requires high-level manage permission */}
-          {isSuperAdmin || userPermissions.includes('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
+          {isSuperAdmin || hasPermission('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
             <button
               className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
               onClick={() => {

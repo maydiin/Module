@@ -5,18 +5,15 @@ export const API_BASE_URL = HOST_URL + '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add JWT token and tenant header
+// Request interceptor to add tenant header
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     const selectedTenantId = localStorage.getItem('selectedTenantId');
     if (selectedTenantId) {
       config.headers['X-Tenant-Id'] = selectedTenantId;
@@ -29,21 +26,18 @@ api.interceptors.request.use(
 // Auth API
 export const login = async (username, password) => {
   const response = await api.post('/auth/login', { username, password });
-  if (response.data.token) {
-    localStorage.setItem('token', response.data.token);
-    localStorage.setItem('username', response.data.username);
-    localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []));
-    localStorage.setItem('isSuperAdmin', response.data.isSuperAdmin ? 'true' : 'false');
-  }
   return response.data;
 };
 
-export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('username');
-  localStorage.removeItem('permissions');
-  localStorage.removeItem('isSuperAdmin');
-  localStorage.removeItem('selectedTenantId');
+export const logout = async () => {
+  try {
+    await api.post('/auth/logout');
+  } catch (error) {
+    console.error("Logout error", error);
+  } finally {
+    localStorage.removeItem('selectedTenantId');
+    // Session state will be cleared by AuthContext
+  }
 };
 
 export const seedPermissions = async () => {
@@ -68,12 +62,11 @@ export const resendVerificationCode = async (email) => {
 
 export const refreshToken = async () => {
   const response = await api.post('/auth/refresh-token');
-  if (response.data.token) {
-    localStorage.setItem('token', response.data.token);
-    localStorage.setItem('username', response.data.username);
-    localStorage.setItem('permissions', JSON.stringify(response.data.permissions || []));
-    localStorage.setItem('isSuperAdmin', response.data.isSuperAdmin ? 'true' : 'false');
-  }
+  return response.data;
+};
+
+export const getMe = async () => {
+  const response = await api.get('/auth/me');
   return response.data;
 };
 

@@ -1,33 +1,21 @@
 import React from 'react';
+import { useAuth } from './AuthContext';
 
 /**
  * HasPermission component
- * 
- * Usage:
- * <HasPermission permission="Module.Kurum.View">
- *   <button>View Records</button>
- * </HasPermission>
- * 
- * Supports transforming generic permissions if moduleId or moduleName is provided:
- * <HasPermission permission="Module.Records.Create" moduleId={1}>...</HasPermission>
  */
-const HasPermission = ({ permission, permissions, moduleId, moduleName, children, fallback = null }) => {
-    // Super Admin always has full access across all tenants
-    const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
+const HasPermission = ({ permission, permissions, children, fallback = null }) => {
+    const { hasPermission: checkPermission, isSuperAdmin } = useAuth();
+    
     if (isSuperAdmin) {
         return children;
     }
 
-    const permissionsJson = localStorage.getItem('permissions');
-    const userPermissions = permissionsJson ? JSON.parse(permissionsJson) : [];
+    const hasAccess =
+        (permissions && Array.isArray(permissions) && permissions.some(p => checkPermission(p))) ||
+        (permission && checkPermission(permission));
 
-    let permissionToCheck = permission;
-
-    const hasPermission =
-        (permissions && Array.isArray(permissions) && permissions.some(p => userPermissions.includes(p))) ||
-        userPermissions.includes(permissionToCheck);
-
-    if (!hasPermission) {
+    if (!hasAccess) {
         return fallback;
     }
 

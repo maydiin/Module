@@ -89,10 +89,18 @@ public class AuthController : ControllerBase
 
         await _auditLogService.LogAsync("Login", "Auth", user.Id.ToString(), user.Username);
 
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Should be true in production
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append("token", tokenString, cookieOptions);
+
         return Ok(new
         {
             username = user.Username,
-            token = tokenString,
             permissions = permissions,
             isSuperAdmin = isSuperAdmin
         });
@@ -318,13 +326,68 @@ public class AuthController : ControllerBase
             .Distinct()
             .ToList();
 
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append("token", tokenString, cookieOptions);
+
         return Ok(new
         {
             username = user.Username,
-            token = tokenString,
             permissions = permissions,
             isSuperAdmin = isSuperAdmin
         });
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var permissions = user.UserRoles
+            .Select(ur => ur.Role)
+            .SelectMany(r => r.RolePermissions)
+            .Select(rp => rp.Permission.Name)
+            .Distinct()
+            .ToList();
+
+        var isSuperAdmin = user.UserRoles.Any(ur => ur.Role.Name == "Super Admin");
+
+        return Ok(new
+        {
+            username = user.Username,
+            permissions = permissions,
+            isSuperAdmin = isSuperAdmin,
+            tenantId = user.TenantId
+        });
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("token");
+        return Ok(new { message = "Logged out successfully" });
     }
 }
 

@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModules } from '../../services/api';
 import { useTenant } from '../TenantContext';
+import { useAuth } from '../AuthContext';
 
 function Sidebar({ isOpen = true, className = '' }) {
     const { t } = useTranslation();
@@ -45,14 +46,10 @@ function Sidebar({ isOpen = true, className = '' }) {
         setExpandedModule(expandedModule === moduleId ? null : moduleId);
     };
 
-    // Filter modules based on View permission (Super Admin sees all)
-    const permissionsJson = localStorage.getItem('permissions');
-    const userPermissions = permissionsJson ? JSON.parse(permissionsJson) : [];
-    const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
-
+    const { permissions: userPermissions, isSuperAdmin, hasPermission } = useAuth();
     const visibleModules = isSuperAdmin
         ? modules
-        : modules.filter(m => userPermissions.includes(`Module.${m.name}.View`));
+        : modules.filter(m => hasPermission(`Module.${m.name}.View`));
 
     if (loading) {
         return (

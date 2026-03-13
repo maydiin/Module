@@ -5,12 +5,14 @@ import { logout, getTenants } from '../../services/api';
 import { useTenant } from '../TenantContext';
 import HasPermission from '../HasPermission';
 import Sidebar from './Sidebar';
+import { useAuth } from '../AuthContext';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const username = localStorage.getItem('username');
+  const { user, logout: authLogout } = useAuth();
+  const username = user?.username;
   const { selectedTenantId, setSelectedTenantId, isSuperAdmin } = useTenant();
   const [tenants, setTenants] = useState([]);
   const [tenantsLoaded, setTenantsLoaded] = useState(false);
@@ -38,8 +40,8 @@ function AppLayout({ children }) {
     i18n.changeLanguage(lng);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await authLogout();
     navigate('/login');
   };
 

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../services/api';
+import { useAuth } from '../components/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 function LoginPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
