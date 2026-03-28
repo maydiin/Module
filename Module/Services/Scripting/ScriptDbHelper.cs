@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.Entities;
+using Module.Common;
 
 namespace Module.Services.Scripting;
 
@@ -54,6 +55,8 @@ public class ScriptModuleHelper : IScriptModuleHelper
         {
             var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(record.Data);
             if (data == null) return null;
+
+            data.Normalize();
 
             data["Id"] = record.Id;
             data["CreatedAt"] = record.CreatedAt;

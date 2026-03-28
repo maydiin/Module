@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.Entities;
 using Module.Services;
+using Module.Common;
 
 namespace Module.Services.Scripting;
 
@@ -108,7 +109,11 @@ public class ScriptApiHelper : IScriptApiHelper
                 }
 
                 // Parse the mapped record JSONs back to objects so Jint can use them
-                var resultObjects = mappedRecords.Select(json => JsonSerializer.Deserialize<Dictionary<string, object>>(json)).ToList();
+                var resultObjects = mappedRecords.Select(json => {
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+                    dict?.Normalize();
+                    return dict;
+                }).ToList();
                 
                 return new { Success = true, Data = resultObjects };
             }
@@ -118,6 +123,7 @@ public class ScriptApiHelper : IScriptApiHelper
                 try 
                 {
                     var resultObject = JsonSerializer.Deserialize<Dictionary<string, object>>(apiResponseJson);
+                    resultObject?.Normalize();
                     return new { Success = true, Data = resultObject };
                 }
                 catch
@@ -126,6 +132,9 @@ public class ScriptApiHelper : IScriptApiHelper
                      try 
                      {
                         var resultArray = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(apiResponseJson);
+                        if (resultArray != null) {
+                            foreach(var item in resultArray) item.Normalize();
+                        }
                         return new { Success = true, Data = resultArray };
                      }
                      catch

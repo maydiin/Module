@@ -1,4 +1,5 @@
 using Module.DTOs;
+using Module.Common.Exceptions;
 
 namespace Module.Services.Scripting;
 
@@ -20,7 +21,7 @@ public class ScriptContext
     }
 }
 
-public class ScriptValidationException : Exception
+public class ScriptValidationException : AppException
 {
     public ScriptValidationException(string message) : base(message) { }
 }

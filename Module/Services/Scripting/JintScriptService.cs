@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.DTOs;
 using Module.Entities;
+using Module.Common;
 
 namespace Module.Services.Scripting;
 
@@ -94,6 +95,8 @@ public class JintScriptService : IScriptService
             .LimitMemory(4_000_000) // 4MB limit
             .TimeoutInterval(TimeSpan.FromSeconds(4)) // 4s timeout
             .MaxStatements(10000));
+
+        data.Normalize();
 
         var context = new ScriptContext
         {
