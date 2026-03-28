@@ -55,14 +55,7 @@ public class ModuleScriptsController : ControllerBase
     {
         var tenantId = _tenantService.GetCurrentTenantId();
         
-        // Ensure unique trigger per module/tenant
-        var existing = await _context.ModuleScripts
-            .FirstOrDefaultAsync(s => s.ModuleId == moduleId && s.TenantId == tenantId && s.TriggerType == dto.TriggerType);
-            
-        if (existing != null)
-        {
-            return BadRequest(new { error = $"Script for trigger '{dto.TriggerType}' already exists." });
-        }
+        // Multiple scripts per trigger are now allowed
         
         var script = new ModuleScript
         {
@@ -90,16 +83,7 @@ public class ModuleScriptsController : ControllerBase
 
         if (script == null) return NotFound();
 
-        // Check uniqueness if trigger type changed
-        if (script.TriggerType != dto.TriggerType)
-        {
-            var existing = await _context.ModuleScripts
-                .FirstOrDefaultAsync(s => s.ModuleId == moduleId && s.TenantId == tenantId && s.TriggerType == dto.TriggerType);
-            if (existing != null)
-            {
-                return BadRequest(new { error = $"Script for trigger '{dto.TriggerType}' already exists." });
-            }
-        }
+        // Multiple scripts per trigger are now allowed
 
         script.TriggerType = dto.TriggerType;
         script.ScriptContent = dto.ScriptContent;

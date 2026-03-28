@@ -24,8 +24,9 @@ public class JintScriptService : IScriptService
 
     public async Task<PagedResult<ModuleRecordDto>?> ExecuteListOverrideAsync(int moduleId, int tenantId, RecordQueryOptions options)
     {
-        var script = await GetScript(moduleId, tenantId, "CustomList");
-        if (script == null || !script.IsActive) return null;
+        var scripts = await GetScriptsActive(moduleId, tenantId, "CustomList");
+        if (scripts == null || !scripts.Any()) return null;
+        var script = scripts.First();
 
         using var engine = new Engine(cfg => cfg
             .LimitMemory(4_000_000) // 4MB limit
@@ -70,23 +71,24 @@ public class JintScriptService : IScriptService
            return null; // Fallback on error
         }
     }
-
     public async Task ExecuteBeforeHookAsync(string trigger, int moduleId, Dictionary<string, object> data)
     {
         var tenantId = _tenantService.GetCurrentTenantId();
-        var script = await GetScript(moduleId, tenantId, trigger);
-        if (script == null || !script.IsActive) return;
-
-        ExecuteHook(script.ScriptContent, moduleId, data);
+        var scripts = await GetScriptsActive(moduleId, tenantId, trigger);
+        foreach (var script in scripts)
+        {
+            ExecuteHook(script.ScriptContent, moduleId, data);
+        }
     }
 
     public async Task ExecuteAfterHookAsync(string trigger, int moduleId, Dictionary<string, object> data)
     {
         var tenantId = _tenantService.GetCurrentTenantId();
-        var script = await GetScript(moduleId, tenantId, trigger);
-        if (script == null || !script.IsActive) return;
-
-        ExecuteHook(script.ScriptContent, moduleId, data);
+        var scripts = await GetScriptsActive(moduleId, tenantId, trigger);
+        foreach (var script in scripts)
+        {
+            ExecuteHook(script.ScriptContent, moduleId, data);
+        }
     }
 
     private void ExecuteHook(string scriptContent, int moduleId, Dictionary<string, object> data)
@@ -120,16 +122,18 @@ public class JintScriptService : IScriptService
         engine.Execute(scriptContent);
     }
 
-    private async Task<ModuleScript?> GetScript(int moduleId, int tenantId, string trigger)
+    private async Task<List<ModuleScript>> GetScriptsActive(int moduleId, int tenantId, string trigger)
     {
-        // 1. Try specific tenant script
-        var script = await _context.ModuleScripts
-            .FirstOrDefaultAsync(s => s.ModuleId == moduleId && s.TenantId == tenantId && s.TriggerType == trigger && s.IsActive);
+        // 1. Try specific tenant scripts
+        var scripts = await _context.ModuleScripts
+            .Where(s => s.ModuleId == moduleId && s.TenantId == tenantId && s.TriggerType == trigger && s.IsActive)
+            .ToListAsync();
             
-        if (script != null) return script;
+        if (scripts.Any()) return scripts;
 
-        // 2. Try global script (TenantId is null)
+        // 2. Try global scripts (TenantId is null)
         return await _context.ModuleScripts
-            .FirstOrDefaultAsync(s => s.ModuleId == moduleId && s.TenantId == null && s.TriggerType == trigger && s.IsActive);
+            .Where(s => s.ModuleId == moduleId && s.TenantId == null && s.TriggerType == trigger && s.IsActive)
+            .ToListAsync();
     }
 }
