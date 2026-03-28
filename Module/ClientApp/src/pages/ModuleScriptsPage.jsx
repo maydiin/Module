@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getScripts, createScript, updateScript, deleteScript, getModule } from '../services/api';
+import { getScripts, createScript, updateScript, deleteScript, getModule, generateAiScriptConfig } from '../services/api';
 
 const ModuleScriptsPage = () => {
     const { t } = useTranslation();
@@ -18,6 +18,9 @@ const ModuleScriptsPage = () => {
         scriptContent: '',
         isActive: true
     });
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
 
     const triggerTypes = [
         'CustomList',
@@ -94,6 +97,33 @@ const ModuleScriptsPage = () => {
         }
     };
 
+    const handleAiGenerate = async () => {
+        try {
+            setAiLoading(true);
+            const config = await generateAiScriptConfig(moduleId, aiPrompt);
+
+            if (config.scripts && config.scripts.length > 0) {
+                const generated = config.scripts[0];
+                setFormData({
+                    triggerType: generated.triggerType || 'BeforeCreate',
+                    scriptContent: generated.scriptContent || '',
+                    isActive: generated.isActive !== undefined ? generated.isActive : true
+                });
+                setShowAiModal(false);
+                setAiPrompt('');
+                setEditingScript(null);
+                setShowModal(true);
+            } else {
+                alert(t('ai_script_no_result'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert(t('ai_script_failed') + ': ' + (err.response?.data?.error || err.message));
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     const getTriggerBadgeClass = (triggerType) => {
         if (triggerType.includes('Create')) return 'bg-success bg-opacity-10 text-success';
         if (triggerType.includes('Update')) return 'bg-primary bg-opacity-10 text-primary';
@@ -146,12 +176,21 @@ const ModuleScriptsPage = () => {
                     </div>
                 </div>
 
-                <button
-                    onClick={handleAddNew}
-                    className="btn btn-primary btn-lg px-4 shadow-sm"
-                >
-                    <span className="fs-5 me-2">+</span> {t('add_script')}
-                </button>
+                <div className="d-flex gap-2">
+                    <button
+                        onClick={() => setShowAiModal(true)}
+                        className="btn btn-outline-info px-3 shadow-sm d-flex align-items-center"
+                        title={t('ai_script_btn')}
+                    >
+                        <span className="me-2">✨</span> AI Script
+                    </button>
+                    <button
+                        onClick={handleAddNew}
+                        className="btn btn-primary btn-lg px-4 shadow-sm"
+                    >
+                        <span className="fs-5 me-2">+</span> {t('add_script')}
+                    </button>
+                </div>
             </div>
 
             {/* Content */}
@@ -213,6 +252,58 @@ const ModuleScriptsPage = () => {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* AI Generation Modal */}
+            {showAiModal && (
+                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content shadow-lg border-0">
+                            <div className="modal-header border-bottom-0">
+                                <h5 className="modal-title fw-bold">{t('ai_script_title')}</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowAiModal(false)}></button>
+                            </div>
+                            <div className="modal-body p-4">
+                                <p className="text-muted small mb-3">
+                                    {t('ai_script_prompt_desc')}
+                                </p>
+                                <textarea
+                                    className="form-control"
+                                    rows="4"
+                                    placeholder={t('ai_script_prompt_placeholder')}
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    disabled={aiLoading}
+                                />
+                            </div>
+                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-light"
+                                    onClick={() => setShowAiModal(false)}
+                                    disabled={aiLoading}
+                                >
+                                    {t('cancel')}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary px-4"
+                                    onClick={handleAiGenerate}
+                                    disabled={aiLoading || !aiPrompt.trim()}
+                                >
+                                    {aiLoading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm me-2"></span>
+                                            {t('ai_script_generating')}
+                                        </>
+                                    ) : (
+                                        t('ai_script_generate')
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 

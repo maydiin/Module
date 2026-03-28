@@ -237,6 +237,11 @@ export const deleteApiConfig = async (moduleId, configId) => {
   await api.delete(`/modules/${moduleId}/api-configs/${configId}`);
 };
 
+export const executeApiSync = async (configId) => {
+  const response = await api.post(`/sync/${configId}/execute`);
+  return response.data;
+};
+
 // Audit Logs API
 export const getAuditLogs = async (params = {}) => {
   const response = await api.get('/audit-logs', { params });
@@ -306,6 +311,16 @@ export const generateAiConfig = async (prompt) => {
 
 export const generateAiReportConfig = async (moduleId, prompt) => {
   const response = await api.post(`/ai-setup/generate-report/${moduleId}`, { prompt });
+  return response.data;
+};
+
+export const generateAiApiConfig = async (moduleId, prompt) => {
+  const response = await api.post(`/ai-setup/generate-api-config/${moduleId}`, { prompt });
+  return response.data;
+};
+
+export const generateAiScriptConfig = async (moduleId, prompt) => {
+  const response = await api.post(`/ai-setup/generate-script/${moduleId}`, { prompt });
   return response.data;
 };
 

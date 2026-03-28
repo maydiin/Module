@@ -144,13 +144,14 @@ public class AiModuleSetupService : IAiModuleSetupService
                 if (!moduleNameMap.TryGetValue(apiConfig.ModuleName, out var moduleId)) continue;
 
                 var existingApi = await _context.ExternalApiConfigs
-                    .FirstOrDefaultAsync(a => a.ModuleId == moduleId && a.Name == apiConfig.Name);
+                    .FirstOrDefaultAsync(a => a.ModuleId == moduleId && a.Name == apiConfig.Name && a.TenantId == tenantId);
 
                 if (existingApi == null)
                 {
                     var newApi = new ExternalApiConfig
                     {
                         ModuleId = moduleId,
+                        TenantId = tenantId,
                         Name = apiConfig.Name,
                         Url = apiConfig.Url,
                         Method = apiConfig.Method,

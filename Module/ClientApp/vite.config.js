@@ -9,14 +9,6 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5287',
         changeOrigin: true
-      },
-      '/lib': {
-        target: 'http://localhost:5287',
-        changeOrigin: true
-      },
-      '/favicon.png': {
-        target: 'http://localhost:5287',
-        changeOrigin: true
       }
     }
   },

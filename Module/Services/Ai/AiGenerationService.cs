@@ -96,7 +96,7 @@ public class AiGenerationService : IAiGenerationService
                                      "Method": "GET|POST|PUT|DELETE",
                                      "HeadersJson": "{\"Auth\": \"Bearer ...\"}",
                                      "RequestBodyTemplate": "{\"id\": {{Id}}}",
-                                     "ResponseMappingsJson": "{\"result.path\": \"FieldName\"}"
+                                     "ResponseMappingsJson": "{\"__root__\": \"data\", \"subead\": \"ŞubeAdı\", \"subeadres\": \"Adres\", \"subetel\": \"Telefon\", \"subemail\": \"Email\"}"
                                    }
                                  ],
                                  "Reports": [
@@ -125,7 +125,8 @@ public class AiGenerationService : IAiGenerationService
                                   - If Type is 'List', Configuration must contain a 'columns' array with field names.
                                   - If Type is 'Chart', Configuration must contain a 'groupBy' field with the name of the field to aggregate by.
                                   - Generate appropriate entries if the user asks for dashboards, reporting, or specific analysis.
-                               9. For 'ApiConfigs', 'ResponseMappingsJson' is a dictionary where key is the JS path in the JSON response (e.g. 'result.id') and value is the Module field name to update.
+                                9. For 'ApiConfigs', 'ResponseMappingsJson' is a dictionary where key is the JS path in the JSON response (e.g. 'result.id' or '__root__' for data origin) and value is the Module field name to update.
+                                   Example: {"__root__": "data", "subead": "ŞubeAdı", "subeadres": "Adres", "subetel": "Telefon", "subemail": "Email"}
 
                                CURRENT SYSTEM CONFIGURATION:
                                The user already has the following modules and fields configured:
@@ -136,7 +137,7 @@ public class AiGenerationService : IAiGenerationService
                                - If the user asks to MODIFY an existing module (e.g., add a field), include the Module definition with the NEW field added to the list. You do NOT need to list all existing fields unless they are being changed, but keeping them for context is fine.
                                - Be careful NOT to duplicates existing fields if they are already present, unless the user wants to change them.
                                - If the user's request implies connecting to an existing module (e.g. "Add a project for a customer" where 'Customer' exists), use a 'relation' field pointing to the existing 'Customer' module.
-                               """;
+""";
 
         var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
 
@@ -257,6 +258,197 @@ MODULE STRUCTURE:
 IMPORTANT:
 - Return ONLY the JSON for the NEW or MODIFIED report.
 - If the user's request is vague, guess likely useful reports for this type of module.
+""";
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+    }
+
+    public async Task<AiSystemConfigDto> GenerateApiConfigAsync(int moduleId, string userPrompt)
+    {
+        var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException("AI API Key is not configured.");
+        }
+
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = await _context.Modules
+            .Include(m => m.Fields)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.TenantId == tenantId);
+
+        if (module == null)
+        {
+            throw new KeyNotFoundException($"Module with ID {moduleId} not found.");
+        }
+
+        var existingConfigs = await _context.ExternalApiConfigs
+            .Where(c => c.ModuleId == moduleId)
+            .ToListAsync();
+
+        var currentConfig = new
+        {
+            Module = new
+            {
+                module.Name,
+                Fields = module.Fields.Select(f => new
+                {
+                    f.Name,
+                    f.Label,
+                    f.Type,
+                    f.Options
+                })
+            },
+            ExistingApiConfigs = existingConfigs.Select(c => new
+            {
+                c.Name,
+                c.Url,
+                c.Method,
+                c.HeadersJson,
+                c.RequestBodyTemplate,
+                c.ResponseMappingsJson
+            })
+        };
+
+        var currentConfigJson = JsonSerializer.Serialize(currentConfig, new JsonSerializerOptions { WriteIndented = true });
+
+        var systemPrompt = $$$$"""
+You are an AI API integration specialist. Your goal is to generate External API Configuration for a specific module in a business system.
+The output MUST be a valid JSON object matching the following structure exactly. Do not include markdown code blocks (```json ... ```), just return the raw JSON.
+
+Structure:
+{
+  "ApiConfigs": [
+    {
+      "ModuleName": "{{{{module.Name}}}}",
+      "Name": "Config Name",
+      "Url": "https://api.example.com/v1/{{FieldName}}",
+      "Method": "GET|POST|PUT|DELETE",
+      "HeadersJson": "{\"Authorization\": \"Bearer ...\", \"Content-Type\": \"application/json\"}",
+      "RequestBodyTemplate": "{\"id\": {{Id}}, \"action\": \"verify\"}",
+      "ResponseMappingsJson": "{\"__root__\": \"data\", \"subead\": \"ŞubeAdı\", \"subeadres\": \"Adres\", \"subetel\": \"Telefon\", \"subemail\": \"Email\"}"
+    }
+  ]
+}
+
+Rules:
+1. Use the fields available in the provided module for dynamic placeholders.
+2. Use {{FieldName}} syntax in Url, HeadersJson, and RequestBodyTemplate for dynamic values from records.
+ 3. ResponseMappingsJson maps JSON paths from API response to module field names. Key = JSON path in response (e.g. "result.id" or "__root__" for base data path), Value = Module field name to update.
+    Example for branch data: {"__root__": "data", "subead": "ŞubeAdı", "subeadres": "Adres", "subetel": "Telefon", "subemail": "Email"}
+4. HeadersJson should be a valid JSON string representing HTTP headers.
+5. RequestBodyTemplate should be a valid JSON template string with {{FieldName}} placeholders.
+6. Try to avoid duplicating existing API configurations unless asked to modify them.
+7. Choose the most appropriate HTTP method for the integration type.
+8. Provide realistic, production-ready configurations based on common API patterns.
+
+MODULE STRUCTURE:
+{{{{currentConfigJson}}}}
+
+IMPORTANT:
+- Return ONLY the JSON for the NEW API configuration(s).
+- If the user's request is vague, generate a sensible API integration configuration based on the module's fields and purpose.
+- Generate only ONE ApiConfig entry unless the user explicitly asks for multiple.
+""";
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+    }
+
+    public async Task<AiSystemConfigDto> GenerateScriptConfigAsync(int moduleId, string userPrompt)
+    {
+        var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException("AI API Key is not configured.");
+        }
+
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = await _context.Modules
+            .Include(m => m.Fields)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.TenantId == tenantId);
+
+        if (module == null)
+        {
+            throw new KeyNotFoundException($"Module with ID {moduleId} not found.");
+        }
+
+        var existingScripts = await _context.ModuleScripts
+            .Where(s => s.ModuleId == moduleId)
+            .ToListAsync();
+
+        var currentConfig = new
+        {
+            Module = new
+            {
+                module.Name,
+                Fields = module.Fields.Select(f => new
+                {
+                    f.Name,
+                    f.Label,
+                    f.Type,
+                    f.Options
+                })
+            },
+            ExistingScripts = existingScripts.Select(s => new
+            {
+                s.TriggerType,
+                s.ScriptContent,
+                s.IsActive
+            })
+        };
+
+        var currentConfigJson = JsonSerializer.Serialize(currentConfig, new JsonSerializerOptions { WriteIndented = true });
+
+        var systemPrompt = $$$$"""
+You are an AI Scripting specialist for a business system that uses a built-in V8 JavaScript engine for automation and validation.
+Your goal is to generate Module Scripts for a specific module.
+The output MUST be a valid JSON object matching the following structure exactly. Do not include markdown code blocks (```json ... ```), just return the raw JSON.
+
+Structure:
+{
+  "Scripts": [
+    {
+      "ModuleName": "{{{{module.Name}}}}",
+      "TriggerType": "BeforeCreate|AfterCreate|BeforeUpdate|AfterUpdate|BeforeDelete|AfterDelete|CustomList",
+      "ScriptContent": "// JS code. Available: Db, Data, User, Fail(msg), Log(msg)",
+      "IsActive": true
+    }
+  ]
+}
+
+Scripting Context:
+- Language: JavaScript (V8 Engine)
+- Available Global Objects:
+  - Db: Access to database operations (e.g. Db.GetRecord, Db.UpdateRecord)
+  - Data: The current record being processed. Properties match module field names.
+  - User: Context of the current user (Id, Username, Email, Roles).
+  - Fail(message): Call this to abort the operation and show an error to the user. (Typically used in 'Before' triggers for validation).
+  - Log(message): Call this to write to system logs for debugging.
+
+Trigger Types:
+- BeforeCreate/Update/Delete: Runs BEFORE the database operation. Use Fail(msg) for validation.
+- AfterCreate/Update/Delete: Runs AFTER the database operation. Use for side effects like logging, notifications, or updating other records.
+- CustomList: Used for custom logic when listing records (e.g. filtering).
+
+Rules:
+1. Use the fields available in the provided module.
+2. In 'Before' scripts, always check for conditions and call Fail("ErrorMessage") if validation fails.
+3. In 'After' scripts, focus on business logic and side effects.
+4. Try to avoid duplicating existing scripts unless asked to modify them.
+5. Provide clean, well-commented, and robust JavaScript code.
+6. Generate only ONE Script entry unless the user explicitly asks for multiple.
+
+MODULE STRUCTURE & EXISTING SCRIPTS:
+{{{{currentConfigJson}}}}
+
+IMPORTANT:
+- Return ONLY the JSON for the NEW script configuration.
+- If the user's request is vague, generate a sensible script based on the module's fields (e.g., a basic validation or a 'Created At' timestamp setter).
 """;
 
         var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");

@@ -27,7 +27,12 @@ public class ExternalApiConfig
     public string? RequestBodyTemplate { get; set; }
 
     public string? ResponseMappingsJson { get; set; } // JSON mapping: "api_path": "module_field_name"
+    
+    public int TenantId { get; set; }
 
     [ForeignKey("ModuleId")]
     public Module? Module { get; set; }
+    
+    [ForeignKey("TenantId")]
+    public Tenant? Tenant { get; set; }
 }

@@ -45,6 +45,26 @@ public class AiSetupController : ControllerBase
         var config = await _aiGenerationService.GenerateReportConfigAsync(moduleId, request.Prompt);
         return Ok(config);
     }
+
+    [HttpPost("generate-api-config/{moduleId}")]
+    public async Task<IActionResult> GenerateApiConfig(int moduleId, [FromBody] AiGenerationRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Prompt))
+            return BadRequest("Prompt is required.");
+
+        var config = await _aiGenerationService.GenerateApiConfigAsync(moduleId, request.Prompt);
+        return Ok(config);
+    }
+
+    [HttpPost("generate-script/{moduleId}")]
+    public async Task<IActionResult> GenerateScript(int moduleId, [FromBody] AiGenerationRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Prompt))
+            return BadRequest("Prompt is required.");
+
+        var config = await _aiGenerationService.GenerateScriptConfigAsync(moduleId, request.Prompt);
+        return Ok(config);
+    }
 }
 
 

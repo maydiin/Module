@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig } from '../services/api';
+import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig, generateAiApiConfig } from '../services/api';
 
 function ModuleApiConfigsPage() {
     const { t } = useTranslation();
@@ -13,6 +13,9 @@ function ModuleApiConfigsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editConfigId, setEditConfigId] = useState(null);
     const [error, setError] = useState('');
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -106,6 +109,36 @@ function ModuleApiConfigsPage() {
         }
     };
 
+    const handleAiGenerate = async () => {
+        try {
+            setAiLoading(true);
+            const config = await generateAiApiConfig(moduleId, aiPrompt);
+
+            if (config.apiConfigs && config.apiConfigs.length > 0) {
+                const generated = config.apiConfigs[0];
+                setEditConfigId(null);
+                setFormData({
+                    name: generated.name || '',
+                    url: generated.url || '',
+                    method: generated.method || 'POST',
+                    headersJson: generated.headersJson || '',
+                    requestBodyTemplate: generated.requestBodyTemplate || '',
+                    responseMappingsJson: generated.responseMappingsJson || ''
+                });
+                setShowAiModal(false);
+                setAiPrompt('');
+                setShowForm(true);
+            } else {
+                alert(t('ai_api_config_no_result'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert(t('ai_api_config_failed') + ': ' + (err.response?.data?.error || err.message));
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="text-center py-5">
@@ -130,18 +163,79 @@ function ModuleApiConfigsPage() {
                     <h1 className="h3 mb-0">{t('api_configs_title')}</h1>
                     <p className="text-muted">{t('api_configs_subtitle')} {module?.name}</p>
                 </div>
-                <button
-                    className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'}`}
-                    onClick={() => {
-                        if (showForm) resetForm();
-                        else setShowForm(true);
-                    }}
-                >
-                    {showForm ? t('cancel') : `+ ${t('add_new_config')}`}
-                </button>
+                <div className="d-flex gap-2">
+                    <button
+                        onClick={() => setShowAiModal(true)}
+                        className="btn btn-outline-info px-3 shadow-sm"
+                        title={t('ai_api_config_btn')}
+                    >
+                        <span className="me-1">✨</span> AI Config
+                    </button>
+                    <button
+                        className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'}`}
+                        onClick={() => {
+                            if (showForm) resetForm();
+                            else setShowForm(true);
+                        }}
+                    >
+                        {showForm ? t('cancel') : `+ ${t('add_new_config')}`}
+                    </button>
+                </div>
             </div>
 
             {error && <div className="alert alert-danger">{error}</div>}
+
+            {/* AI Generation Modal */}
+            {showAiModal && (
+                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content shadow-lg border-0">
+                            <div className="modal-header border-bottom-0">
+                                <h5 className="modal-title fw-bold">{t('ai_api_config_title')}</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowAiModal(false)}></button>
+                            </div>
+                            <div className="modal-body p-4">
+                                <p className="text-muted small mb-3">
+                                    {t('ai_api_config_prompt_desc')}
+                                </p>
+                                <textarea
+                                    className="form-control"
+                                    rows="4"
+                                    placeholder={t('ai_api_config_prompt_placeholder')}
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    disabled={aiLoading}
+                                />
+                            </div>
+                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
+                                <button
+                                    type="button"
+                                    className="btn btn-light"
+                                    onClick={() => setShowAiModal(false)}
+                                    disabled={aiLoading}
+                                >
+                                    {t('cancel')}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary px-4"
+                                    onClick={handleAiGenerate}
+                                    disabled={aiLoading || !aiPrompt.trim()}
+                                >
+                                    {aiLoading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm me-2"></span>
+                                            {t('ai_api_config_generating')}
+                                        </>
+                                    ) : (
+                                        t('ai_api_config_generate')
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {showForm && (
                 <div className="card shadow mb-4 border-0">

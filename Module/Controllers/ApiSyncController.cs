@@ -22,6 +22,7 @@ public class ApiSyncController : ControllerBase
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMediator _mediator;
     private readonly IAuthorizationService _authorizationService;
+    private readonly ITenantService _tenantService;
 
     public ApiSyncController(
         AppDbContext context, 
@@ -30,7 +31,8 @@ public class ApiSyncController : ControllerBase
         IRelationService relationService,
         IHttpClientFactory httpClientFactory,
         IMediator mediator,
-        IAuthorizationService authorizationService)
+        IAuthorizationService authorizationService,
+        ITenantService tenantService)
     {
         _context = context;
         _apiService = apiService;
@@ -39,14 +41,16 @@ public class ApiSyncController : ControllerBase
         _httpClientFactory = httpClientFactory;
         _mediator = mediator;
         _authorizationService = authorizationService;
+        _tenantService = tenantService;
     }
 
     [HttpPost("{configId}/execute")]
     public async Task<IActionResult> ExecuteSync(int configId, [FromBody] Dictionary<string, string>? parameters = null)
     {
+        var tenantId = _tenantService.GetCurrentTenantId();
         var config = await _context.ExternalApiConfigs
             .Include(c => c.Module)
-            .FirstOrDefaultAsync(c => c.Id == configId);
+            .FirstOrDefaultAsync(c => c.Id == configId && c.TenantId == tenantId);
  
         if (config == null) return NotFound("API Configuration not found.");
 

@@ -10,6 +10,7 @@ public class ExternalApiConfigDto
     public string? HeadersJson { get; set; }
     public string? RequestBodyTemplate { get; set; }
     public string? ResponseMappingsJson { get; set; }
+    public int TenantId { get; set; }
 }
 
 public class CreateExternalApiConfigDto

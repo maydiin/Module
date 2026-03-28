@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.Entities;
+using Module.Services;
 
 namespace Module.Services.Scripting;
 
@@ -10,18 +11,25 @@ public class ScriptApiHelper : IScriptApiHelper
     private readonly AppDbContext _context;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IExternalApiService _apiService;
+    private readonly ITenantService _tenantService;
 
-    public ScriptApiHelper(AppDbContext context, IHttpClientFactory httpClientFactory, IExternalApiService apiService)
+    public ScriptApiHelper(
+        AppDbContext context, 
+        IHttpClientFactory httpClientFactory, 
+        IExternalApiService apiService,
+        ITenantService tenantService)
     {
         _context = context;
         _httpClientFactory = httpClientFactory;
         _apiService = apiService;
+        _tenantService = tenantService;
     }
 
     public async Task<object> ExecuteAsync(int moduleId, string configName, Dictionary<string, object> parameters)
     {
+        var tenantId = _tenantService.GetCurrentTenantId();
         var config = await _context.ExternalApiConfigs
-            .FirstOrDefaultAsync(c => c.ModuleId == moduleId && c.Name == configName);
+            .FirstOrDefaultAsync(c => c.ModuleId == moduleId && c.Name == configName && c.TenantId == tenantId);
 
         if (config == null)
         {
