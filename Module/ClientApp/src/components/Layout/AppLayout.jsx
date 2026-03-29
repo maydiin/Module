@@ -78,9 +78,9 @@ function AppLayout({ children }) {
           <div className="glass-pill px-4 py-2 d-flex align-items-center w-100 shadow-premium">
             <div className="d-flex align-items-center me-auto">
               <button
-                className="btn btn-light border-0 me-3 d-flex align-items-center justify-content-center text-secondary shadow-sm hover-lift p-0"
+                className="btn btn-light border-0 me-3 d-flex align-items-center justify-content-center text-secondary shadow-sm hover-bg-theme p-0"
                 onClick={toggleSidebar}
-                style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'rgba(255,255,255,0.7)' }}
+                style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'hsla(var(--primary), 0.1)' }}
                 title="Menüyü Aç/Kapat"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -102,8 +102,8 @@ function AppLayout({ children }) {
                 <li className="nav-item">
                   <Link
                     className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/'
-                      ? 'bg-primary text-white shadow-md scale-105'
-                      : 'text-secondary hover-bg-light'
+                      ? 'menu-active scale-105'
+                      : 'text-secondary hover-bg-theme'
                       }`}
                     style={{ fontSize: '0.9rem' }}
                     to="/"
@@ -115,8 +115,8 @@ function AppLayout({ children }) {
                   <li className="nav-item">
                     <Link
                       className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/users'
-                        ? 'bg-primary text-white shadow-md scale-105'
-                        : 'text-secondary hover-bg-light'
+                        ? 'menu-active scale-105'
+                        : 'text-secondary hover-bg-theme'
                         }`}
                       style={{ fontSize: '0.9rem' }}
                       to="/users"
@@ -129,8 +129,8 @@ function AppLayout({ children }) {
                   <li className="nav-item">
                     <Link
                       className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/roles'
-                        ? 'bg-primary text-white shadow-md scale-105'
-                        : 'text-secondary hover-bg-light'
+                        ? 'menu-active scale-105'
+                        : 'text-secondary hover-bg-theme'
                         }`}
                       style={{ fontSize: '0.9rem' }}
                       to="/roles"
@@ -143,8 +143,8 @@ function AppLayout({ children }) {
                   <li className="nav-item">
                     <Link
                       className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/audit-logs'
-                        ? 'bg-primary text-white shadow-md scale-105'
-                        : 'text-secondary hover-bg-light'
+                        ? 'menu-active scale-105'
+                        : 'text-secondary hover-bg-theme'
                         }`}
                       style={{ fontSize: '0.9rem' }}
                       to="/audit-logs"
@@ -157,7 +157,7 @@ function AppLayout({ children }) {
                 {isSuperAdmin && tenants.length > 0 && (
                   <li className="nav-item ms-lg-2">
                     <select
-                      className="form-select form-select-sm border-0 bg-white bg-opacity-50 rounded-pill px-3 shadow-sm hover-lift"
+                      className="form-select form-select-sm border-0 bg-white bg-opacity-40 rounded-pill px-3 shadow-sm hover-lift text-foreground"
                       style={{ minWidth: '160px', fontSize: '0.8rem', height: '36px', backdropFilter: 'blur(10px)' }}
                       value={selectedTenantId || ''}
                       onChange={handleTenantChange}
@@ -176,7 +176,7 @@ function AppLayout({ children }) {
                 <li className="nav-item">
                   <Link
                     to="/settings"
-                    className={`nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'bg-primary text-white scale-110 shadow-md' : 'btn-blur'}`}
+                    className={`nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'menu-active scale-110 shadow-md' : 'btn-blur'}`}
                     style={{ width: '36px', height: '36px' }}
                     title={t('settings', 'Ayarlar')}
                   >
@@ -189,8 +189,8 @@ function AppLayout({ children }) {
 
                 <li className="nav-item ms-lg-2">
                   <div className="d-flex align-items-center gap-2">
-                    <div className="bg-white bg-opacity-50 px-3 py-1 rounded-pill shadow-sm d-flex align-items-center border border-white border-opacity-50" style={{ height: '36px', backdropFilter: 'blur(10px)' }}>
-                      <span className="text-dark small fw-bold">{username}</span>
+                    <div className="bg-white bg-opacity-40 px-3 py-1 rounded-pill shadow-sm d-flex align-items-center border border-white border-opacity-30" style={{ height: '36px', backdropFilter: 'blur(10px)' }}>
+                      <span className="text-foreground small fw-bold">{username}</span>
                     </div>
                     <button onClick={handleLogout} className="btn-blur small rounded-pill px-3 shadow-sm hover-lift" style={{ height: '36px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                       Çıkış

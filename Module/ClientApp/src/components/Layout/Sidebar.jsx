@@ -84,12 +84,12 @@ function Sidebar({ isOpen = true, className = '' }) {
             >
                 <div className="py-4 px-3" style={{ width: '268px' }}>
                     <div className="mb-4 ps-2">
-                        <h6 className="text-uppercase text-muted fw-bold small tracking-wider opacity-60" style={{ fontSize: '0.65rem' }}>
+                        <h6 className="text-uppercase text-muted fw-bold small tracking-wider" style={{ fontSize: '0.65rem', opacity: 0.8 }}>
                             {t('modules_title')}
                         </h6>
                     </div>
                     {visibleModules.length === 0 ? (
-                        <p className="text-muted small ps-2">{t('empty_workspace_desc')}</p>
+                        <p className="text-muted small ps-2" style={{ opacity: 0.8 }}>{t('empty_workspace_desc')}</p>
                     ) : (
                         <ul className="list-unstyled mb-0 stagger-in">
                             {visibleModules.map(module => {
@@ -104,7 +104,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                 return (
                                     <li key={module.id} className="mb-2">
                                         <button
-                                            className={`btn border-0 w-100 text-start px-3 py-2 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'bg-primary text-white shadow-md' : 'text-secondary bg-white bg-opacity-20 hover-bg-light'}`}
+                                            className={`btn border-0 w-100 text-start px-3 py-2 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'menu-active' : 'text-nav bg-primary bg-opacity-5 hover-bg-theme'}`}
                                             onClick={() => toggleModule(module.id)}
                                             aria-expanded={isExpanded}
                                             style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
@@ -121,13 +121,13 @@ function Sidebar({ isOpen = true, className = '' }) {
                                         </button>
 
                                         {isExpanded && (
-                                            <div className="mt-2 ms-2 ps-3 border-start border-primary border-opacity-20 fade-in">
+                                            <div className="mt-2 ms-2 ps-3 border-start border-primary border-opacity-10 fade-in" style={{ borderColor: 'hsla(var(--primary), 0.2) !important' }}>
                                                 <ul className="list-unstyled fw-normal pb-1 small mt-1">
                                                     {canView && (
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/records`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <span className="me-2" style={{ width: '20px' }}>📋</span>
                                                                 {t('records')}
@@ -138,7 +138,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/fields`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <span className="me-2" style={{ width: '20px' }}>⚙️</span>
                                                                 {t('fields')}
@@ -149,7 +149,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/api-configs`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <span className="me-2" style={{ width: '20px' }}>🔌</span>
                                                                 API
@@ -160,7 +160,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/scripts`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <span className="me-2" style={{ width: '20px' }}>📜</span>
                                                                 Scripts

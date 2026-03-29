@@ -36,8 +36,8 @@ function SettingsPage() {
 
             <div className="mb-5">
               <label className="form-label fw-bold mb-3 d-flex align-items-center">
-                <span>{t('theme_color', 'Tema Rengi')}</span>
-                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem' }}>{themes.find(t => t.id === theme)?.label}</span>
+                <span>{t('color_scale', 'Renk Skalası')}</span>
+                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>{themes.find(t => t.id === theme)?.label}</span>
               </label>
               
               <div className="d-flex flex-wrap gap-4 mt-2">
@@ -45,30 +45,35 @@ function SettingsPage() {
                   <button
                     key={t.id}
                     onClick={() => setTheme(t.id)}
-                    className={`btn p-4 border-0 rounded-4 transition-all position-relative overflow-hidden ${theme === t.id ? 'scale-110 shadow-lg ring-4 ring-primary ring-opacity-20' : 'opacity-60 hover-opacity-100 hover-lift shadow-sm'}`}
+                    className={`btn p-0 border-0 rounded-4 transition-all position-relative overflow-hidden ${theme === t.id ? 'scale-110 shadow-lg ring-4 ring-primary ring-opacity-20' : 'opacity-60 hover-opacity-100 hover-lift shadow-sm'}`}
                     style={{ 
-                      minWidth: '120px',
-                      background: theme === t.id ? `linear-gradient(135deg, hsl(${t.color}), hsl(${t.color} / 0.8))` : 'white',
+                      minWidth: '160px',
+                      background: 'hsla(var(--background), 0.5)',
+                      height: '180px'
                     }}
                   >
-                    <div className="d-flex flex-column align-items-center gap-3">
-                      <div 
-                        className="rounded-circle shadow-sm border border-2 border-white" 
-                        style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          backgroundColor: `hsl(${t.color})`,
-                        }}
-                      />
-                      <span className={`fw-bold small ${theme === t.id ? 'text-white' : 'text-dark'}`}>{t.label}</span>
-                    </div>
-                    {theme === t.id && (
-                      <div className="position-absolute top-0 end-0 p-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
+                    <div className="d-flex flex-column h-100">
+                      {/* Scale Preview Header */}
+                      <div className="flex-grow-1 p-3 d-flex align-items-center justify-content-center position-relative" style={{ backgroundColor: `hsl(${t.color} / 0.05)` }}>
+                         <div className="d-flex gap-n1">
+                            <div className="rounded-circle shadow-sm border border-2 border-white" style={{ width: '32px', height: '32px', backgroundColor: `hsl(${t.color})`, zIndex: 2 }} />
+                            <div className="rounded-circle shadow-sm border border-2 border-white ms-n2" style={{ width: '32px', height: '32px', backgroundColor: `hsl(${t.id === 'default' ? '260 80% 65%' : t.color.replace('30%', '45%').replace('48%', '60%').replace('50%', '53%').replace('61%', '68%')})`, zIndex: 1 }} />
+                         </div>
+                         {theme === t.id && (
+                            <div className="position-absolute top-0 end-0 p-2">
+                              <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: '20px', height: '20px' }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              </div>
+                            </div>
+                          )}
                       </div>
-                    )}
+                      {/* Label Footer */}
+                      <div className={`p-3 text-center fw-bold small ${theme === t.id ? 'bg-primary text-white' : 'bg-surface text-foreground'}`}>
+                        {t.label}
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>

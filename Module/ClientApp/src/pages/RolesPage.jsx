@@ -108,7 +108,7 @@ function RolesPage() {
     return (
         <div className="fade-in">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1>Rol ve İzin Yönetimi</h1>
+                <h1 className="text-gradient mb-0">Rol ve İzin Yönetimi</h1>
                 <button className="btn btn-primary" onClick={() => handleOpenModal()}>
                     <i className="bi bi-plus-lg me-2"></i> Yeni Rol Ekle
                 </button>
@@ -119,17 +119,17 @@ function RolesPage() {
             <div className="row g-4">
                 {roles.map(role => (
                     <div key={role.id} className="col-md-6">
-                        <div className="card shadow-sm border-0 h-100" style={{ overflow: 'visible' }}>
-                            <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-start">
+                        <div className="glass-card border-0 h-100" style={{ overflow: 'visible' }}>
+                            <div className="card-header bg-transparent border-bottom border-primary border-opacity-10 py-3 d-flex justify-content-between align-items-center">
                                 <div>
                                     <h5 className="mb-0">{role.name}</h5>
                                     <small className="text-muted">{role.description}</small>
                                 </div>
                                 <div className="btn-group">
-                                    <button className="btn btn-sm btn-outline-secondary" onClick={() => handleOpenModal(role)}>
+                                    <button className="btn btn-sm btn-blur" onClick={() => handleOpenModal(role)}>
                                         Düzenle
                                     </button>
-                                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteRole(role.id)}>
+                                    <button className="btn btn-sm btn-light text-danger bg-transparent" onClick={() => handleDeleteRole(role.id)}>
                                         Sil
                                     </button>
                                 </div>
@@ -139,11 +139,12 @@ function RolesPage() {
                                     <label className="form-label fw-bold">İzinler</label>
                                     <div className="d-flex flex-wrap gap-1">
                                         {role.permissions.map(perm => (
-                                            <span key={perm} className="badge bg-info text-white">
+                                            <span key={perm} className="badge badge-outline-theme d-flex align-items-center gap-1">
                                                 {perm}
                                                 <button
-                                                    className="btn btn-sm text-white p-0 ms-1"
+                                                    className="btn btn-sm p-0 ms-1 lh-1 text-primary opacity-50 hover-opacity-100 border-0 bg-transparent"
                                                     onClick={() => handleRemovePermission(role.id, perm)}
+                                                    style={{ fontSize: '1rem' }}
                                                 >
                                                     &times;
                                                 </button>
@@ -155,10 +156,10 @@ function RolesPage() {
                                     <button className="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
                                         İzin Ekle
                                     </button>
-                                    <ul className="dropdown-menu">
+                                    <ul className="dropdown-menu glass border-0 shadow-lg">
                                         {permissions.filter(p => !role.permissions.includes(p)).map(perm => (
                                             <li key={perm}>
-                                                <button className="dropdown-item" onClick={() => handleAddPermission(role.id, perm)}>
+                                                <button className="dropdown-item hover-bg-theme rounded-2 mx-1 my-1" style={{ width: 'calc(100% - 0.5rem)' }} onClick={() => handleAddPermission(role.id, perm)}>
                                                     {perm}
                                                 </button>
                                             </li>
@@ -173,11 +174,11 @@ function RolesPage() {
 
             {/* Role Modal */}
             {showModal && (
-                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">{editingRole ? 'Rolü Düzenle' : 'Yeni Rol Ekle'}</h5>
+                <div className="modal show d-block fade-in" tabIndex="-1" style={{ backgroundColor: 'hsla(var(--primary), 0.1)', backdropFilter: 'blur(8px)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="glass-card border-0 shadow-xl overflow-hidden">
+                            <div className="modal-header border-bottom border-primary border-opacity-10 p-4">
+                                <h5 className="modal-title fw-bold text-gradient">{editingRole ? 'Rolü Düzenle' : 'Yeni Rol Ekle'}</h5>
                                 <button type="button" className="btn-close" onClick={handleCloseModal}></button>
                             </div>
                             <form onSubmit={handleSaveRole}>
@@ -202,9 +203,9 @@ function RolesPage() {
                                         ></textarea>
                                     </div>
                                 </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>İptal</button>
-                                    <button type="submit" className="btn btn-primary">Kaydet</button>
+                                <div className="modal-footer border-top border-primary border-opacity-10 p-4">
+                                    <button type="button" className="btn btn-blur" onClick={handleCloseModal}>İptal</button>
+                                    <button type="submit" className="btn btn-primary px-4">Kaydet</button>
                                 </div>
                             </form>
                         </div>

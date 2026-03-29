@@ -70,14 +70,14 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
   return (
     <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
       <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content border-0 shadow-lg">
-          <div className="modal-header bg-primary text-white">
+        <div className="modal-content glass-card border-0 shadow-xl overflow-hidden">
+          <div className="modal-header border-bottom border-primary border-opacity-10">
             <h5 className="modal-title">{title || t('ai_architect_modal_title')}</h5>
             <button type="button" className="btn-close btn-close-white" onClick={onClose} disabled={aiLoading}></button>
           </div>
           <div className="modal-body p-0 d-flex flex-column" style={{ height: '600px' }}>
             {/* Chat Area */}
-            <div className="flex-grow-1 p-3 overflow-auto bg-light">
+            <div className="flex-grow-1 p-3 overflow-auto bg-glass">
               {chatHistory.length === 0 ? (
                 <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-50">
                   <span className="fs-1 mb-3">🤖</span>
@@ -87,7 +87,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
                 chatHistory.map((msg, index) => (
                   <div key={index} className={`d-flex mb-3 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
                     <div 
-                      className={`p-3 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-white border'}`} 
+                      className={`p-3 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-surface border-theme-accent border'}`} 
                       style={{ maxWidth: '80%', whiteSpace: 'pre-wrap' }}
                     >
                       {msg.role === 'ai' && <div className="fw-bold mb-1 small text-primary">AI</div>}
@@ -98,7 +98,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
               )}
               {aiLoading && (
                 <div className="d-flex mb-3 justify-content-start">
-                  <div className="p-3 rounded-4 bg-white border shadow-sm">
+                  <div className="p-3 rounded-4 bg-surface border-theme-accent border shadow-sm">
                     <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                   </div>
                 </div>
@@ -109,7 +109,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
                     <div className="d-flex justify-content-between align-items-center mb-2">
                        <h6 className="text-success mb-0 fw-bold">{t('ai_config_generated')}</h6>
                     </div>
-                    <pre className="mb-0 small bg-white p-2 rounded border" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    <pre className="mb-0 small bg-surface p-2 rounded border border-theme-accent" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                       {JSON.stringify(aiPreview, null, 2)}
                     </pre>
                   </div>
@@ -119,7 +119,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-white border-top">
+            <div className="p-3 bg-glass border-top border-theme-accent">
                <div className="input-group">
                 <textarea
                   className="form-control"
