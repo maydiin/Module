@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getUsers, getRoles, assignRole, removeRole, refreshToken, createUser } from '../services/api';
 import { useTenant } from '../components/TenantContext';
+import Icon from '../components/Icon';
 
 function UsersPage() {
     const { t } = useTranslation();
@@ -107,51 +108,59 @@ function UsersPage() {
 
     return (
         <div className="fade-in">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1>Kullanıcı Yönetimi</h1>
-                <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-                    <i className="bi bi-plus-lg me-1"></i> Yeni Kullanıcı Ekle
-                </button>
+            <div className="page-header mb-4">
+                <h1 className="display-5 fw-bold mb-0 text-gradient d-flex align-items-center gap-2 gap-md-3">
+                    <Icon name="settings" size={36} className="icon-theme" />
+                    {t('user_management', 'Kullanıcı Yönetimi')}
+                </h1>
+                <div className="page-header-actions">
+                    <button className="btn btn-primary px-3 px-md-4 shadow-premium hover-lift" onClick={() => setShowCreateModal(true)}>
+                        <Icon name="plus" size={18} className="me-1 me-md-2" /> <span className="d-none d-sm-inline">{t('add_new_user', 'Yeni Kullanıcı Ekle')}</span><span className="d-sm-none">Ekle</span>
+                    </button>
+                </div>
             </div>
 
             {error && <div className="alert alert-danger">{error}</div>}
 
-            <div className="card shadow-sm border-0">
+            <div className="glass-card border-0 overflow-hidden">
                 <div className="table-responsive">
                     <table className="table table-hover align-middle mb-0">
-                        <thead className="table-light">
+                        <thead style={{ background: 'hsla(var(--primary), 0.03)' }}>
                             <tr>
-                                <th>Kullanıcı Adı</th>
-                                <th>E-posta</th>
-                                <th>Roller</th>
-                                <th>İşlemler</th>
+                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary">Kullanıcı Adı</th>
+                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary d-none d-sm-table-cell">E-posta</th>
+                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary">Roller</th>
+                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary">İşlemler</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.map(user => (
                                 <tr key={user.id}>
-                                    <td>{user.username}</td>
-                                    <td>{user.email}</td>
-                                    <td>
-                                        {user.roles.map(role => (
-                                            <span key={role} className="badge bg-primary me-1">
-                                                {role}
-                                                <button
-                                                    className="btn btn-sm text-white p-0 ms-1"
-                                                    onClick={() => handleRemoveRole(user.id, role)}
-                                                    title="Rolü Kaldır"
-                                                >
-                                                    &times;
-                                                </button>
-                                            </span>
-                                        ))}
+                                    <td className="px-3 px-md-4 py-3 fw-medium">{user.username}</td>
+                                    <td className="px-3 px-md-4 py-3 text-muted d-none d-sm-table-cell">{user.email}</td>
+                                    <td className="px-3 px-md-4 py-3">
+                                        <div className="d-flex flex-wrap gap-1">
+                                            {user.roles.map(role => (
+                                                <span key={role} className="badge badge-outline-theme d-inline-flex align-items-center">
+                                                    {role}
+                                                    <button
+                                                        className="btn btn-sm text-inherit p-0 ms-1 d-flex align-items-center"
+                                                        onClick={() => handleRemoveRole(user.id, role)}
+                                                        title="Rolü Kaldır"
+                                                        style={{ opacity: 0.7 }}
+                                                    >
+                                                        <Icon name="x" size={11} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
                                     </td>
-                                    <td>
+                                    <td className="px-3 px-md-4 py-3">
                                         <div className="dropdown">
-                                            <button className="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                                Rol Ekle
+                                            <button className="btn btn-sm btn-blur rounded-pill px-3 dropdown-toggle" data-bs-toggle="dropdown">
+                                                <Icon name="plus" size={13} className="me-1" /> <span className="d-none d-md-inline">{t('add_role', 'Rol Ekle')}</span>
                                             </button>
-                                            <ul className="dropdown-menu">
+                                            <ul className="dropdown-menu shadow-lg border-0">
                                                 {roles.filter(r => !user.roles.includes(r.name)).map(role => (
                                                     <li key={role.id}>
                                                         <button className="dropdown-item" onClick={() => handleAssignRole(user.id, role.name)}>
@@ -171,84 +180,124 @@ function UsersPage() {
 
 
             {/* Create User Modal */}
-            {
-                showCreateModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <div className="modal-dialog">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Yeni Kullanıcı Ekle</h5>
-                                    <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
-                                </div>
-                                <form onSubmit={handleCreateSubmit}>
-                                    <div className="modal-body">
-                                        <div className="mb-3">
-                                            <label className="form-label">Kullanıcı Adı</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="username"
-                                                value={newUser.username}
-                                                onChange={handleNewUserChange}
-                                                required
-                                                minLength={3}
-                                            />
+            {showCreateModal && (
+                <div className="modal fade show d-block glass-modal" tabIndex="-1">
+                    <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
+                        <div className="modal-content border-0 shadow-xl overflow-hidden">
+                            <div className="modal-header modal-header-premium border-0">
+                                <h5 className="modal-title fw-extrabold text-gradient d-flex align-items-center gap-2">
+                                    <Icon name="plus" size={24} /> {t('add_new_user', 'Yeni Kullanıcı Ekle')}
+                                </h5>
+                                <button type="button" className="btn-close btn-close-premium" onClick={() => setShowCreateModal(false)}></button>
+                            </div>
+                            <form onSubmit={handleCreateSubmit}>
+                                <div className="modal-body modal-body-premium" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
+                                    <div className="row g-4 mb-4">
+                                        <div className="col-md-6">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted font-heading">Kullanıcı Adı</label>
+                                            <div className="input-group">
+                                                <input
+                                                    type="text"
+                                                    className="form-control border-2 shadow-sm rounded-3"
+                                                    name="username"
+                                                    placeholder="Kullanıcı adı girin..."
+                                                    value={newUser.username}
+                                                    onChange={handleNewUserChange}
+                                                    required
+                                                    minLength={3}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="form-label">E-posta</label>
-                                            <input
-                                                type="email"
-                                                className="form-control"
-                                                name="email"
-                                                value={newUser.email}
-                                                onChange={handleNewUserChange}
-                                                required
-                                            />
+                                        <div className="col-md-6">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted font-heading">E-posta</label>
+                                            <div className="input-group">
+                                                <input
+                                                    type="email"
+                                                    className="form-control border-2 shadow-sm rounded-3"
+                                                    name="email"
+                                                    placeholder="örnek@eposta.com"
+                                                    value={newUser.email}
+                                                    onChange={handleNewUserChange}
+                                                    required
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="form-label">Şifre</label>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted font-heading">Şifre</label>
+                                        <div className="input-group">
                                             <input
                                                 type="password"
-                                                className="form-control"
+                                                className="form-control border-2 shadow-sm rounded-3"
                                                 name="password"
+                                                placeholder="••••••••"
                                                 value={newUser.password}
                                                 onChange={handleNewUserChange}
                                                 required
                                                 minLength={6}
                                             />
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="form-label">Roller</label>
-                                            <div className="d-flex flex-wrap gap-2">
+                                    </div>
+
+                                    <div className="mb-0">
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-3 font-heading">
+                                            Roller <span className="badge badge-outline-theme ms-2 px-2 py-1">{roles.length} Toplam</span>
+                                        </label>
+                                        <div 
+                                            className="bg-light bg-opacity-40 rounded-4 border border-theme-accent shadow-inner p-4" 
+                                            style={{ maxHeight: '200px', overflowY: 'auto' }}
+                                        >
+                                            <div className="row g-3">
                                                 {roles.map(role => (
-                                                    <div key={role.id} className="form-check">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="checkbox"
-                                                            id={`role-${role.id}`}
-                                                            checked={newUser.roles.includes(role.name)}
-                                                            onChange={() => handleNewUserRoleChange(role.name)}
-                                                        />
-                                                        <label className="form-check-label" htmlFor={`role-${role.id}`}>
-                                                            {role.name}
-                                                        </label>
+                                                    <div key={role.id} className="col-sm-6 col-md-4">
+                                                        <div 
+                                                            className={`form-check p-3 rounded-3 border-2 transition-all ${newUser.roles.includes(role.name) ? 'bg-primary bg-opacity-10 border-primary' : 'bg-surface border-transparent opacity-80'}`}
+                                                            style={{ cursor: 'pointer' }}
+                                                            onClick={() => handleNewUserRoleChange(role.name)}
+                                                        >
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="checkbox"
+                                                                id={`role-${role.id}`}
+                                                                checked={newUser.roles.includes(role.name)}
+                                                                onChange={() => {}} // Controlled via parent div click
+                                                            />
+                                                            <label 
+                                                                className="form-check-label fw-bold text-dark small ms-2" 
+                                                                htmlFor={`role-${role.id}`}
+                                                                style={{ pointerEvents: 'none' }}
+                                                            >
+                                                                {role.name}
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
+                                        <p className="text-muted small mt-2 mb-0 opacity-60">
+                                            <Icon name="lightbulb" size={16} className="me-1 text-primary" />
+                                            Kullanıcıya atanacak yetkileri buradan seçebilirsiniz.
+                                        </p>
                                     </div>
-                                    <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>İptal</button>
-                                        <button type="submit" className="btn btn-primary" disabled={createLoading}>
-                                            {createLoading ? 'Kaydediliyor...' : 'Kaydet'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                                </div>
+                                <div className="modal-footer modal-footer-premium border-0 py-4 px-4">
+                                    <button type="button" className="btn btn-blur px-5 h6 mb-0" onClick={() => setShowCreateModal(false)}>İptal</button>
+                                    <button 
+                                        type="submit" 
+                                        className="btn btn-primary px-5 py-3 shadow-premium fw-extrabold text-uppercase h6 mb-0" 
+                                        disabled={createLoading}
+                                    >
+                                        {createLoading ? (
+                                            <><span className="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...</>
+                                        ) : 'Kullanıcıyı Kaydet'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
         </div >
     );
 }

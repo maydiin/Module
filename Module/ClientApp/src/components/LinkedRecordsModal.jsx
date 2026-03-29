@@ -86,54 +86,56 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
     };
 
     return (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-lg modal-dialog-centered">
-                <div className="modal-content shadow-lg">
-                    <div className="modal-header bg-info text-white">
-                        <h5 className="modal-title">📎 {t('linked_records_for')} #{recordId}</h5>
-                        <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
+        <div className="modal fade show d-block glass-modal" tabIndex="-1">
+            <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
+                <div className="modal-content border-0 shadow-xl overflow-hidden">
+                    <div className="modal-header modal-header-premium border-0">
+                        <h5 className="modal-title text-gradient fw-800 fs-4">📎 {t('linked_records_for')} #{recordId}</h5>
+                        <button type="button" className="btn-close btn-close-premium" onClick={onClose}></button>
                     </div>
-                    <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                    <div className="modal-body modal-body-premium" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
                         {loadingSummary && (
-                            <div className="text-center py-4">
-                                <div className="spinner-border text-primary" role="status"></div>
-                                <p className="mt-2 text-muted">{t('loading')}</p>
+                            <div className="text-center py-5">
+                                <div className="spinner-border text-primary mb-3" role="status"></div>
+                                <p className="text-muted fw-medium">{t('loading')}</p>
                             </div>
                         )}
 
                         {error && (
-                            <div className="alert alert-danger">{error}</div>
+                            <div className="alert alert-danger glass border-danger border-opacity-20 shadow-sm">{error}</div>
                         )}
 
                         {!loadingSummary && !error && summary.length === 0 && (
-                            <div className="text-center py-4 text-muted">
-                                <p className="mb-0">{t('no_references_found')}</p>
+                            <div className="text-center py-5 text-muted opacity-50">
+                                <div className="fs-1 mb-3">🔍</div>
+                                <p className="mb-0 fw-medium">{t('no_references_found')}</p>
                             </div>
                         )}
 
                         {!loadingSummary && !error && (
-                            <div className="accordion" id="relationsAccordion">
+                            <div className="accordion accordion-flush" id="relationsAccordion">
                                 {summary.map(item => (
-                                    <div className="accordion-item" key={item.module}>
+                                    <div className="accordion-item mb-3 border rounded-4 overflow-hidden shadow-sm" key={item.module}>
                                         <h2 className="accordion-header">
                                             <button
-                                                className={`accordion-button ${expandedModule === item.module ? '' : 'collapsed'}`}
+                                                className={`accordion-button py-3 px-4 fw-bold ${expandedModule === item.module ? 'bg-primary bg-opacity-5 text-primary' : 'collapsed bg-white'}`}
                                                 type="button"
                                                 onClick={() => handleExpand(item.module)}
                                             >
-                                                <span className="badge bg-secondary me-2">{item.module}</span>
-                                                {item.count} {t('records_count')}
+                                                <span className="badge badge-outline-theme me-3 px-3">{item.module}</span>
+                                                <span className="fw-800">{item.count}</span>
+                                                <span className="ms-2 text-muted fw-normal">{t('records_count')}</span>
                                             </button>
                                         </h2>
                                         <div className={`accordion-collapse collapse ${expandedModule === item.module ? 'show' : ''}`}>
-                                            <div className="accordion-body p-0">
+                                            <div className="accordion-body p-0 border-top border-theme-accent">
                                                 <div className="list-group list-group-flush">
                                                     {(moduleRecords[item.module]?.records || []).map(rel => {
                                                         const targetModule = allModules.find(m => m.name === item.module);
                                                         return (
-                                                            <div key={rel.recordId || Math.random()} className="list-group-item d-flex justify-content-between align-items-center">
+                                                            <div key={rel.recordId || Math.random()} className="list-group-item d-flex justify-content-between align-items-center py-3 px-4 hover-bg-theme">
                                                                     <div>
-                                                                        <span className="text-muted me-2">#{rel.recordId}</span>
+                                                                        <span className="text-muted me-3 fw-bold small">#{rel.recordId}</span>
                                                                         {targetModule ? (
                                                                             <Link 
                                                                                 to={`/modules/${targetModule.id}/records/${rel.recordId}`}
@@ -143,12 +145,12 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                                                                                 {rel.display}
                                                                             </Link>
                                                                         ) : (
-                                                                            <strong>{rel.display}</strong>
+                                                                            <strong className="text-foreground">{rel.display}</strong>
                                                                         )}
                                                                     </div>
                                                                     <div className="d-flex align-items-center gap-2">
-                                                                        <span className="badge bg-light text-muted border px-2 py-1">
-                                                                            <small>🔗 {t('linked_via_relation')}</small>
+                                                                        <span className="badge bg-light text-muted border-0 px-2 py-1 small opacity-75">
+                                                                            🔗 {t('linked_via_relation')}
                                                                         </span>
                                                                     </div>
                                                             </div>
@@ -157,15 +159,15 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                                                 </div>
 
                                                 {moduleRecords[item.module]?.loading && (
-                                                    <div className="text-center py-2">
+                                                    <div className="text-center py-3">
                                                         <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                                                     </div>
                                                 )}
 
                                                 {!moduleRecords[item.module]?.loading && moduleRecords[item.module]?.hasMore && (
-                                                    <div className="p-2 text-center">
+                                                    <div className="p-3 text-center bg-light bg-opacity-50">
                                                         <button
-                                                            className="btn btn-sm btn-outline-primary"
+                                                            className="btn btn-sm btn-blur px-4 fw-bold"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 loadRecords(item.module, (moduleRecords[item.module]?.page || 1) + 1);
@@ -182,8 +184,8 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                             </div>
                         )}
                     </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>{t('close')}</button>
+                    <div className="modal-footer modal-footer-premium border-0">
+                        <button type="button" className="btn btn-blur px-5 shadow-sm" onClick={onClose}>{t('close')}</button>
                     </div>
                 </div>
             </div>

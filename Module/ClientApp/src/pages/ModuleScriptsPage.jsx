@@ -283,86 +283,87 @@ const ModuleScriptsPage = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-                    <div className="modal-dialog modal-lg modal-dialog-centered">
-                        <div className="modal-content shadow-lg border-0">
-                            <div className="modal-header border-bottom-0 pb-0">
-                                <h5 className="modal-title fw-bold">
+                <div className="modal fade show d-block glass-modal" tabIndex="-1">
+                    <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
+                        <div className="modal-content border-0 shadow-xl overflow-hidden">
+                            <div className="modal-header modal-header-premium border-0">
+                                <h5 className="modal-title fw-extrabold text-gradient">
                                     {editingScript ? t('edit_script') : t('new_script')}
                                 </h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                                <button type="button" className="btn-close btn-close-premium" onClick={() => setShowModal(false)}></button>
                             </div>
-                            <div className="modal-body p-4">
+                            <div className="modal-body modal-body-premium" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
                                 <form id="scriptForm" onSubmit={handleSubmit}>
-                                    <div className="row g-3 mb-4">
-                                        <div className="col-md-8">
-                                            <label className="form-label small fw-bold text-uppercase text-muted">{t('trigger_event')}</label>
+                                    <div className="row g-4 mb-4">
+                                        <div className="col-md-7">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('trigger_event')}</label>
                                             <select
                                                 value={formData.triggerType}
                                                 onChange={(e) => setFormData({ ...formData, triggerType: e.target.value })}
-                                                className="form-select"
+                                                className="form-select border-2"
                                                 disabled={!!editingScript}
                                             >
                                                 {triggerTypes.map(t => <option key={t} value={t}>{t}</option>)}
                                             </select>
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label small fw-bold text-uppercase text-muted">{t('status')}</label>
-                                            <div className="form-check form-switch pt-1">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="checkbox"
-                                                    id="isActiveSwitch"
-                                                    checked={formData.isActive}
-                                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                                />
-                                                <label className="form-check-label" htmlFor="isActiveSwitch">
-                                                    {formData.isActive ? t('active') : t('inactive')}
-                                                </label>
+                                        <div className="col-md-5">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('status')}</label>
+                                            <div className="p-2 px-3 bg-light bg-opacity-50 rounded-3 border border-theme-accent d-flex align-items-center justify-content-between h-50 mt-1">
+                                                <span className="small fw-bold text-muted">{formData.isActive ? t('active') : t('inactive')}</span>
+                                                <div className="form-check form-switch p-0 m-0">
+                                                    <input
+                                                        className="form-check-input ms-0"
+                                                        type="checkbox"
+                                                        id="isActiveSwitch"
+                                                        checked={formData.isActive}
+                                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                                        style={{ width: '2.5rem', height: '1.25rem' }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Code Editor */}
-                                    <div className="mb-3">
-                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <label className="form-label small fw-bold text-uppercase text-muted m-0">{t('script_code')}</label>
-                                            <span className="badge bg-light text-dark border">JavaScript (V8)</span>
+                                    <div className="mb-0">
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted m-0">{t('script_code')}</label>
+                                            <span className="badge badge-outline-theme px-3 py-2">JavaScript (Jint/V8)</span>
                                         </div>
-                                        <div className="card border-0 bg-dark text-white rounded-3 overflow-hidden shadow-sm">
-                                            <div className="card-header bg-secondary bg-opacity-25 border-bottom border-secondary border-opacity-50 py-2 d-flex align-items-center">
-                                                <div className="d-flex gap-1 me-3">
-                                                    <div className="rounded-circle bg-danger" style={{ width: '10px', height: '10px' }}></div>
-                                                    <div className="rounded-circle bg-warning" style={{ width: '10px', height: '10px' }}></div>
-                                                    <div className="rounded-circle bg-success" style={{ width: '10px', height: '10px' }}></div>
+                                        <div className="card border-0 bg-dark text-white rounded-4 overflow-hidden shadow-lg">
+                                            <div className="card-header bg-secondary bg-opacity-10 border-bottom border-secondary border-opacity-10 py-3 d-flex align-items-center">
+                                                <div className="d-flex gap-2 me-4">
+                                                    <div className="rounded-circle bg-danger opacity-75" style={{ width: '12px', height: '12px' }}></div>
+                                                    <div className="rounded-circle bg-warning opacity-75" style={{ width: '12px', height: '12px' }}></div>
+                                                    <div className="rounded-circle bg-success opacity-75" style={{ width: '12px', height: '12px' }}></div>
                                                 </div>
-                                                <span className="font-monospace small opacity-75">handler.js</span>
+                                                <span className="font-monospace small opacity-50 tracking-widest">MODULE_HANDLER.JS</span>
                                             </div>
                                             <textarea
                                                 value={formData.scriptContent}
                                                 onChange={(e) => setFormData({ ...formData, scriptContent: e.target.value })}
-                                                className="form-control bg-dark text-light border-0 font-monospace small p-3"
-                                                style={{ height: '300px', resize: 'none', borderRadius: 0 }}
+                                                className="form-control bg-dark text-light border-0 font-monospace small p-4 shadow-inner"
+                                                style={{ height: '350px', resize: 'none', borderRadius: 0, fontSize: '0.9rem', lineHeight: '1.6' }}
                                                 spellCheck="false"
                                             />
-                                            <div className="card-footer bg-secondary bg-opacity-25 border-top border-secondary border-opacity-50 py-2 d-flex justify-content-between align-items-center">
+                                            <div className="card-footer bg-secondary bg-opacity-10 border-top border-secondary border-opacity-10 py-3 d-flex justify-content-between align-items-center">
                                                 <div className="font-monospace small d-flex gap-3">
-                                                    <span className="text-info">Db</span>
-                                                    <span className="text-primary">Data</span>
-                                                    <span className="text-success">User</span>
-                                                    <span className="text-danger">Fail()</span>
+                                                    <span className="text-info opacity-75">Db</span>
+                                                    <span className="text-primary opacity-75">Data</span>
+                                                    <span className="text-success opacity-75">User</span>
+                                                    <span className="text-danger opacity-75">Fail()</span>
                                                 </div>
-                                                <span className="small text-muted opacity-75">{t('readonly_context')}</span>
+                                                <span className="small text-muted opacity-50">{t('readonly_context')}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </form>
                             </div>
-                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
+                            <div className="modal-footer modal-footer-premium border-0 mb-3">
                                 <button
                                     type="button"
-                                    className="btn btn-light"
+                                    className="btn btn-blur px-4"
                                     onClick={() => setShowModal(false)}
                                 >
                                     {t('cancel')}
@@ -370,7 +371,7 @@ const ModuleScriptsPage = () => {
                                 <button
                                     type="submit"
                                     form="scriptForm"
-                                    className="btn btn-primary px-4"
+                                    className="btn btn-primary px-5 shadow-md hover-lift"
                                 >
                                     {t('save_script')}
                                 </button>

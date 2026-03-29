@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { logout, getTenants } from '../../services/api';
 import { useTenant } from '../TenantContext';
@@ -7,6 +7,7 @@ import HasPermission from '../HasPermission';
 import Sidebar from './Sidebar';
 import { useAuth } from '../AuthContext';
 import { useTheme } from '../ThemeContext';
+import Icon from '../Icon';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
@@ -17,10 +18,40 @@ function AppLayout({ children }) {
   const { selectedTenantId, setSelectedTenantId, isSuperAdmin } = useTenant();
   const [tenants, setTenants] = useState([]);
   const [tenantsLoaded, setTenantsLoaded] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 992);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 992);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const { theme } = useTheme();
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  // Track screen size
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 992;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setIsSidebarOpen(true);
+        setIsMobileNavOpen(false);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close mobile nav when route changes
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [location.pathname]);
+
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setIsSidebarOpen(prev => !prev);
+    } else {
+      setIsSidebarOpen(prev => !prev);
+    }
+  };
 
   useEffect(() => {
     if (isSuperAdmin && !tenantsLoaded) {
@@ -38,10 +69,6 @@ function AppLayout({ children }) {
     }
   };
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
-
   const handleLogout = async () => {
     await authLogout();
     navigate('/login');
@@ -52,27 +79,31 @@ function AppLayout({ children }) {
     setSelectedTenantId(value || null);
   };
 
-  // Find current tenant name for display
   const currentTenant = tenants.find(t => String(t.id) === String(selectedTenantId));
 
+  const navLinks = [
+    { to: '/', label: t('dashboard'), permission: null },
+  ];
+
   return (
-    <div className="min-vh-100 d-flex flex-column position-relative overflow-hidden" 
+    <div className="min-vh-100 d-flex flex-column position-relative overflow-hidden"
          style={{ backgroundColor: 'hsl(var(--background))' }}>
-      
+
       {/* iOS Background Vibrancy Blobs */}
-      <div className="position-absolute" style={{ 
-          top: '-10%', left: '-10%', width: '40%', height: '40%', 
+      <div className="position-absolute" style={{
+          top: '-10%', left: '-10%', width: '40%', height: '40%',
           background: 'radial-gradient(circle, hsla(var(--primary), 0.08) 0%, transparent 70%)',
           filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none',
           animation: 'blobFloat 20s ease-in-out infinite alternate'
       }}></div>
-      <div className="position-absolute" style={{ 
-          bottom: '-10%', right: '-10%', width: '50%', height: '50%', 
+      <div className="position-absolute" style={{
+          bottom: '-10%', right: '-10%', width: '50%', height: '50%',
           background: 'radial-gradient(circle, hsla(var(--secondary), 0.08) 0%, transparent 70%)',
           filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none',
           animation: 'blobFloat 25s ease-in-out infinite alternate-reverse'
       }}></div>
 
+      {/* Navbar */}
       <nav className="navbar navbar-expand-lg sticky-top py-4 transition-all" style={{ zIndex: 1020 }}>
         <div className="container-fluid px-lg-5">
           <div className="glass-pill px-4 py-2 d-flex align-items-center w-100 shadow-premium">
@@ -80,7 +111,7 @@ function AppLayout({ children }) {
               <button
                 className="btn btn-light border-0 me-3 d-flex align-items-center justify-content-center text-secondary shadow-sm hover-bg-theme p-0"
                 onClick={toggleSidebar}
-                style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'hsla(var(--primary), 0.1)' }}
+                style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'hsla(var(--primary), 0.1)', flexShrink: 0 }}
                 title="Menüyü Aç/Kapat"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -90,14 +121,15 @@ function AppLayout({ children }) {
                 </svg>
               </button>
               <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center m-0" to="/">
-                <span className="me-2 fs-3">📦</span>
+                <Icon name="box" size={32} className="me-2 icon-theme" />
                 <span className="text-gradient">
                   {t('app_name')}
                 </span>
               </Link>
             </div>
-            
-            <div className="collapse navbar-collapse flex-grow-0" id="navbarNav">
+
+            {/* Desktop nav links */}
+            <div className="collapse navbar-collapse flex-grow-0 nav-desktop-only" id="navbarNav">
               <ul className="navbar-nav gap-2 align-items-center">
                 <li className="nav-item">
                   <Link
@@ -121,7 +153,7 @@ function AppLayout({ children }) {
                       style={{ fontSize: '0.9rem' }}
                       to="/users"
                     >
-                      Kullanıcılar
+                      {t('users', 'Kullanıcılar')}
                     </Link>
                   </li>
                 </HasPermission>
@@ -135,7 +167,7 @@ function AppLayout({ children }) {
                       style={{ fontSize: '0.9rem' }}
                       to="/roles"
                     >
-                      Roller
+                      {t('roles', 'Roller')}
                     </Link>
                   </li>
                 </HasPermission>
@@ -180,10 +212,7 @@ function AppLayout({ children }) {
                     style={{ width: '36px', height: '36px' }}
                     title={t('settings', 'Ayarlar')}
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
+                    <Icon name="settings" size={20} color="currentColor" />
                   </Link>
                 </li>
 
@@ -199,14 +228,50 @@ function AppLayout({ children }) {
                 </li>
               </ul>
             </div>
+
+            {/* Mobile right-side actions */}
+            <div className="d-flex align-items-center gap-2" style={{ display: isMobile ? 'flex' : 'none' }}>
+              {/* Mobile: Settings icon */}
+              <Link
+                to="/settings"
+                className={`d-lg-none nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'menu-active' : 'btn-blur'}`}
+                style={{ width: '36px', height: '36px' }}
+              >
+                <Icon name="settings" size={18} color="currentColor" />
+              </Link>
+
+              {/* Mobile: Hamburger for nav sheet */}
+              <button
+                className="d-lg-none btn border-0 d-flex align-items-center justify-content-center p-0"
+                onClick={() => setIsMobileNavOpen(prev => !prev)}
+                style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'hsla(var(--primary), 0.1)', flexShrink: 0 }}
+              >
+                <Icon name="settings" size={18} color="currentColor" />
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
+      {/* Body */}
       <div className="d-flex flex-grow-1 overflow-hidden position-relative" style={{ zIndex: 1 }}>
-        <Sidebar className="flex-shrink-0" isOpen={isSidebarOpen} />
-        <div className="d-flex flex-column flex-grow-1 w-100 overflow-auto">
-          <main className="container-fluid py-4 px-lg-5 flex-grow-1 fade-in stagger-in">
+
+        {/* Sidebar overlay for mobile */}
+        {isMobile && (
+          <div
+            className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`}
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        <Sidebar
+          isOpen={isSidebarOpen}
+          isMobile={isMobile}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+
+        <div className="d-flex flex-column flex-grow-1 w-100 overflow-auto" style={{ minWidth: 0 }}>
+          <main className="container-fluid py-4 px-3 px-lg-5 flex-grow-1 fade-in stagger-in">
             {children}
           </main>
           <footer className="py-4 mt-auto">
@@ -218,6 +283,86 @@ function AppLayout({ children }) {
           </footer>
         </div>
       </div>
+
+      {/* Mobile Bottom Nav Sheet */}
+      <div className={`mobile-nav-sheet d-lg-none ${isMobileNavOpen ? 'open' : ''}`}>
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
+              <Icon name="settings" size={18} className="icon-theme" />
+            </div>
+            <span className="fw-bold text-foreground">{username}</span>
+          </div>
+          <button
+            className="btn border-0 p-0 d-flex align-items-center justify-content-center btn-blur"
+            onClick={() => setIsMobileNavOpen(false)}
+            style={{ width: '36px', height: '36px', borderRadius: '12px' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="d-flex flex-column gap-1">
+          <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+            <Icon name="box" size={20} className="icon-theme" /> {t('dashboard')}
+          </Link>
+          <HasPermission permission="User.Manage">
+            <Link to="/users" className={`nav-link ${location.pathname === '/users' ? 'active' : ''}`}>
+              <Icon name="settings" size={20} className="icon-theme" /> {t('users', 'Kullanıcılar')}
+            </Link>
+          </HasPermission>
+          <HasPermission permission="Role.Manage">
+            <Link to="/roles" className={`nav-link ${location.pathname === '/roles' ? 'active' : ''}`}>
+              <Icon name="fields" size={20} className="icon-theme" /> {t('roles', 'Roller')}
+            </Link>
+          </HasPermission>
+          <HasPermission permission="AuditLog.View">
+            <Link to="/audit-logs" className={`nav-link ${location.pathname === '/audit-logs' ? 'active' : ''}`}>
+              <Icon name="records" size={20} className="icon-theme" /> {t('audit_logs_nav')}
+            </Link>
+          </HasPermission>
+
+          {isSuperAdmin && tenants.length > 0 && (
+            <div className="mt-3 pt-3 border-top border-theme-accent">
+              <select
+                className="form-select form-select-sm rounded-3 text-foreground"
+                style={{ fontSize: '0.85rem' }}
+                value={selectedTenantId || ''}
+                onChange={handleTenantChange}
+              >
+                <option value="">🏢 Kendi Tenant'ım</option>
+                {tenants.filter(t => !t.isHost).map((tenant) => (
+                  <option key={tenant.id} value={tenant.id}>🏢 {tenant.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="mt-3 pt-3 border-top border-theme-accent">
+            <button
+              onClick={handleLogout}
+              className="btn btn-blur w-100 rounded-3 fw-bold"
+              style={{ height: '44px' }}
+            >
+              Çıkış Yap
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay for mobile nav sheet */}
+      {isMobileNavOpen && (
+        <div
+          onClick={() => setIsMobileNavOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1049,
+            background: 'rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(2px)'
+          }}
+        />
+      )}
 
       <style>{`
         @keyframes blobFloat {

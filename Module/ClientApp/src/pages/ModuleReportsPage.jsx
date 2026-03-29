@@ -284,30 +284,30 @@ const ModuleReportsPage = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-                    <div className="modal-dialog modal-lg modal-dialog-centered">
-                        <div className="modal-content shadow-lg border-0">
-                            <div className="modal-header border-bottom-0 pb-0">
-                                <h5 className="modal-title fw-bold">
+                <div className="modal fade show d-block glass-modal" tabIndex="-1">
+                    <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
+                        <div className="modal-content border-0 shadow-xl overflow-hidden">
+                            <div className="modal-header modal-header-premium border-0">
+                                <h5 className="modal-title fw-extrabold text-gradient">
                                     {editingReport ? t('edit_report') : t('new_report')}
                                 </h5>
-                                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                                <button type="button" className="btn-close btn-close-premium" onClick={() => setShowModal(false)}></button>
                             </div>
-                            <div className="modal-body p-4">
+                            <div className="modal-body modal-body-premium" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
                                 <form id="reportForm" onSubmit={handleSubmit}>
-                                    <div className="mb-3">
-                                        <label className="form-label small fw-bold text-uppercase text-muted">{t('report_name')}</label>
+                                    <div className="mb-4">
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('report_name')}</label>
                                         <input
                                             type="text"
-                                            className="form-control"
+                                            className="form-control form-control-lg border-2"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             required
                                         />
                                     </div>
-                                    <div className="row g-3 mb-4">
-                                        <div className="col-md-6">
-                                            <label className="form-label small fw-bold text-uppercase text-muted">{t('report_type')}</label>
+                                    <div className="row g-4 mb-4">
+                                        <div className="col-md-7">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('report_type')}</label>
                                             <select
                                                 value={editingReport ? (formData.type === 'Chart' ? `Chart:${JSON.parse(formData.configuration || '{}').chartType?.charAt(0).toUpperCase() + JSON.parse(formData.configuration || '{}').chartType?.slice(1) || 'Bar'}` : formData.type) : formData.selectedType || formData.type}
                                                 onChange={(e) => {
@@ -355,45 +355,48 @@ const ModuleReportsPage = () => {
                                                         selectedType: selectedId
                                                     });
                                                 }}
-                                                className="form-select"
+                                                className="form-select border-2"
                                             >
                                                 {reportTypes.map(rt => <option key={rt.id} value={rt.id}>{t(rt.label)}</option>)}
                                             </select>
                                         </div>
 
-                                        <div className="col-md-6">
-                                            <label className="form-label small fw-bold text-uppercase text-muted">{t('status')}</label>
-                                            <div className="form-check form-switch pt-1">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="checkbox"
-                                                    id="isActiveSwitch"
-                                                    checked={formData.isActive}
-                                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                                />
-                                                <label className="form-check-label" htmlFor="isActiveSwitch">
-                                                    {formData.isActive ? t('active') : t('inactive')}
-                                                </label>
+                                        <div className="col-md-5">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('status')}</label>
+                                            <div className="p-2 px-3 bg-light bg-opacity-50 rounded-3 border border-theme-accent d-flex align-items-center justify-content-between h-50 mt-1">
+                                                <span className="small fw-bold text-muted">{formData.isActive ? t('active') : t('inactive')}</span>
+                                                <div className="form-check form-switch p-0 m-0">
+                                                    <input
+                                                        className="form-check-input ms-0"
+                                                        type="checkbox"
+                                                        id="isActiveSwitch"
+                                                        checked={formData.isActive}
+                                                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                                        style={{ width: '2.5rem', height: '1.25rem' }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mb-3">
-                                        <label className="form-label small fw-bold text-uppercase text-muted">{t('report_config')}</label>
-                                        <textarea
-                                            value={formData.configuration}
-                                            onChange={(e) => setFormData({ ...formData, configuration: e.target.value })}
-                                            className="form-control font-monospace small"
-                                            style={{ height: '200px' }}
-                                            spellCheck="false"
-                                        />
+                                    <div className="mb-0">
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('report_config')}</label>
+                                        <div className="bg-dark rounded-4 p-3 shadow-inner">
+                                            <textarea
+                                                value={formData.configuration}
+                                                onChange={(e) => setFormData({ ...formData, configuration: e.target.value })}
+                                                className="form-control bg-dark text-light border-0 font-monospace small"
+                                                style={{ height: '250px', resize: 'none', lineHeight: '1.5' }}
+                                                spellCheck="false"
+                                            />
+                                        </div>
                                     </div>
                                 </form>
                             </div>
-                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
+                            <div className="modal-footer modal-footer-premium border-0">
                                 <button
                                     type="button"
-                                    className="btn btn-light"
+                                    className="btn btn-blur px-4"
                                     onClick={() => setShowModal(false)}
                                 >
                                     {t('cancel')}
@@ -401,7 +404,7 @@ const ModuleReportsPage = () => {
                                 <button
                                     type="submit"
                                     form="reportForm"
-                                    className="btn btn-info text-white px-4"
+                                    className="btn btn-primary px-5 shadow-md hover-lift"
                                 >
                                     {t('save_report')}
                                 </button>

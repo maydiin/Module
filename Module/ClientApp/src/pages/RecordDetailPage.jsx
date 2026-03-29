@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModule, getFields, getRecord, getModules, HOST_URL } from '../services/api';
 import axios from 'axios';
+import Icon from '../components/Icon';
 
 function RecordDetailPage() {
     const { t } = useTranslation();
@@ -128,9 +129,9 @@ function RecordDetailPage() {
         
         if (field.type === 'checkbox') {
             return value ? (
-                <span className="badge bg-success">✓ {t('yes')}</span>
+                <span className="badge bg-success"><Icon name="check" size={14} className="me-1" /> {t('yes')}</span>
             ) : (
-                <span className="badge bg-secondary">✗ {t('no')}</span>
+                <span className="badge bg-secondary"><Icon name="x" size={14} className="me-1" /> {t('no')}</span>
             );
         }
 
@@ -190,7 +191,7 @@ function RecordDetailPage() {
                                     className="btn btn-outline-secondary d-flex align-items-center gap-2"
                                     title={t('click_to_preview')}
                                 >
-                                    <span>📎</span>
+                                    <Icon name="attachment" size={16} className="me-2" />
                                     <span className="text-truncate" style={{ maxWidth: '200px' }}>{fileName}</span>
                                 </a>
                                 <a 
@@ -222,7 +223,7 @@ function RecordDetailPage() {
                             to={`/modules/${link.moduleId}/records/${link.recordId}`}
                             className="badge bg-light text-primary border text-decoration-none"
                         >
-                            🔗 {link.display}
+                            <Icon name="link" size={12} className="me-1" /> {link.display}
                         </Link>
                     ))}
                 </div>
@@ -272,10 +273,10 @@ function RecordDetailPage() {
                         className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
                         onClick={() => navigate(`/modules/${moduleId}/records`)}
                     >
-                        <span>←</span> {t('back_to_records')}
+                        <Icon name="arrowLeft" size={20} className="me-1" /> {t('back_to_records')}
                     </button>
                     <h1 className="display-6 mb-1 d-flex align-items-center gap-3">
-                        <span className="opacity-50">📄</span>
+                        <Icon name="script" size={40} className="opacity-50 icon-theme" />
                         {t('record_details')} <span className="text-muted fs-4">#{record.id}</span>
                     </h1>
                     <p className="text-muted mb-0">{module.name} Module</p>
@@ -287,7 +288,7 @@ function RecordDetailPage() {
                     <div className="card shadow-sm border-0 h-100">
                         <div className="card-header bg-white py-3 border-bottom">
                             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                <span className="opacity-75">📋</span> {t('primary_details')}
+                                <Icon name="records" size={20} className="opacity-75" /> {t('primary_details')}
                             </h5>
                         </div>
                         <div className="card-body p-0">
@@ -321,7 +322,7 @@ function RecordDetailPage() {
                     <div className="card shadow-sm border-0 h-100">
                         <div className="card-header bg-primary text-white py-3 border-bottom">
                             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                <span className="opacity-75">🔗</span> {t('related_data')}
+                                <Icon name="link" size={20} className="opacity-75" /> {t('related_data')}
                             </h5>
                         </div>
                         <div className="card-body p-4 bg-light">
@@ -331,7 +332,7 @@ function RecordDetailPage() {
                                 </div>
                             ) : summary.length === 0 ? (
                                 <div className="text-center py-5 text-muted bg-white rounded shadow-sm border">
-                                    <p className="mb-0 fs-5 opacity-50">📂</p>
+                                    <Icon name="folder" size={48} className="opacity-25 icon-theme mb-3" strokeWidth={1.2} />
                                     <p className="mb-0 mt-2">{t('no_references_found')}</p>
                                 </div>
                             ) : (
@@ -347,7 +348,7 @@ function RecordDetailPage() {
                                                 >
                                                     <div className="d-flex w-100 justify-content-between align-items-center pe-3">
                                                         <span>
-                                                            <span className="me-2 opacity-50">📦</span>
+                                                            <Icon name="box" size={18} className="me-2 opacity-100 icon-theme" />
                                                             {item.module}
                                                         </span>
                                                         <span className={`badge ${expandedModule === item.module ? 'bg-primary' : 'bg-secondary'} rounded-pill`}>
@@ -377,8 +378,8 @@ function RecordDetailPage() {
                                                                         )}
                                                                     </div>
                                                                     <div className="d-flex align-items-center gap-2">
-                                                                        <span className="badge bg-light text-muted border px-2 py-1">
-                                                                            <small>🔗 {t('linked_via_relation')}</small>
+                                                                        <span className="badge bg-light text-muted border px-2 py-1 d-flex align-items-center gap-1">
+                                                                            <Icon name="link" size={12} /> <small>{t('linked_via_relation')}</small>
                                                                         </span>
                                                                     </div>
                                                                 </div>

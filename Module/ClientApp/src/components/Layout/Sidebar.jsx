@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { getModules } from '../../services/api';
 import { useTenant } from '../TenantContext';
 import { useAuth } from '../AuthContext';
+import Icon from '../Icon';
 
-function Sidebar({ isOpen = true, className = '' }) {
+function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
     const { t } = useTranslation();
     const location = useLocation();
     const { selectedTenantId } = useTenant();
@@ -28,6 +29,11 @@ function Sidebar({ isOpen = true, className = '' }) {
         } else {
             setExpandedModule(null);
         }
+        // Close sidebar on mobile after navigation
+        if (isMobile && onClose) {
+            onClose();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.pathname]);
 
     const loadModules = async () => {
@@ -51,9 +57,40 @@ function Sidebar({ isOpen = true, className = '' }) {
         ? modules
         : modules.filter(m => hasPermission(`Module.${m.name}.View`));
 
+    // Mobile: fixed overlay sidebar
+    // Desktop: push sidebar (width-based)
+    const desktopStyle = {
+        width: isOpen ? '300px' : '0px',
+        minHeight: '100%',
+        overflow: 'hidden',
+        zIndex: 1010,
+        padding: isOpen ? '1rem' : '0',
+        pointerEvents: isOpen ? 'all' : 'none',
+        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        flexShrink: 0,
+    };
+
+    const mobileStyle = {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        height: '100vh',
+        width: '300px',
+        zIndex: 1010,
+        padding: '1rem',
+        overflowY: 'auto',
+        pointerEvents: isOpen ? 'all' : 'none',
+        transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+        opacity: isOpen ? 1 : 0,
+        visibility: isOpen ? 'visible' : 'hidden',
+        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, visibility 0.4s ease',
+    };
+
+    const containerStyle = isMobile ? mobileStyle : desktopStyle;
+
     if (loading) {
         return (
-            <div className={`p-4 text-center transition-all ${className}`} style={{ width: isOpen ? '280px' : '0px', overflow: 'hidden' }}>
+            <div className={`p-4 text-center transition-all ${className}`} style={isMobile ? mobileStyle : { ...desktopStyle }}>
                 <div className="spinner-border spinner-border-sm text-primary" role="status" style={{ opacity: isOpen ? 1 : 0 }}>
                     <span className="visually-hidden">{t('loading')}</span>
                 </div>
@@ -62,24 +99,32 @@ function Sidebar({ isOpen = true, className = '' }) {
     }
 
     return (
-        <div
-            className={`transition-all ${className}`}
-            style={{
-                width: isOpen ? '300px' : '0px',
-                minHeight: '100%',
-                overflow: 'hidden',
-                zIndex: 1010,
-                padding: isOpen ? '1rem' : '0',
-                pointerEvents: isOpen ? 'all' : 'none'
-            }}
-        >
-            <div 
-                className="glass-card h-100 overflow-auto border-0" 
-                style={{ 
-                    opacity: isOpen ? 1 : 0, 
-                    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-                    visibility: isOpen ? 'visible' : 'hidden',
-                    borderRadius: '24px'
+        <div className={`${className}`} style={containerStyle}>
+            {/* Mobile close button */}
+            {isMobile && (
+                <div className="d-flex justify-content-between align-items-center mb-2 px-1">
+                    <span className="fw-bold text-muted small text-uppercase tracking-wider" style={{ fontSize: '0.65rem', opacity: 0.6 }}>
+                        Menü
+                    </span>
+                    <button
+                        className="btn border-0 p-0 d-flex align-items-center justify-content-center btn-blur"
+                        onClick={onClose}
+                        style={{ width: '32px', height: '32px', borderRadius: '10px' }}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            )}
+
+            <div
+                className="glass-card h-100 overflow-auto border-0"
+                style={{
+                    opacity: isOpen ? 1 : 0,
+                    transition: 'opacity 0.3s ease',
+                    borderRadius: '24px',
+                    ...(isMobile ? { height: 'auto', minHeight: 'calc(100vh - 4rem)' } : {})
                 }}
             >
                 <div className="py-4 px-3" style={{ width: '268px' }}>
@@ -95,7 +140,6 @@ function Sidebar({ isOpen = true, className = '' }) {
                             {visibleModules.map(module => {
                                 const isExpanded = expandedModule === module.id;
 
-                                // Determine if we show specific links based on permissions
                                 const canManage = isSuperAdmin || userPermissions.includes(`Module.${module.name}.Manage`);
                                 const canView = isSuperAdmin || userPermissions.includes(`Module.${module.name}.View`);
                                 const canApi = isSuperAdmin || userPermissions.includes(`Module.${module.name}.Api`);
@@ -110,9 +154,13 @@ function Sidebar({ isOpen = true, className = '' }) {
                                             style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
                                         >
                                             <div className="d-flex align-items-center flex-grow-1 overflow-hidden">
-                                                <span className={`me-3 fs-5 transition-all ${isExpanded ? 'scale-110' : 'opacity-70'}`}>
-                                                    {isExpanded ? '📂' : '📁'}
-                                                </span>
+                                                <div className={`me-3 transition-all ${isExpanded ? 'scale-110' : 'opacity-70'}`}>
+                                                    <Icon
+                                                        name={isExpanded ? "folderOpen" : "folder"}
+                                                        size={22}
+                                                        className="icon-theme"
+                                                    />
+                                                </div>
                                                 <span className="text-truncate" style={{ fontSize: '0.925rem' }}>{module.name}</span>
                                             </div>
                                             <span className={`ms-auto transition-all ${isExpanded ? 'rotate-90' : ''}`} style={{ fontSize: '0.6rem', opacity: isExpanded ? 0.8 : 0.3 }}>
@@ -129,7 +177,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                                 to={`/modules/${module.id}/records`}
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
-                                                                <span className="me-2" style={{ width: '20px' }}>📋</span>
+                                                                <Icon name="records" size={18} className="me-2" />
                                                                 {t('records')}
                                                             </NavLink>
                                                         </li>
@@ -140,7 +188,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                                 to={`/modules/${module.id}/fields`}
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
-                                                                <span className="me-2" style={{ width: '20px' }}>⚙️</span>
+                                                                <Icon name="fields" size={18} className="me-2" />
                                                                 {t('fields')}
                                                             </NavLink>
                                                         </li>
@@ -151,7 +199,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                                 to={`/modules/${module.id}/api-configs`}
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
-                                                                <span className="me-2" style={{ width: '20px' }}>🔌</span>
+                                                                <Icon name="api" size={18} className="me-2" />
                                                                 API
                                                             </NavLink>
                                                         </li>
@@ -162,7 +210,7 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                                 to={`/modules/${module.id}/scripts`}
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
-                                                                <span className="me-2" style={{ width: '20px' }}>📜</span>
+                                                                <Icon name="script" size={18} className="me-2" />
                                                                 Scripts
                                                             </NavLink>
                                                         </li>

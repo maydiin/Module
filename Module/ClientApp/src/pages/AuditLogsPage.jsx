@@ -3,22 +3,24 @@ import { useTranslation } from 'react-i18next';
 import { getAuditLogs } from '../services/api';
 import { useTenant } from '../components/TenantContext';
 import { Modal, Button } from 'react-bootstrap';
+import Icon from '../components/Icon';
 
 const ACTION_BADGES = {
-    Create: { bg: 'linear-gradient(135deg, #10b981, #059669)', icon: '➕' },
-    Update: { bg: 'linear-gradient(135deg, #3b82f6, #2563eb)', icon: '✏️' },
-    Delete: { bg: 'linear-gradient(135deg, #ef4444, #dc2626)', icon: '🗑️' },
-    Login: { bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', icon: '🔐' },
-    Register: { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', icon: '📝' },
+    Create: { bg: 'linear-gradient(135deg, #10b981, #059669)', icon: 'plus' },
+    Update: { bg: 'linear-gradient(135deg, #3b82f6, #2563eb)', icon: 'edit' },
+    Delete: { bg: 'linear-gradient(135deg, #ef4444, #dc2626)', icon: 'delete' },
+    Login: { bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', icon: 'settings' },
+    Register: { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', icon: 'records' },
+    Default: { bg: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))', icon: 'check' }
 };
 
 const ENTITY_ICONS = {
-    Module: '📦',
-    Record: '📄',
-    Field: '🔧',
-    Role: '🛡️',
-    User: '👤',
-    Auth: '🔑',
+    Module: 'box',
+    Record: 'records',
+    Field: 'fields',
+    Role: 'settings',
+    User: 'settings',
+    Auth: 'settings',
 };
 
 function AuditLogsPage() {
@@ -105,12 +107,12 @@ function AuditLogsPage() {
     return (
         <div className="fade-in">
             {/* Header */}
-            <div className="text-center mb-5">
-                <h1 className="display-6 fw-bold mb-2">
-                    <span className="me-2">📋</span>
+            <div className="text-center mb-4 mb-md-5 stagger-in">
+                <h1 className="display-4 fw-bold mb-2 text-gradient d-flex align-items-center justify-content-center gap-2 gap-md-3 flex-wrap">
+                    <Icon name="records" size={40} className="icon-theme" />
                     {t('audit_logs_title')}
                 </h1>
-                <p className="text-muted fs-6">{t('audit_logs_subtitle')}</p>
+                <p className="text-muted opacity-75" style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.25rem)' }}>{t('audit_logs_subtitle')}</p>
             </div>
 
             {/* Filters Card */}
@@ -119,21 +121,24 @@ function AuditLogsPage() {
                     <form onSubmit={handleSearch}>
                         <div className="row g-3">
                             {/* Search */}
-                            <div className="col-md-4">
+                            <div className="col-12 col-sm-12 col-md-4">
                                 <div className="input-group">
-                                    <span className="input-group-text bg-white border-end-0">🔍</span>
+                                    <div className="input-group-text bg-transparent border-0 opacity-50 px-3 d-flex align-items-center justify-content-center">
+                                        <Icon name="search" size={18} />
+                                    </div>
                                     <input
                                         type="text"
-                                        className="form-control border-start-0"
+                                        className="form-control"
                                         placeholder={t('audit_search_placeholder')}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
+                                        style={{ borderLeft: '1px solid hsla(var(--primary), 0.1) !important' }}
                                     />
                                 </div>
                             </div>
 
                             {/* Action Filter */}
-                            <div className="col-md-2">
+                            <div className="col-6 col-sm-4 col-md-2">
                                 <select
                                     className="form-select"
                                     value={actionFilter}
@@ -149,7 +154,7 @@ function AuditLogsPage() {
                             </div>
 
                             {/* Entity Type Filter */}
-                            <div className="col-md-2">
+                            <div className="col-6 col-sm-4 col-md-2">
                                 <select
                                     className="form-select"
                                     value={entityTypeFilter}
@@ -166,7 +171,7 @@ function AuditLogsPage() {
                             </div>
 
                             {/* Date Range */}
-                            <div className="col-md-2">
+                            <div className="col-6 col-sm-4 col-md-2">
                                 <input
                                     type="date"
                                     className="form-control"
@@ -175,7 +180,7 @@ function AuditLogsPage() {
                                     placeholder={t('audit_start_date')}
                                 />
                             </div>
-                            <div className="col-md-2">
+                            <div className="col-6 col-sm-4 col-md-2">
                                 <input
                                     type="date"
                                     className="form-control"
@@ -186,23 +191,23 @@ function AuditLogsPage() {
                             </div>
                         </div>
 
-                        <div className="mt-3 d-flex gap-2">
-                            <button type="submit" className="btn btn-primary rounded-pill px-4">
+                        <div className="mt-4 d-flex align-items-center flex-wrap gap-3">
+                            <button type="submit" className="btn btn-primary rounded-pill px-4 px-md-5 shadow-lg hover-lift">
                                 {t('apply_filters')}
                             </button>
-                            <button type="button" className="btn btn-outline-secondary rounded-pill px-4" onClick={clearFilters}>
+                            <button type="button" className="btn btn-blur rounded-pill px-4 hover-lift" onClick={clearFilters}>
                                 {t('clear_filters')}
                             </button>
-                            <span className="ms-auto text-muted small align-self-center">
+                            <div className="ms-auto glass-pill px-3 px-md-4 py-2 text-primary fw-bold small">
                                 {t('audit_total_records', { count: totalCount })}
-                            </span>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
 
             {/* Logs Table */}
-            <div className="card glass border-0 shadow-sm">
+            <div className="table-container border-0 shadow-premium fade-in" style={{ animationDelay: '0.2s' }}>
                 <div className="card-body p-0">
                     {loading ? (
                         <div className="text-center py-5">
@@ -211,27 +216,27 @@ function AuditLogsPage() {
                             </div>
                         </div>
                     ) : logs.length === 0 ? (
-                        <div className="text-center py-5">
-                            <span className="display-4">📋</span>
+                        <div className="text-center py-5 opacity-25">
+                            <Icon name="records" size={64} className="icon-theme" strokeWidth={1} />
                             <p className="text-muted mt-3">{t('audit_no_logs')}</p>
                         </div>
                     ) : (
                         <div className="table-responsive">
                             <table className="table table-hover align-middle mb-0">
                                 <thead>
-                                    <tr className="border-bottom" style={{ backgroundColor: 'rgba(0,0,0,0.02)' }}>
-                                        <th className="ps-4 py-3 text-muted small fw-semibold text-uppercase">{t('audit_col_time')}</th>
-                                        <th className="py-3 text-muted small fw-semibold text-uppercase">{t('audit_col_user')}</th>
-                                        <th className="py-3 text-muted small fw-semibold text-uppercase">{t('audit_col_action')}</th>
-                                        <th className="py-3 text-muted small fw-semibold text-uppercase">{t('audit_col_entity_type')}</th>
-                                        <th className="py-3 text-muted small fw-semibold text-uppercase">{t('audit_col_entity_name')}</th>
-                                        <th className="py-3 text-muted small fw-semibold text-uppercase">{t('audit_col_details')}</th>
-                                        <th className="pe-4 py-3 text-muted small fw-semibold text-uppercase">IP</th>
+                                    <tr className="border-bottom" style={{ background: 'hsla(var(--primary), 0.03)' }}>
+                                        <th className="ps-4 py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_time')}</th>
+                                        <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_user')}</th>
+                                        <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_action')}</th>
+                                        <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_entity_type')}</th>
+                                        <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_entity_name')}</th>
+                                        <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_details')}</th>
+                                        <th className="pe-4 py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">IP</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {logs.map((log) => {
-                                        const badge = ACTION_BADGES[log.action] || { bg: '#6b7280', icon: '•' };
+                                        const badge = ACTION_BADGES[log.action] || ACTION_BADGES.Default;
                                         const entityIcon = ENTITY_ICONS[log.entityType] || '📌';
 
                                         return (
@@ -244,15 +249,19 @@ function AuditLogsPage() {
                                                 </td>
                                                 <td className="py-3">
                                                     <span
-                                                        className="badge rounded-pill text-white px-3 py-2"
-                                                        style={{ background: badge.bg, fontSize: '0.75rem' }}
+                                                        className={`badge rounded-pill text-white px-3 py-2 shadow-sm ${!ACTION_BADGES[log.action] ? 'badge-outline-theme' : ''}`}
+                                                        style={{ 
+                                                            background: badge.bg, 
+                                                            fontSize: '0.725rem',
+                                                            border: 'none'
+                                                        }}
                                                     >
-                                                        {badge.icon} {t(`audit_action_${log.action.toLowerCase()}`)}
+                                                        <Icon name={badge.icon} size={14} color="white" className="me-1" /> {t(`audit_action_${log.action.toLowerCase()}`)}
                                                     </span>
                                                 </td>
                                                 <td className="py-3">
-                                                    <span className="d-flex align-items-center gap-1">
-                                                        <span>{entityIcon}</span>
+                                                    <span className="d-flex align-items-center gap-2">
+                                                        <Icon name={ENTITY_ICONS[log.entityType] || 'records'} size={16} className="text-muted" />
                                                         <span className="fw-medium">{log.entityType}</span>
                                                     </span>
                                                 </td>
@@ -274,12 +283,12 @@ function AuditLogsPage() {
                                                         )}
                                                         {(log.details || log.entityName?.length > 20) && (
                                                             <button 
-                                                                className="btn btn-sm btn-light rounded-circle shadow-sm p-1 d-flex align-items-center justify-content-center"
+                                                                className="btn btn-sm btn-blur rounded-circle shadow-sm p-1 d-flex align-items-center justify-content-center hover-lift"
                                                                 onClick={() => handleShowModal(log)}
                                                                 title={t('view_details', 'View Details')}
-                                                                style={{ width: '28px', height: '28px' }}
+                                                                style={{ width: '32px', height: '32px' }}
                                                             >
-                                                                👁️
+                                                                <Icon name="eye" size={16} />
                                                             </button>
                                                         )}
                                                     </div>
@@ -298,24 +307,24 @@ function AuditLogsPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="card-footer bg-white border-top d-flex justify-content-between align-items-center px-4 py-3">
-                        <span className="text-muted small">
+                    <div className="card-footer bg-transparent border-top-0 d-flex flex-wrap justify-content-between align-items-center px-3 px-md-4 py-4 mt-2 gap-3">
+                        <span className="text-muted small fw-bold opacity-75">
                             {t('page_of', { page, totalPages })}
                         </span>
-                        <div className="btn-group">
+                        <div className="d-flex gap-2">
                             <button
-                                className="btn btn-sm btn-outline-primary rounded-start-pill px-3"
+                                className="btn btn-blur rounded-pill px-3 px-md-4 shadow-sm hover-lift"
                                 disabled={page <= 1}
                                 onClick={() => setPage(p => p - 1)}
                             >
-                                {t('previous')}
+                                <Icon name="arrowLeft" size={14} className="me-1" /> {t('previous')}
                             </button>
                             <button
-                                className="btn btn-sm btn-outline-primary rounded-end-pill px-3"
+                                className="btn btn-primary rounded-pill px-3 px-md-4 shadow-lg hover-lift"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(p => p + 1)}
                             >
-                                {t('next')}
+                                {t('next')} <Icon name="arrowLeft" size={14} className="ms-1 rotate-180" />
                             </button>
                         </div>
                     </div>
@@ -323,13 +332,14 @@ function AuditLogsPage() {
             </div>
 
             {/* Details Modal */}
-            <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
-                <Modal.Header closeButton className="border-bottom-0 bg-light">
-                    <Modal.Title className="h5 mb-0">
-                        📋 {t('audit_log_details', 'Audit Log Details')}
+            <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="glass-modal">
+                <Modal.Header closeButton className="border-bottom-0 bg-transparent p-4">
+                    <Modal.Title className="h4 mb-0 text-primary fw-bold d-flex align-items-center gap-2">
+                        <Icon name="records" size={24} className="icon-theme" />
+                        {t('audit_log_details', 'Audit Log Details')}
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="p-4">
+                <Modal.Body className="p-4 pt-0">
                     {selectedLog && (
                         <div className="d-flex flex-column gap-3">
                             <div>
@@ -339,10 +349,10 @@ function AuditLogsPage() {
                                 </div>
                             </div>
                             
-                            <div>
-                                <h6 className="text-muted mb-1 text-uppercase small fw-bold">{t('audit_col_details', 'Details')}</h6>
-                                <div className="p-3 bg-dark text-light rounded overflow-auto" style={{ maxHeight: '400px' }}>
-                                    <pre className="mb-0" style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                             <div>
+                                <h6 className="text-muted mb-2 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_details', 'Details')}</h6>
+                                <div className="p-4 bg-glass border-theme-accent rounded-4 overflow-auto shadow-inner" style={{ maxHeight: '400px' }}>
+                                    <pre className="mb-0 text-foreground" style={{ whiteSpace: 'pre-wrap', fontFamily: "'Fira Code', 'Courier New', monospace", fontSize: '0.9rem', lineHeight: '1.6' }}>
                                         {(() => {
                                             if (!selectedLog.details) return '—';
                                             try {
@@ -375,8 +385,8 @@ function AuditLogsPage() {
                         </div>
                     )}
                 </Modal.Body>
-                <Modal.Footer className="border-top-0 bg-light">
-                    <Button variant="secondary" onClick={handleCloseModal}>
+                <Modal.Footer className="border-top-0 bg-transparent p-4 pt-0">
+                    <Button variant="outline-primary" className="rounded-pill px-5 hover-lift fw-bold" onClick={handleCloseModal}>
                         {t('close', 'Close')}
                     </Button>
                 </Modal.Footer>

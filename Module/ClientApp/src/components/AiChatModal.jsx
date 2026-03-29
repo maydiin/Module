@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import Icon from './Icon';
 
 function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder }) {
   const { t } = useTranslation();
@@ -68,48 +69,52 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
   };
 
   return (
-    <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content glass-card border-0 shadow-xl overflow-hidden">
-          <div className="modal-header border-bottom border-primary border-opacity-10">
-            <h5 className="modal-title">{title || t('ai_architect_modal_title')}</h5>
-            <button type="button" className="btn-close btn-close-white" onClick={onClose} disabled={aiLoading}></button>
+    <div className="modal fade show d-block glass-modal" tabIndex="-1">
+      <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
+        <div className="modal-content border-0 shadow-xl overflow-hidden">
+          <div className="modal-header modal-header-premium border-0">
+            <h5 className="modal-title text-gradient fw-800 fs-4">{title || t('ai_architect_modal_title')}</h5>
+            <button type="button" className="btn-close btn-close-premium" onClick={onClose} disabled={aiLoading}></button>
           </div>
           <div className="modal-body p-0 d-flex flex-column" style={{ height: '600px' }}>
             {/* Chat Area */}
-            <div className="flex-grow-1 p-3 overflow-auto bg-glass">
+            <div className="flex-grow-1 p-4 overflow-auto bg-glass">
               {chatHistory.length === 0 ? (
-                <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-50">
-                  <span className="fs-1 mb-3">🤖</span>
-                  <p>{t('ai_chat_empty_state') || "Describe your requirements to get started."}</p>
+                <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-40">
+                  <div className="bg-primary bg-opacity-10 rounded-circle p-4 mb-4 d-flex align-items-center justify-content-center">
+                    <Icon name="sparkles" size={48} className="icon-theme" />
+                  </div>
+                  <p className="fw-medium">{t('ai_chat_empty_state') || "Describe your requirements to get started."}</p>
                 </div>
               ) : (
                 chatHistory.map((msg, index) => (
-                  <div key={index} className={`d-flex mb-3 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
+                  <div key={index} className={`d-flex mb-4 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
                     <div 
-                      className={`p-3 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-surface border-theme-accent border'}`} 
-                      style={{ maxWidth: '80%', whiteSpace: 'pre-wrap' }}
+                      className={`p-3 px-4 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-surface border-theme-accent border'}`} 
+                      style={{ maxWidth: '85%', whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}
                     >
-                      {msg.role === 'ai' && <div className="fw-bold mb-1 small text-primary">AI</div>}
+                      {msg.role === 'ai' && <div className="fw-extrabold mb-2 small text-primary tracking-wider uppercase">AI</div>}
                       {msg.content}
                     </div>
                   </div>
                 ))
               )}
               {aiLoading && (
-                <div className="d-flex mb-3 justify-content-start">
+                <div className="d-flex mb-4 justify-content-start">
                   <div className="p-3 rounded-4 bg-surface border-theme-accent border shadow-sm">
                     <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                   </div>
                 </div>
               )}
               {aiPreview && (
-                <div className="d-flex mb-3 justify-content-start">
-                  <div className="p-3 rounded-4 bg-success bg-opacity-10 border border-success" style={{ width: '100%' }}>
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                       <h6 className="text-success mb-0 fw-bold">{t('ai_config_generated')}</h6>
+                <div className="d-flex mb-4 justify-content-start">
+                  <div className="p-4 rounded-4 bg-success bg-opacity-5 border border-success border-opacity-20 w-100">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                       <h6 className="text-success mb-0 fw-extrabold small tracking-wider uppercase d-flex align-items-center gap-2">
+                         <Icon name="sparkles" size={16} /> {t('ai_config_generated')}
+                       </h6>
                     </div>
-                    <pre className="mb-0 small bg-surface p-2 rounded border border-theme-accent" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    <pre className="mb-0 small bg-dark text-light p-3 rounded-3 border-0 shadow-inner" style={{ maxHeight: '250px', overflowY: 'auto', fontSize: '0.8rem' }}>
                       {JSON.stringify(aiPreview, null, 2)}
                     </pre>
                   </div>
@@ -119,37 +124,35 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
             </div>
 
             {/* Input Area */}
-            <div className="p-3 bg-glass border-top border-theme-accent">
-               <div className="input-group">
+            <div className="p-4 bg-glass border-top border-theme-accent">
+               <div className="input-group shadow-sm rounded-4 overflow-hidden border border-theme-accent">
                 <textarea
-                  className="form-control"
+                  className="form-control border-0 bg-white"
                   rows="2"
                   placeholder={placeholder || t('ai_prompt_placeholder')}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   onKeyDown={handleKeyDown}
                   disabled={aiLoading}
-                  style={{ resize: 'none' }}
+                  style={{ resize: 'none', padding: '1rem' }}
                 ></textarea>
                 <button 
-                  className="btn btn-primary px-4" 
+                  className="btn btn-primary px-4 rounded-0" 
                   type="button" 
                   onClick={handleSend}
                   disabled={aiLoading || !aiPrompt.trim()}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
+                  <Icon name="sparkles" size={20} color="white" />
                 </button>
               </div>
-              <div className="d-flex justify-content-end mt-2 gap-2">
-                 <button type="button" className="btn btn-link text-muted text-decoration-none" onClick={onClose} disabled={aiLoading}>
+              <div className="d-flex justify-content-end mt-3 gap-3">
+                 <button type="button" className="btn btn-blur px-4" onClick={onClose} disabled={aiLoading}>
                    {t('cancel')}
                  </button>
                  {aiPreview && (
                    <button
                      type="button"
-                     className="btn btn-success px-4 fw-bold"
+                     className="btn btn-success px-4 fw-bold shadow-md hover-lift"
                      onClick={() => onApply(aiPreview)}
                      disabled={aiLoading}
                    >

@@ -5,6 +5,7 @@ import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRec
 import DynamicForm from '../components/DynamicForm';
 import LinkedRecordsModal from '../components/LinkedRecordsModal';
 import { useTenant } from '../components/TenantContext';
+import Icon from '../components/Icon';
 
 function ModuleRecordsPage() {
   const { t } = useTranslation();
@@ -337,7 +338,7 @@ function ModuleRecordsPage() {
             className="btn btn-warning"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
           >
-            ⚙️ {t('manage_fields')}
+            <Icon name="settings" size={18} className="me-2" /> {t('manage_fields')}
           </button>
         </div>
       </div>
@@ -354,7 +355,7 @@ function ModuleRecordsPage() {
             onClick={() => navigate('/')}
             style={{ borderRadius: '18px', width: '56px', height: '56px' }}
           >
-            <span className="fs-4">←</span>
+            <Icon name="arrowLeft" size={24} className="icon-theme" />
           </button>
           <div>
             <h1 className="display-5 mb-1 fw-800">
@@ -372,7 +373,7 @@ function ModuleRecordsPage() {
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
             style={{ backdropFilter: 'blur(10px)' }}
           >
-            <span className="me-2">⚙️</span> {t('schema')}
+            <Icon name="settings" size={18} className="me-2" /> {t('schema')}
           </button>
           <button
             className="btn btn-primary px-4 shadow-premium hover-lift fw-bold"
@@ -382,7 +383,7 @@ function ModuleRecordsPage() {
             }}
             disabled={showForm}
           >
-            <span className="me-2 fs-5">+</span> {t('new_entry')}
+            <Icon name="plus" size={20} className="me-2" /> {t('new_entry')}
           </button>
         </div>
       </div>
@@ -397,8 +398,9 @@ function ModuleRecordsPage() {
       {showForm && (
         <div className="card shadow-premium border-0 mb-5 overflow-hidden fade-in">
           <div className={`card-header py-3 border-0 bg-gradient-to-r ${editingRecord ? 'from-warning to-orange-400' : 'from-primary to-secondary'}`}>
-            <h5 className="card-title mb-0 text-white fw-bold">
-              {editingRecord ? `✏️ ${t('update_existing_record')}` : `➕ ${t('forge_new_record')}`}
+            <h5 className="card-title mb-0 text-white fw-bold d-flex align-items-center gap-2">
+              {editingRecord ? <Icon name="edit" size={20} /> : <Icon name="plus" size={20} />}
+              {editingRecord ? t('update_existing_record') : t('forge_new_record')}
             </h5>
           </div>
           <div className="card-body p-4">
@@ -436,7 +438,7 @@ function ModuleRecordsPage() {
               <div className="flex-grow-1">
                 <label className="form-label text-muted mb-1">{t('search')}</label>
                 <div className="input-group">
-                  <span className="input-group-text">🔍</span>
+                  <Icon name="search" size={18} className="text-muted" />
                   <input
                     type="text"
                     className="form-control"
@@ -509,7 +511,7 @@ function ModuleRecordsPage() {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                 <h6 className="mb-0">{t('advanced_filters')}</h6>
                 <button className="btn btn-sm btn-outline-primary" onClick={addFilterRow}>
-                  + {t('add_filter')}
+                  <Icon name="plus" size={14} className="me-1" /> {t('add_filter')}
                 </button>
               </div>
 
@@ -596,8 +598,8 @@ function ModuleRecordsPage() {
                           </div>
                         )}
                         <div className="col-12 col-md-1 d-flex">
-                          <button className="btn btn-outline-danger w-100" onClick={() => removeFilterRow(index)}>
-                            ✕
+                          <button className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center" onClick={() => removeFilterRow(index)}>
+                            <Icon name="x" size={16} />
                           </button>
                         </div>
                       </div>
@@ -613,12 +615,8 @@ function ModuleRecordsPage() {
       <div className="glass-card border-0 overflow-hidden stagger-in">
         <div className="card-header bg-white bg-opacity-30 py-4 px-4 border-bottom border-white border-opacity-20 d-flex align-items-center justify-content-between">
           <h5 className="mb-0 fw-800 d-flex align-items-center">
-            <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-              </svg>
+            <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
+              <Icon name="records" size={24} className="icon-theme" strokeWidth={2} />
             </div>
             {t('data_inventory')}
             <span className="badge bg-primary bg-opacity-10 text-primary border-primary border-opacity-10 ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{total} {t('records')}</span>
@@ -627,7 +625,9 @@ function ModuleRecordsPage() {
         <div className="card-body p-0">
           {records.length === 0 ? (
             <div className="text-center py-5">
-              <div className="fs-1 mb-3 opacity-25">📂</div>
+              <div className="mb-3 opacity-25 d-flex justify-content-center">
+                <Icon name="folder" size={64} className="icon-theme" strokeWidth={1} />
+              </div>
               <h5 className="text-muted">{t('inventory_empty')}</h5>
             </div>
           ) : (
@@ -663,7 +663,7 @@ function ModuleRecordsPage() {
                             disabled={record.linkedCount === 0}
                             title={record.linkedCount > 0 ? t('view_linked_records') : t('no_linked_records')}
                           >
-                            📎 {record.linkedCount || 0}
+                            <Icon name="link" size={14} className="me-1" /> {record.linkedCount || 0}
                           </button>
                         </td>
                         {fields.map(field => {
@@ -701,7 +701,7 @@ function ModuleRecordsPage() {
                                         style={{ maxWidth: '120px' }}
                                         title={fileName}
                                       >
-                                        {isImg ? '🖼️' : '📎'} {t('view')}
+                                        <Icon name={isImg ? "sparkles" : "attachment"} size={14} className="me-1" /> {t('view')}
                                       </a>
                                     );
                                   })}
@@ -724,7 +724,7 @@ function ModuleRecordsPage() {
                                         to={`/modules/${link.moduleId}/records/${link.recordId}`}
                                         className="badge bg-light text-primary border text-decoration-none"
                                       >
-                                        🔗 {link.display}
+                                        <Icon name="link" size={12} className="me-1" /> {link.display}
                                       </Link>
                                     ))}
                                   </div>
@@ -751,7 +751,7 @@ function ModuleRecordsPage() {
                               onClick={() => navigate(`/modules/${moduleId}/records/${record.id}`)}
                               title={t('details')}
                             >
-                              👁️
+                               <Icon name="eye" size={16} />
                             </button>
                             <button
                               className="btn btn-outline-primary"
@@ -759,7 +759,7 @@ function ModuleRecordsPage() {
                               disabled={showForm}
                               title={t('save_changes')}
                             >
-                              ✏️
+                               <Icon name="edit" size={16} />
                             </button>
                             <button
                               className="btn btn-outline-danger"
@@ -767,7 +767,7 @@ function ModuleRecordsPage() {
                               disabled={showForm}
                               title={t('delete_record')}
                             >
-                              🗑️
+                               <Icon name="delete" size={16} />
                             </button>
                           </div>
                         </td>

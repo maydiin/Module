@@ -6,6 +6,7 @@ import HasPermission from '../components/HasPermission';
 import { useTenant } from '../components/TenantContext';
 import { useAuth } from '../components/AuthContext';
 import AiChatModal from '../components/AiChatModal';
+import Icon from '../components/Icon';
 
 function ModulesPage() {
   const { t } = useTranslation();
@@ -166,12 +167,10 @@ function ModulesPage() {
 
   return (
     <div className="fade-in">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 fade-in">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mb-md-5 gap-3 fade-in">
         <div className="d-flex align-items-center">
-          <div className="bg-primary bg-opacity-10 text-primary rounded-4 p-3 me-4 shadow-sm">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-            </svg>
+          <div className="bg-primary bg-opacity-10 text-primary rounded-4 p-2 p-md-3 me-3 me-md-4 shadow-sm d-flex align-items-center justify-content-center">
+            <Icon name="box" size={28} className="icon-theme" />
           </div>
           <div>
             <h1 className="display-5 mb-1 fw-800">
@@ -179,19 +178,21 @@ function ModulesPage() {
                 {t('modules')}
               </span>
             </h1>
-            <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('manage_blueprints_desc')}</p>
+            <p className="text-muted mb-0 fw-medium opacity-70 d-none d-sm-block" style={{ fontSize: '1rem' }}>{t('manage_blueprints_desc')}</p>
           </div>
         </div>
-        <div className="d-flex gap-3 flex-wrap">
+        <div className="d-flex gap-2 gap-md-3 flex-wrap">
           <button
-            className="btn btn-secondary bg-white bg-opacity-50 text-dark border-0 shadow-premium hover-lift px-4"
+            className="btn btn-secondary bg-white bg-opacity-50 text-dark border-0 shadow-premium hover-lift px-3 px-md-4"
             onClick={() => setShowAiModal(true)}
             style={{ backdropFilter: 'blur(10px)' }}
           >
-            <span className="me-2">✨</span> {t('ai_architect') || 'AI Architect'}
+            <Icon name="sparkles" size={16} className="me-1 me-md-2" />
+            <span className="d-none d-sm-inline">{t('ai_architect') || 'AI Architect'}</span>
+            <span className="d-sm-none">AI</span>
           </button>
           <button
-            className="btn btn-primary px-4 shadow-premium hover-lift"
+            className="btn btn-primary px-3 px-md-4 shadow-premium hover-lift"
             onClick={() => {
               setEditingModuleId(null);
               setModuleName('');
@@ -199,7 +200,9 @@ function ModulesPage() {
             }}
             disabled={showForm}
           >
-            <span className="me-2 fs-5">+</span> {t('new_module')}
+            <Icon name="plus" size={18} className="me-1 me-md-2" />
+            <span className="d-none d-sm-inline">{t('new_module')}</span>
+            <span className="d-sm-none">Yeni</span>
           </button>
         </div>
       </div>
@@ -279,7 +282,7 @@ function ModulesPage() {
               </div>
               <div className="d-flex gap-2">
                 <button type="submit" className="btn btn-primary px-4">
-                  <span>✓</span> {editingModuleId ? t('update') : t('finalize_module')}
+                  <Icon name="check" size={18} className="me-2" /> {editingModuleId ? t('update') : t('finalize_module')}
                 </button>
                 <button
                   type="button"
@@ -296,7 +299,9 @@ function ModulesPage() {
 
       {modules.length === 0 ? (
         <div className="text-center py-5 glass-card border-0 stagger-in">
-          <div className="display-1 mb-4 opacity-10">🧩</div>
+          <div className="mb-4 opacity-10 d-flex justify-content-center">
+            <Icon name="puzzle" size={120} className="icon-theme" strokeWidth={1.5} />
+          </div>
           <h3 className="text-muted fw-bold">{t('no_modules_yet')}</h3>
           <p className="text-muted mb-4">{t('start_by_creating')}</p>
           <button
@@ -322,10 +327,8 @@ function ModulesPage() {
                   onClick={() => toggleModuleCollapse(summary.moduleId)}
                 >
                   <div className="d-flex align-items-center">
-                    <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                      </svg>
+                    <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
+                      <Icon name="folder" size={24} className="icon-theme" />
                     </div>
                     <div>
                       <h4 className="mb-0 fw-800 fs-5">{summary.moduleName}</h4>
@@ -346,9 +349,7 @@ function ModulesPage() {
                       {t('open_module') || 'Modülü Aç'}
                     </button>
                     <span className={`transition-all ${isCollapsed ? '' : 'rotate-180'} d-flex opacity-50`}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
+                      <Icon name="arrowLeft" size={20} className="rotate-270" />
                     </span>
                   </div>
                 </div>
@@ -356,7 +357,9 @@ function ModulesPage() {
                   <div className="card-body p-0 border-top border-white border-opacity-20 fade-in">
                     {summary.latestRecords.length === 0 ? (
                       <div className="p-5 text-center text-muted small fw-medium">
-                        <div className="fs-2 mb-2 opacity-10">📄</div>
+                        <div className="mb-2 opacity-10 d-flex justify-content-center">
+                          <Icon name="script" size={48} className="icon-theme" />
+                        </div>
                         {t('no_records_found')}
                       </div>
                     ) : (
@@ -373,14 +376,14 @@ function ModulesPage() {
                           <tbody>
                             {summary.latestRecords.map(record => (
                               <tr key={record.id} className="cursor-pointer" onClick={() => navigate(`/modules/${summary.moduleId}/records/${record.id}`)}>
-                                {displayCols.map(col => (
-                                  <td key={col.id} className="px-4 py-3 text-truncate fw-medium" style={{ maxWidth: '250px' }}>
-                                    {record.data[col.name] !== undefined ? String(record.data[col.name]) : <span className="opacity-25">-</span>}
+                                  {displayCols.map(col => (
+                                    <td key={col.id} className="px-3 px-md-4 py-3 text-truncate fw-medium" style={{ maxWidth: '180px' }}>
+                                      {record.data[col.name] !== undefined ? String(record.data[col.name]) : <span className="opacity-25">-</span>}
+                                    </td>
+                                  ))}
+                                  <td className="px-3 px-md-4 py-3 text-end">
+                                    <span className="text-primary fw-bold small">Detay →</span>
                                   </td>
-                                ))}
-                                <td className="px-4 py-3 text-end">
-                                  <span className="text-primary fw-bold small">Detay →</span>
-                                </td>
                               </tr>
                             ))}
                           </tbody>
