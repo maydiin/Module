@@ -351,7 +351,7 @@ function ModuleRecordsPage() {
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 fade-in">
         <div className="d-flex align-items-center">
           <button
-            className="btn btn-light bg-white bg-opacity-50 border-0 me-3 shadow-sm hover-shift-left transition-all p-3 d-none d-md-flex align-items-center justify-content-center"
+            className="btn btn-blur bg-surface bg-opacity-50 border-0 me-3 shadow-sm hover-shift-left transition-all p-3 d-none d-md-flex align-items-center justify-content-center"
             onClick={() => navigate('/')}
             style={{ borderRadius: '18px', width: '56px', height: '56px' }}
           >
@@ -369,7 +369,7 @@ function ModuleRecordsPage() {
         </div>
         <div className="d-flex gap-2 flex-wrap">
           <button
-            className="btn btn-secondary bg-white bg-opacity-50 border-0 px-4 shadow-premium hover-lift text-dark fw-bold"
+            className="btn btn-blur bg-surface bg-opacity-50 border-0 px-4 shadow-premium hover-lift text-foreground fw-bold"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
             style={{ backdropFilter: 'blur(10px)' }}
           >
@@ -420,8 +420,8 @@ function ModuleRecordsPage() {
         </div>
       )}
 
-      <div className="card shadow-sm border-0 mb-4 overflow-hidden">
-        <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+      <div className="card shadow-sm border-0 mb-4 overflow-hidden bg-surface bg-opacity-40">
+        <div className="card-header bg-surface bg-opacity-30 border-bottom border-theme-accent py-3 px-4 d-flex justify-content-between align-items-center">
           <h6 className="mb-0 fw-bold text-muted text-uppercase tracking-wider" style={{ fontSize: '0.75rem' }}>{t('filters_panel_title')}</h6>
           <button
             className="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm hover-lift"
@@ -613,7 +613,7 @@ function ModuleRecordsPage() {
       </div>
 
       <div className="glass-card border-0 overflow-hidden stagger-in">
-        <div className="card-header bg-white bg-opacity-30 py-4 px-4 border-bottom border-white border-opacity-20 d-flex align-items-center justify-content-between">
+        <div className="card-header bg-surface bg-opacity-40 py-4 px-4 border-bottom border-theme-accent d-flex align-items-center justify-content-between">
           <h5 className="mb-0 fw-800 d-flex align-items-center">
             <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
               <Icon name="records" size={24} className="icon-theme" strokeWidth={2} />
@@ -634,15 +634,15 @@ function ModuleRecordsPage() {
             <>
               <div className="table-responsive">
                 <table className="table table-hover align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th style={{ width: '60px' }}>ID</th>
-                      <th style={{ width: '120px' }}>{t('linked_count')}</th>
+                  <thead className="bg-surface bg-opacity-50">
+                    <tr className="border-bottom border-theme-accent">
+                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '60px' }}>ID</th>
+                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '120px' }}>{t('linked_count')}</th>
                       {fields.map(field => (
-                        <th key={field.id}>{field.label}</th>
+                        <th key={field.id} className="text-primary small fw-bold text-uppercase tracking-wider border-0">{field.label}</th>
                       ))}
-                      <th style={{ width: '180px' }}>{t('created_at')}</th>
-                      <th style={{ width: '150px' }}>{t('actions')}</th>
+                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '180px' }}>{t('created_at')}</th>
+                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '150px' }}>{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -722,7 +722,7 @@ function ModuleRecordsPage() {
                                       <Link 
                                         key={idx} 
                                         to={`/modules/${link.moduleId}/records/${link.recordId}`}
-                                        className="badge bg-light text-primary border text-decoration-none"
+                                        className="badge bg-surface bg-opacity-50 text-primary border border-theme-accent text-decoration-none"
                                       >
                                         <Icon name="link" size={12} className="me-1" /> {link.display}
                                       </Link>

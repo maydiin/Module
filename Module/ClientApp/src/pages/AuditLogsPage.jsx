@@ -6,11 +6,11 @@ import { Modal, Button } from 'react-bootstrap';
 import Icon from '../components/Icon';
 
 const ACTION_BADGES = {
-    Create: { bg: 'linear-gradient(135deg, #10b981, #059669)', icon: 'plus' },
-    Update: { bg: 'linear-gradient(135deg, #3b82f6, #2563eb)', icon: 'edit' },
-    Delete: { bg: 'linear-gradient(135deg, #ef4444, #dc2626)', icon: 'delete' },
-    Login: { bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', icon: 'settings' },
-    Register: { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', icon: 'records' },
+    Create: { bg: 'linear-gradient(135deg, #059669, #10b981)', icon: 'plus' },
+    Update: { bg: 'linear-gradient(135deg, #2563eb, #3b82f6)', icon: 'edit' },
+    Delete: { bg: 'linear-gradient(135deg, #dc2626, #ef4444)', icon: 'delete' },
+    Login: { bg: 'linear-gradient(135deg, #7c3aed, #8b5cf6)', icon: 'settings' },
+    Register: { bg: 'linear-gradient(135deg, #d97706, #f59e0b)', icon: 'records' },
     Default: { bg: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))', icon: 'check' }
 };
 
@@ -116,8 +116,8 @@ function AuditLogsPage() {
             </div>
 
             {/* Filters Card */}
-            <div className="card glass border-0 shadow-sm mb-4">
-                <div className="card-body p-4">
+            <div className="card glass-card shadow-premium border-0 mb-4 overflow-hidden stagger-in">
+                <div className="card-body p-4 p-md-5 bg-surface bg-opacity-10">
                     <form onSubmit={handleSearch}>
                         <div className="row g-3">
                             {/* Search */}
@@ -223,8 +223,8 @@ function AuditLogsPage() {
                     ) : (
                         <div className="table-responsive">
                             <table className="table table-hover align-middle mb-0">
-                                <thead>
-                                    <tr className="border-bottom" style={{ background: 'hsla(var(--primary), 0.03)' }}>
+                                <thead className="bg-surface">
+                                    <tr className="border-bottom">
                                         <th className="ps-4 py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_time')}</th>
                                         <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_user')}</th>
                                         <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_action')}</th>
@@ -344,7 +344,7 @@ function AuditLogsPage() {
                         <div className="d-flex flex-column gap-3">
                             <div>
                                 <h6 className="text-muted mb-1 text-uppercase small fw-bold">{t('audit_col_entity_name', 'Entity Name')}</h6>
-                                <div className="p-3 bg-light rounded text-break">
+                                <div className="p-3 bg-surface border border-theme-accent rounded text-break fw-medium">
                                     {selectedLog.entityName || '—'}
                                 </div>
                             </div>

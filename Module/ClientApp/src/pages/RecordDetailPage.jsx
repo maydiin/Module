@@ -285,8 +285,8 @@ function RecordDetailPage() {
 
             <div className="row g-4 mb-4">
                 <div className="col-lg-6">
-                    <div className="card shadow-sm border-0 h-100">
-                        <div className="card-header bg-white py-3 border-bottom">
+                    <div className="card shadow-sm border-0 h-100 bg-surface bg-opacity-20">
+                        <div className="card-header bg-surface bg-opacity-40 py-3 border-bottom border-theme-accent">
                             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
                                 <Icon name="records" size={20} className="opacity-75" /> {t('primary_details')}
                             </h5>
@@ -302,14 +302,14 @@ function RecordDetailPage() {
                                         <li key={field.id} className="list-group-item d-flex justify-content-between align-items-start py-3">
                                             <div className="ms-2 me-auto">
                                                 <div className="fw-bold text-muted small text-uppercase mb-1">{field.label}</div>
-                                                <div className="fs-6 text-dark">{renderFieldValue(field, record)}</div>
+                                                <div className="fs-6 text-foreground">{renderFieldValue(field, record)}</div>
                                             </div>
                                         </li>
                                     ))}
-                                    <li className="list-group-item d-flex justify-content-between align-items-start py-3 bg-light">
+                                    <li className="list-group-item d-flex justify-content-between align-items-start py-3 bg-muted bg-opacity-20 border-theme-accent">
                                          <div className="ms-2 me-auto">
                                                 <div className="fw-bold text-muted small text-uppercase mb-1">{t('created_at')}</div>
-                                                <div className="fs-6 text-dark">{new Date(record.createdAt).toLocaleString()}</div>
+                                                <div className="fs-6 text-foreground">{new Date(record.createdAt).toLocaleString()}</div>
                                           </div>
                                     </li>
                                 </ul>
@@ -319,19 +319,19 @@ function RecordDetailPage() {
                 </div>
 
                 <div className="col-lg-6">
-                    <div className="card shadow-sm border-0 h-100">
-                        <div className="card-header bg-primary text-white py-3 border-bottom">
+                    <div className="card shadow-sm border-0 h-100 bg-surface bg-opacity-20">
+                        <div className="card-header bg-primary text-white py-3 border-bottom border-0">
                             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
                                 <Icon name="link" size={20} className="opacity-75" /> {t('related_data')}
                             </h5>
                         </div>
-                        <div className="card-body p-4 bg-light">
+                        <div className="card-body p-4 bg-muted bg-opacity-10">
                             {loadingSummary ? (
                                 <div className="text-center py-4">
                                      <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                                 </div>
                             ) : summary.length === 0 ? (
-                                <div className="text-center py-5 text-muted bg-white rounded shadow-sm border">
+                                <div className="text-center py-5 text-muted bg-surface bg-opacity-40 rounded shadow-sm border border-theme-accent">
                                     <Icon name="folder" size={48} className="opacity-25 icon-theme mb-3" strokeWidth={1.2} />
                                     <p className="mb-0 mt-2">{t('no_references_found')}</p>
                                 </div>
@@ -341,7 +341,7 @@ function RecordDetailPage() {
                                         <div className="accordion-item border-0 mb-2 rounded overflow-hidden" key={item.module}>
                                             <h2 className="accordion-header">
                                                 <button
-                                                    className={`accordion-button bg-white ${expandedModule === item.module ? 'text-primary fw-bold' : 'text-dark collapsed'}`}
+                                                    className={`accordion-button bg-surface bg-opacity-40 border-theme-accent ${expandedModule === item.module ? 'text-primary fw-bold' : 'text-foreground collapsed'}`}
                                                     type="button"
                                                     onClick={() => handleExpand(item.module)}
                                                     style={{ boxShadow: 'none' }}
@@ -351,7 +351,7 @@ function RecordDetailPage() {
                                                             <Icon name="box" size={18} className="me-2 opacity-100 icon-theme" />
                                                             {item.module}
                                                         </span>
-                                                        <span className={`badge ${expandedModule === item.module ? 'bg-primary' : 'bg-secondary'} rounded-pill`}>
+                                                        <span className={`badge ${expandedModule === item.module ? 'bg-primary' : 'bg-surface bg-opacity-50 text-muted'} rounded-pill`}>
                                                             {item.count} {t('records_count')}
                                                         </span>
                                                     </div>
@@ -378,7 +378,7 @@ function RecordDetailPage() {
                                                                         )}
                                                                     </div>
                                                                     <div className="d-flex align-items-center gap-2">
-                                                                        <span className="badge bg-light text-muted border px-2 py-1 d-flex align-items-center gap-1">
+                                                                        <span className="badge bg-surface bg-opacity-50 text-muted border border-theme-accent px-2 py-1 d-flex align-items-center gap-1">
                                                                             <Icon name="link" size={12} /> <small>{t('linked_via_relation')}</small>
                                                                         </span>
                                                                     </div>

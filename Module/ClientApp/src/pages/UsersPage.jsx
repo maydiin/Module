@@ -125,12 +125,12 @@ function UsersPage() {
             <div className="glass-card border-0 overflow-hidden">
                 <div className="table-responsive">
                     <table className="table table-hover align-middle mb-0">
-                        <thead style={{ background: 'hsla(var(--primary), 0.03)' }}>
-                            <tr>
-                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('username')}</th>
-                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary d-none d-sm-table-cell">{t('email')}</th>
-                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('roles')}</th>
-                                <th className="px-3 px-md-4 py-3 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('actions')}</th>
+                        <thead className="bg-surface bg-opacity-50">
+                            <tr className="border-bottom border-theme-accent">
+                                <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('username')}</th>
+                                <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary d-none d-sm-table-cell">{t('email')}</th>
+                                <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('roles')}</th>
+                                <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -245,14 +245,14 @@ function UsersPage() {
                                             {t('roles')} <span className="badge badge-outline-theme ms-2 px-2 py-1">{roles.length} {t('total')}</span>
                                         </label>
                                         <div 
-                                            className="bg-light bg-opacity-40 rounded-4 border border-theme-accent shadow-inner p-4" 
+                                            className="bg-surface bg-opacity-40 rounded-4 border border-theme-accent shadow-inner p-4" 
                                             style={{ maxHeight: '200px', overflowY: 'auto' }}
                                         >
                                             <div className="row g-3">
                                                 {roles.map(role => (
                                                     <div key={role.id} className="col-sm-6 col-md-4">
                                                         <div 
-                                                            className={`form-check p-3 rounded-3 border-2 transition-all ${newUser.roles.includes(role.name) ? 'bg-primary bg-opacity-10 border-primary' : 'bg-surface border-transparent opacity-80'}`}
+                                                            className={`form-check p-3 rounded-3 border-2 transition-all ${newUser.roles.includes(role.name) ? 'bg-primary bg-opacity-10 border-primary' : 'bg-surface bg-opacity-50 border-theme-accent border-opacity-20 opacity-80'}`}
                                                             style={{ cursor: 'pointer' }}
                                                             onClick={() => handleNewUserRoleChange(role.name)}
                                                         >
@@ -264,7 +264,7 @@ function UsersPage() {
                                                                 onChange={() => {}} // Controlled via parent div click
                                                             />
                                                             <label 
-                                                                className="form-check-label fw-bold text-dark small ms-2" 
+                                                                className="form-check-label fw-bold small ms-2" 
                                                                 htmlFor={`role-${role.id}`}
                                                                 style={{ pointerEvents: 'none' }}
                                                             >

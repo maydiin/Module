@@ -230,11 +230,11 @@ function ModuleApiConfigsPage() {
             />
 
             {showForm && (
-                <div className="card shadow mb-4 border-0">
-                    <div className={`card-header ${editConfigId ? 'bg-primary' : 'bg-dark'} text-white border-0 py-3`}>
-                        <h5 className="mb-0">{editConfigId ? t('edit_api_config') : t('new_api_config')}</h5>
+                <div className="card glass-card shadow-premium mb-4 border-0 overflow-hidden fade-in">
+                    <div className={`card-header ${editConfigId ? 'bg-primary bg-opacity-20' : 'bg-surface bg-opacity-40'} border-bottom border-theme-accent py-3`}>
+                        <h5 className="mb-0 fw-bold">{editConfigId ? t('edit_api_config') : t('new_api_config')}</h5>
                     </div>
-                    <div className="card-body bg-light">
+                    <div className="card-body bg-muted bg-opacity-10">
                         <form onSubmit={handleSubmit}>
                             <div className="row">
                                 <div className="col-md-8 mb-3">
@@ -321,16 +321,16 @@ function ModuleApiConfigsPage() {
             <div className="row g-4">
                 {configs.length === 0 ? (
                     <div className="col-12">
-                        <div className="text-center py-5 bg-light rounded-3 border mt-3">
-                            <span className="display-1 text-muted opacity-25">🔌</span>
+                        <div className="text-center py-5 bg-surface bg-opacity-20 rounded-4 border border-theme-accent border-dashed mt-3">
+                            <span className="display-1 opacity-25">🔌</span>
                             <p className="mt-3 text-muted">{t('no_api_configs_found')} {module?.name}.</p>
                         </div>
                     </div>
                 ) : (
                     configs.map(config => (
                         <div key={config.id} className="col-md-6">
-                            <div className="card h-100 shadow-sm border-0">
-                                <div className="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-start">
+                            <div className="card glass-card h-100 shadow-premium border-0 overflow-hidden">
+                                <div className="card-header bg-surface bg-opacity-40 border-bottom border-theme-accent py-3 d-flex justify-content-between align-items-start">
                                     <div>
                                         <span className={`badge bg-${config.method === 'GET' ? 'success' : 'primary'} mb-2`}>{config.method}</span>
                                         <h5 className="mb-0">{config.name}</h5>
@@ -358,21 +358,21 @@ function ModuleApiConfigsPage() {
                                     </div>
                                 </div>
                                 <div className="card-body">
-                                    <div className="bg-light p-2 rounded mb-3">
-                                        <code className="small text-break">{config.url}</code>
+                                    <div className="bg-muted bg-opacity-30 p-2 rounded mb-3 border border-theme-accent">
+                                        <code className="small text-break text-primary">{config.url}</code>
                                     </div>
 
                                     <div className="row g-2 mb-3">
                                         <div className="col-6">
-                                            <div className="border rounded p-2 text-center h-100 bg-white">
+                                            <div className="border border-theme-accent rounded p-2 text-center h-100 bg-surface bg-opacity-20">
                                                 <div className="small text-muted mb-1">{t('headers')}</div>
-                                                <div className="fw-bold">{config.headersJson ? `${t('yes')} ✅` : t('no')}</div>
+                                                <div className="fw-bold text-foreground">{config.headersJson ? `${t('yes')} ✅` : t('no')}</div>
                                             </div>
                                         </div>
                                         <div className="col-6">
-                                            <div className="border rounded p-2 text-center h-100 bg-white">
+                                            <div className="border border-theme-accent rounded p-2 text-center h-100 bg-surface bg-opacity-20">
                                                 <div className="small text-muted mb-1">{t('mappings')}</div>
-                                                <div className="fw-bold">{config.responseMappingsJson ? `${t('yes')} ✅` : t('no')}</div>
+                                                <div className="fw-bold text-foreground">{config.responseMappingsJson ? `${t('yes')} ✅` : t('no')}</div>
                                             </div>
                                         </div>
                                     </div>

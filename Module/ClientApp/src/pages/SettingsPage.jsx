@@ -4,8 +4,15 @@ import { useTheme } from '../components/ThemeContext';
 import Icon from '../components/Icon';
 
 function SettingsPage() {
-  const { t } = useTranslation();
-  const { theme, setTheme, themes } = useTheme();
+   const { t, i18n } = useTranslation();
+   const { theme, setTheme, themes, isDarkMode, toggleDarkMode } = useTheme();
+
+   const languages = [
+     { id: 'en', label: t('english', 'İngilizce'), icon: 'globe' },
+     { id: 'tr', label: t('turkish', 'Türkçe'), icon: 'globe' }
+   ];
+
+   const currentLanguage = i18n.language.split('-')[0]; // Handle locales like 'en-US'
 
   return (
     <div className="fade-in">
@@ -75,6 +82,31 @@ function SettingsPage() {
               </div>
             </div>
 
+            <div className="mb-5 pt-4 border-top border-primary border-opacity-10">
+              <label className="form-label fw-bold mb-3 d-flex align-items-center">
+                <span>{t('theme_mode', 'Tema Modu')}</span>
+                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>
+                  {isDarkMode ? t('dark_mode', 'Karanlık') : t('light_mode', 'Aydınlık')}
+                </span>
+              </label>
+              <div className="d-flex gap-3">
+                <button
+                  onClick={() => !isDarkMode && toggleDarkMode()}
+                  className={`btn flex-grow-1 p-3 border-0 rounded-4 transition-all ${isDarkMode ? 'bg-primary text-white shadow-lg' : 'bg-surface hover-lift shadow-sm opacity-80'}`}
+                >
+                  <Icon name="moon" size={20} color={isDarkMode ? "white" : "currentColor"} />
+                  <span>{t('dark_mode', 'Karanlık')}</span>
+                </button>
+                <button
+                  onClick={() => isDarkMode && toggleDarkMode()}
+                  className={`btn flex-grow-1 p-3 border-0 rounded-4 transition-all ${!isDarkMode ? 'bg-primary text-white shadow-lg' : 'bg-surface hover-lift shadow-sm opacity-80'}`}
+                >
+                  <Icon name="sun" size={20} color={!isDarkMode ? "white" : "currentColor"} />
+                  <span>{t('light_mode', 'Aydınlık')}</span>
+                </button>
+              </div>
+            </div>
+
             <div className="p-4 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-10">
               <div className="d-flex align-items-start gap-3">
                 <div className="bg-primary bg-opacity-10 p-2 rounded-3">
@@ -83,7 +115,7 @@ function SettingsPage() {
                 <div>
                   <h6 className="fw-bold mb-1">{t('pro_tip', 'İpucu')}</h6>
                   <p className="small text-muted mb-0 opacity-80">
-                    Seçtiğiniz tema tüm cihazlarınızda yerel olarak saklanır. Gelecekte karanlık mod ve yazı tipi özelleştirmeleri de eklenecektir.
+                    Seçtiğiniz tema ve mod tercihleri tüm cihazlarınızda yerel olarak saklanır.
                   </p>
                 </div>
               </div>
@@ -91,36 +123,78 @@ function SettingsPage() {
           </div>
         </div>
 
-        {/* Sidebar for future settings info */}
+        {/* Language Section */}
         <div className="col-12 col-xl-4">
-          <div className="glass-card p-5 h-100 bg-opacity-10">
+          <div className="glass-card p-5 h-100">
+            <div className="d-flex align-items-center mb-5">
+              <div className="bg-primary p-2 rounded-3 me-3 text-white shadow-sm d-flex align-items-center justify-content-center">
+                <Icon name="globe" size={24} color="white" />
+              </div>
+              <h3 className="mb-0">{t('language', 'Dil')}</h3>
+            </div>
+
+            <div className="mb-5">
+              <label className="form-label fw-bold mb-3 d-flex align-items-center">
+                <span>{t('select_language', 'Dil Seçimi')}</span>
+                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>
+                  {languages.find(l => l.id === currentLanguage)?.label}
+                </span>
+              </label>
+              
+              <div className="d-flex flex-column gap-3 mt-2">
+                {languages.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => i18n.changeLanguage(l.id)}
+                    className={`btn d-flex align-items-center justify-content-between p-3 border-0 rounded-4 transition-all ${currentLanguage === l.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover-lift shadow-sm opacity-80'}`}
+                  >
+                    <div className="d-flex align-items-center gap-3">
+                      <div className={`p-2 rounded-3 ${currentLanguage === l.id ? 'bg-white bg-opacity-20' : 'bg-primary bg-opacity-10'}`}>
+                        <span className="fw-bold fs-7">{l.id.toUpperCase()}</span>
+                      </div>
+                      <span className="fw-bold">{l.label}</span>
+                    </div>
+                    {currentLanguage === l.id && (
+                      <Icon name="check" size={18} color="white" strokeWidth={3} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-10 mt-auto">
+              <p className="small text-muted mb-0 opacity-80">
+                {t('language_desc', 'Uygulama dilini buradan değiştirebilirsiniz.')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar for future settings info */}
+        <div className="col-12 col-xl-12 mt-4">
+          <div className="glass-card p-5 bg-opacity-10">
             <h4 className="mb-4">{t('upcoming_features', 'Yakında Gelecekler')}</h4>
-            <div className="d-flex flex-column gap-4">
-              <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
-                <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
-                  <Icon name="moon" size={20} color="white" />
-                </div>
-                <div>
-                  <div className="fw-bold small">Karanlık Mod</div>
-                  <div className="text-muted extra-small">Göz yorgunluğunu azaltın (Planlanıyor)</div>
-                </div>
-              </div>
-              <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
-                <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
-                  <Icon name="globe" size={20} color="white" />
-                </div>
-                <div>
-                  <div className="fw-bold small">Dil Ayarları</div>
-                  <div className="text-muted extra-small">Çoklu dil desteği yönetimi</div>
+            <div className="row g-4">
+              <div className="col-md-4">
+                <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
+                  <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
+                    <Icon name="type" size={20} color="white" />
+                  </div>
+                  <div>
+                    <div className="fw-bold small">Yazı Tipi</div>
+                    <div className="text-muted extra-small">Özel font seçenekleri (Planlanıyor)</div>
+                  </div>
                 </div>
               </div>
-              <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
-                <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
-                  <Icon name="bell" size={20} color="white" />
-                </div>
-                <div>
-                  <div className="fw-bold small">Bildirimler</div>
-                  <div className="text-muted extra-small">Sistem bildirim tercihleri</div>
+              <div className="col-md-4">
+                <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
+                  <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
+                    <Icon name="bell" size={20} color="white" />
+                  </div>
+                  <div>
+                    <div className="fw-bold small">Bildirimler</div>
+                    <div className="text-muted extra-small">Sistem bildirim tercihleri</div>
+                  </div>
                 </div>
               </div>
             </div>

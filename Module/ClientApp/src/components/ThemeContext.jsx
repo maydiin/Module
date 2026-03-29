@@ -12,14 +12,25 @@ export const themes = [
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(localStorage.getItem('app-theme') || 'default');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('app-dark-mode');
+    return saved === null ? window.matchMedia('(prefers-color-scheme: dark)').matches : saved === 'true';
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('app-theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-mode', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem('app-dark-mode', isDarkMode);
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, themes }}>
+    <ThemeContext.Provider value={{ theme, setTheme, themes, isDarkMode, toggleDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );

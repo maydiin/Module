@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModule, getFields, addField, updateField, getFieldTypes } from '../services/api';
+import Icon from '../components/Icon';
+
 
 function ModuleFieldsPage() {
   const { t } = useTranslation();
@@ -153,18 +155,23 @@ function ModuleFieldsPage() {
   return (
     <div className="fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-        <div>
+        <div className="d-flex align-items-center mb-4 mb-md-0">
           <button
-            className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
+            className="btn btn-blur bg-surface bg-opacity-50 border-0 me-3 shadow-sm hover-shift-left transition-all p-3 d-none d-md-flex align-items-center justify-content-center"
             onClick={() => navigate('/')}
+            style={{ borderRadius: '18px', width: '56px', height: '56px' }}
           >
-            <span>←</span> {t('back_to_dashboard')}
+            <Icon name="arrowLeft" size={24} className="icon-theme" />
           </button>
-          <h1 className="display-6 mb-1">
-            <span className="opacity-50 me-2">⚙️</span>
-            {module.name} {t('fields_title')}
-          </h1>
-          <p className="text-muted mb-0">{t('fields_subtitle')}</p>
+          <div>
+            <h1 className="display-5 mb-1 fw-800">
+              <span className="text-gradient">
+                {module.name}
+              </span>
+              <span className="opacity-40 ms-3 fw-400" style={{ fontSize: '0.8em' }}>{t('fields_title')}</span>
+            </h1>
+            <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('fields_subtitle')}</p>
+          </div>
         </div>
         <button
           className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
@@ -192,8 +199,8 @@ function ModuleFieldsPage() {
       )}
 
       {showForm && (
-        <div className="card shadow-lg border-0 mb-5 overflow-hidden">
-          <div className="card-header bg-primary py-3">
+        <div className="card shadow-premium border-0 mb-5 overflow-hidden fade-in">
+          <div className="card-header bg-gradient-to-r from-primary to-secondary py-3 border-0">
             <h5 className="card-title mb-0 text-white">
               {editingFieldId ? t('edit_attribute', { defaultValue: 'Edit Field' }) : t('configure_new_attribute')}
             </h5>
@@ -300,7 +307,7 @@ function ModuleFieldsPage() {
                   />
                 </div>
                 <div className="col-md-4 d-flex align-items-center pt-md-4">
-                  <div className="form-check form-switch p-2 ps-5 rounded bg-light border w-100">
+                  <div className="form-check form-switch p-2 ps-5 rounded bg-surface border border-theme-accent w-100">
                     <input
                       className="form-check-input ms-0"
                       type="checkbox"
@@ -314,7 +321,7 @@ function ModuleFieldsPage() {
                       {t('mandatory')}
                     </label>
                   </div>
-                  <div className="form-check form-switch p-2 ps-5 rounded bg-light border w-100 mt-2">
+                  <div className="form-check form-switch p-2 ps-5 rounded bg-surface border border-theme-accent w-100 mt-2">
                     <input
                       className="form-check-input ms-0"
                       type="checkbox"
@@ -331,7 +338,7 @@ function ModuleFieldsPage() {
                 </div>
                 {formData.type === 'formula' && (
                   <div className="col-md-4 d-flex align-items-center pt-md-4">
-                    <div className="form-check form-switch p-2 ps-5 rounded bg-light border w-100">
+                    <div className="form-check form-switch p-2 ps-5 rounded bg-surface border border-theme-accent w-100">
                       <input
                         className="form-check-input ms-0"
                         type="checkbox"
@@ -379,12 +386,14 @@ function ModuleFieldsPage() {
         </div>
       )}
 
-      <div className="card shadow-soft border-0 overflow-hidden">
-        <div className="card-header bg-white py-4 px-4 border-bottom d-flex justify-content-between align-items-center">
-          <h5 className="mb-0 fw-bold">
-            <span className="opacity-75 me-2">📋</span>
+      <div className="glass-card border-0 overflow-hidden stagger-in">
+        <div className="card-header bg-surface bg-opacity-30 py-4 px-4 border-bottom border-theme-accent d-flex justify-content-between align-items-center">
+          <h5 className="mb-0 fw-800 d-flex align-items-center">
+            <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
+              <Icon name="settings" size={24} className="icon-theme" strokeWidth={2} />
+            </div>
             {t('schema_attributes')}
-            <span className="badge bg-light text-primary border ms-2 px-3 rounded-pill fw-normal">{fields.length}</span>
+            <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{fields.length}</span>
           </h5>
           <button
             className="btn btn-outline-primary btn-sm rounded-pill px-3"
@@ -401,16 +410,16 @@ function ModuleFieldsPage() {
             </div>
           ) : (
             <div className="table-responsive">
-              <table className="table table-hover align-middle">
-                <thead className="table-light">
-                  <tr>
-                    <th style={{ width: '80px' }}>{t('order')}</th>
-                    <th>{t('field_name')}</th>
-                    <th>{t('display_label')}</th>
-                    <th>{t('field_type')}</th>
-                    <th>Options</th>
-                    <th>{t('status')}</th>
-                    <th>{t('actions', { defaultValue: 'Actions' })}</th>
+              <table className="table table-hover align-middle mb-0">
+                <thead className="bg-surface bg-opacity-50">
+                  <tr className="border-bottom border-theme-accent">
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '80px' }}>{t('order')}</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('field_name')}</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('display_label')}</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('field_type')}</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">Options</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('status')}</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '100px' }}>{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -420,15 +429,15 @@ function ModuleFieldsPage() {
                         <span className="badge bg-primary">{field.orderNo}</span>
                       </td>
                       <td>
-                        <code className="bg-light px-2 py-1 rounded">{field.name}</code>
+                        <code className="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2 py-1 rounded">{field.name}</code>
                       </td>
                       <td className="fw-semibold">{field.label}</td>
                       <td>
-                        <span className="badge bg-info text-dark">{field.type}</span>
+                        <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-20 px-2 py-1">{field.type}</span>
                       </td>
                       <td>
                         {field.options ? (
-                          <small className="text-muted">{field.options}</small>
+                          <small className="text-muted small fw-medium">{field.options}</small>
                         ) : (
                           <span className="text-muted">-</span>
                         )}

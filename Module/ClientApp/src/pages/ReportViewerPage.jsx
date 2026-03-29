@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getReportData, getModule, getReport } from '../services/api';
+import Icon from '../components/Icon';
+
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line,
@@ -19,6 +21,14 @@ const ReportViewerPage = () => {
     const [reportData, setReportData] = useState(null);
 
     const COLORS = ['#0dcaf0', '#6610f2', '#6f42c1', '#d63384', '#fd7e14', '#ffc107', '#198754', '#20c997'];
+    
+    const TOOLTIP_STYLE = { 
+        backgroundColor: 'hsla(var(--background), 0.95)', 
+        borderRadius: '12px', 
+        border: '1px solid hsla(var(--foreground), 0.1)', 
+        boxShadow: 'var(--shadow-lg)',
+        padding: '10px 15px'
+    };
 
     useEffect(() => {
         fetchData();
@@ -57,9 +67,9 @@ const ReportViewerPage = () => {
             <div className="d-flex align-items-center gap-3 mb-4">
                 <button
                     onClick={() => navigate(`/modules/${moduleId}/reports`)}
-                    className="btn btn-outline-secondary btn-sm"
+                    className="btn btn-blur rounded-pill px-4 hover-lift"
                 >
-                    ← {t('back')}
+                    <Icon name="arrowLeft" size={16} /> {t('back')}
                 </button>
                 <div>
                     <h2 className="mb-0">{report?.name}</h2>
@@ -77,7 +87,7 @@ const ReportViewerPage = () => {
         const columns = reportData.columns || Object.keys(reportData.rows[0]);
 
         return (
-            <div className="table-responsive glass rounded-4 p-3 border">
+            <div className="table-container border-0 shadow-premium fade-in">
                 <table className="table table-hover">
                     <thead>
                         <tr>
@@ -116,9 +126,9 @@ const ReportViewerPage = () => {
             return chartContainer(
                 <LineChart data={reportData.chartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                    <XAxis dataKey="label" />
-                    <YAxis />
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                    <XAxis dataKey="label" stroke="hsla(var(--foreground), 0.5)" fontSize={12} />
+                    <YAxis stroke="hsla(var(--foreground), 0.5)" fontSize={12} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: 'hsl(var(--foreground))' }} />
                     <Legend />
                     <Line type="monotone" dataKey="value" name={t('value')} stroke="#0dcaf0" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
@@ -209,13 +219,13 @@ const ReportViewerPage = () => {
                         stroke="none"
                     >
                         <Cell key="cell-0" fill="#0dcaf0" />
-                        <Cell key="cell-1" fill="#e9ecef" />
+                        <Cell key="cell-1" fill="hsla(var(--foreground), 0.1)" />
                     </Pie>
-                    <Tooltip />
-                    <text x="50%" y="65%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '3rem', fontWeight: 'bold', fill: '#212529' }}>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <text x="50%" y="65%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: '3rem', fontWeight: 'bold', fill: 'hsl(var(--foreground))' }}>
                         {value}
                     </text>
-                    <text x="50%" y="78%" textAnchor="middle" dominantBaseline="middle" style={{ fill: '#6c757d', fontSize: '1.2rem' }}>
+                    <text x="50%" y="78%" textAnchor="middle" dominantBaseline="middle" style={{ fill: 'hsla(var(--foreground), 0.5)', fontSize: '1.2rem' }}>
                         / {max}
                     </text>
                 </PieChart>
@@ -241,9 +251,9 @@ const ReportViewerPage = () => {
         return chartContainer(
             <BarChart data={reportData.chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                <XAxis dataKey="label" />
-                <YAxis />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                <XAxis dataKey="label" stroke="hsla(var(--foreground), 0.5)" fontSize={12} />
+                <YAxis stroke="hsla(var(--foreground), 0.5)" fontSize={12} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: 'hsl(var(--foreground))' }} />
                 <Legend />
                 <Bar dataKey="value" name={t('value')} fill="#0dcaf0" radius={[4, 4, 0, 0]} />
             </BarChart>

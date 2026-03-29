@@ -112,7 +112,7 @@ function RolesPage() {
         <div className="fade-in">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="display-5 fw-bold mb-0 text-gradient d-flex align-items-center gap-3">
-                    <Icon name="settings" size={40} className="icon-theme" />
+                    <Icon name="settings" size={36} className="icon-theme" />
                     {t('role_permission_management')}
                 </h1>
                 <button className="btn btn-primary px-4 shadow-premium hover-lift" onClick={() => handleOpenModal()}>
@@ -125,17 +125,17 @@ function RolesPage() {
             <div className="row g-4">
                 {roles.map(role => (
                     <div key={role.id} className="col-md-6">
-                        <div className="glass-card border-0 h-100" style={{ overflow: 'visible' }}>
-                            <div className="card-header bg-transparent border-bottom border-primary border-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                        <div className="glass-card border-0 h-100 overflow-hidden fade-in">
+                            <div className="card-header bg-surface bg-opacity-40 border-bottom border-theme-accent py-3 d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h5 className="mb-0">{role.name}</h5>
-                                    <small className="text-muted">{role.description}</small>
+                                    <h5 className="mb-0 fw-bold">{role.name}</h5>
+                                    <small className="text-muted small">{role.description}</small>
                                 </div>
-                                <div className="btn-group">
-                                    <button className="btn btn-sm btn-blur d-flex align-items-center gap-1" onClick={() => handleOpenModal(role)}>
+                                <div className="btn-group btn-group-sm">
+                                    <button className="btn btn-blur d-flex align-items-center gap-1" onClick={() => handleOpenModal(role)}>
                                         <Icon name="edit" size={14} /> {t('edit')}
                                     </button>
-                                    <button className="btn btn-sm btn-light text-danger bg-transparent d-flex align-items-center gap-1" onClick={() => handleDeleteRole(role.id)}>
+                                    <button className="btn btn-outline-danger border-0 d-flex align-items-center gap-1" onClick={() => handleDeleteRole(role.id)}>
                                         <Icon name="delete" size={14} /> {t('delete')}
                                     </button>
                                 </div>

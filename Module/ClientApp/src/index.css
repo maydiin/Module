@@ -131,6 +131,56 @@
   --nav-link-hover: 199 89% 97%;
 }
 
+/* Dark Mode Overrides */
+[data-mode="dark"] {
+  --background: 224 71% 4%;
+  --foreground: 213 31% 91%;
+  
+  --muted: 223 47% 11%;
+  --muted-foreground: 215.4 16.3% 56.9%;
+  
+  --accent: 216 34% 17%;
+  --accent-foreground: 210 40% 98%;
+  
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+  
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+
+  /* Layout Surface Shading (Dark) */
+  --nav-bg: 222 47% 6%;
+  --sidebar-bg: 222 47% 3%;
+  --menu-bg-active: var(--primary) / 0.15;
+  --menu-text-active: 210 40% 98%;
+  --nav-link-hover: var(--primary) / 0.08;
+  
+  /* Modal Overrides */
+  --bs-modal-bg: hsl(var(--background)) !important;
+  --bs-body-bg: hsl(var(--background)) !important;
+  --bs-card-bg: hsla(var(--background), 0.45) !important;
+  --bs-tertiary-bg: hsla(var(--background), 0.4) !important;
+}
+
+[data-mode="dark"] .form-control,
+[data-mode="dark"] .form-select {
+  background-color: hsla(var(--background), 0.6) !important;
+  border-color: hsla(var(--foreground), 0.1) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-mode="dark"] .form-control:focus,
+[data-mode="dark"] .form-select:focus {
+  background-color: hsla(var(--background), 0.8) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 0 0.25rem hsla(var(--primary), 0.15) !important;
+}
+
+[data-mode="dark"] .table-striped tbody tr:nth-of-type(odd) {
+  --bs-table-accent-bg: hsla(var(--foreground), 0.02) !important;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -176,9 +226,9 @@ input[type="radio"],
   -webkit-appearance: none !important;
   width: 1.5rem !important; /* Larger size */
   height: 1.5rem !important;
-  border: 2px solid hsla(var(--foreground), 0.25) !important; /* Visible Grey border */
+  border: 2px solid hsla(var(--foreground), 0.25) !important; /* Visible border */
   border-radius: 8px !important;
-  background-color: white !important;
+  background-color: hsla(var(--background), 0.5) !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -292,12 +342,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsla(0, 0%, 0%, 0.1);
+  background: hsla(var(--foreground), 0.15);
   border-radius: 20px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsla(0, 0%, 0%, 0.2);
+  background: hsla(var(--foreground), 0.25);
 }
 
 /* Enhanced iOS Glass Utility */
@@ -407,7 +457,8 @@ body {
 .card {
   border: none;
   border-radius: var(--radius);
-  background: #ffffff;
+  background: hsla(var(--background), 0.6);
+  backdrop-filter: blur(20px);
   box-shadow: var(--shadow-sm);
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
@@ -471,32 +522,48 @@ h1, h2, h3, h4, h5, h6 {
 .table-container {
   border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid hsla(var(--foreground), 0.08);
+  background: hsla(var(--background), 0.4);
   backdrop-filter: blur(15px);
   box-shadow: var(--shadow-premium);
 }
 
+/* Global Table Theme Overrides */
+.table {
+  --bs-table-bg: transparent !important;
+  --bs-table-color: hsl(var(--foreground)) !important;
+  --bs-table-border-color: hsla(var(--foreground), 0.08) !important;
+  --bs-table-striped-color: hsl(var(--foreground)) !important;
+  --bs-table-striped-bg: hsla(var(--primary), 0.03) !important;
+  --bs-table-hover-color: hsl(var(--foreground)) !important;
+  --bs-table-hover-bg: hsla(var(--primary), 0.05) !important;
+}
+
+[data-mode="dark"] .table-hover tbody tr:hover {
+  background-color: hsla(var(--primary), 0.12) !important;
+}
+
 .table th {
-  background: rgba(0, 0, 0, 0.03);
-  color: hsl(var(--muted-foreground));
+  background: hsla(var(--foreground), 0.03);
+  color: hsl(var(--foreground));
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.7rem;
+  font-size: 0.725rem;
   letter-spacing: 0.08em;
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 1.25rem 1.5rem;
+  border-bottom: 2px solid hsla(var(--foreground), 0.05);
 }
 
 .table td {
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   vertical-align: middle;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid hsla(var(--foreground), 0.03);
   font-size: 0.95rem;
+  color: hsla(var(--foreground), 0.85);
 }
 
 .table-hover tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: hsla(var(--primary), 0.04) !important;
 }
 
 /* Badge Styles */
@@ -565,7 +632,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bg-surface {
-  background-color: hsla(var(--sidebar-bg), 0.95) !important;
+  background-color: hsla(var(--sidebar-bg), var(--bs-bg-opacity, 0.95)) !important;
+}
+.bg-muted {
+  background-color: hsla(var(--muted), var(--bs-bg-opacity, 0.5)) !important;
+}
+.border-theme-accent {
+  border-color: hsla(var(--primary), 0.15) !important;
 }
 
 .border-theme-accent {

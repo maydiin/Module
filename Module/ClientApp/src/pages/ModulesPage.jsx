@@ -183,7 +183,7 @@ function ModulesPage() {
         </div>
         <div className="d-flex gap-2 gap-md-3 flex-wrap">
           <button
-            className="btn btn-secondary bg-white bg-opacity-50 text-dark border-0 shadow-premium hover-lift px-3 px-md-4"
+            className="btn btn-blur bg-surface bg-opacity-50 text-foreground border-0 shadow-premium hover-lift px-3 px-md-4"
             onClick={() => setShowAiModal(true)}
             style={{ backdropFilter: 'blur(10px)' }}
           >
@@ -322,7 +322,7 @@ function ModulesPage() {
             return (
               <div key={summary.moduleId} className="glass-card border-0 overflow-hidden">
                 <div
-                  className="card-header bg-white bg-opacity-30 py-4 px-4 d-flex justify-content-between align-items-center transition-all hover-bg-light"
+                  className="card-header bg-surface bg-opacity-40 py-4 px-4 d-flex justify-content-between align-items-center transition-all hover-bg-theme"
                   style={{ cursor: 'pointer', border: 'none' }}
                   onClick={() => toggleModuleCollapse(summary.moduleId)}
                 >
@@ -366,11 +366,11 @@ function ModulesPage() {
                       <div className="table-responsive">
                         <table className="table table-hover align-middle mb-0">
                           <thead>
-                            <tr>
+                            <tr className="bg-surface bg-opacity-50 border-bottom border-theme-accent">
                               {displayCols.map(col => (
-                                <th key={col.id} className="px-4 py-3">{col.label || col.name}</th>
+                                <th key={col.id} className="px-4 py-3 text-primary small fw-bold text-uppercase tracking-wider border-0">{col.label || col.name}</th>
                               ))}
-                              <th className="px-4 py-3 text-end" style={{ width: '100px' }}>{t('actions')}</th>
+                              <th className="px-4 py-3 text-end text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '100px' }}>{t('actions')}</th>
                             </tr>
                           </thead>
                           <tbody>
