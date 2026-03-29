@@ -112,7 +112,7 @@ function AuditLogsPage() {
                     <Icon name="records" size={40} className="icon-theme" />
                     {t('audit_logs_title')}
                 </h1>
-                <p className="text-muted opacity-75" style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.25rem)' }}>{t('audit_logs_subtitle')}</p>
+                <p className="text-muted fw-medium" style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.25rem)' }}>{t('audit_logs_subtitle')}</p>
             </div>
 
             {/* Filters Card */}
@@ -343,14 +343,14 @@ function AuditLogsPage() {
                     {selectedLog && (
                         <div className="d-flex flex-column gap-3">
                             <div>
-                                <h6 className="text-muted mb-1 text-uppercase small fw-bold">{t('audit_col_entity_name', 'Entity Name')}</h6>
+                                <h6 className="text-primary mb-1 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_entity_name', 'Entity Name')}</h6>
                                 <div className="p-3 bg-surface border border-theme-accent rounded text-break fw-medium">
                                     {selectedLog.entityName || '—'}
                                 </div>
                             </div>
                             
                              <div>
-                                <h6 className="text-muted mb-2 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_details', 'Details')}</h6>
+                                <h6 className="text-primary mb-2 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_details', 'Details')}</h6>
                                 <div className="p-4 bg-glass border-theme-accent rounded-4 overflow-auto shadow-inner" style={{ maxHeight: '400px' }}>
                                     <pre className="mb-0 text-foreground" style={{ whiteSpace: 'pre-wrap', fontFamily: "'Fira Code', 'Courier New', monospace", fontSize: '0.9rem', lineHeight: '1.6' }}>
                                         {(() => {

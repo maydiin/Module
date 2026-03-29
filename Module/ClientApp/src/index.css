@@ -137,30 +137,33 @@
   --foreground: 213 31% 91%;
   
   --muted: 223 47% 11%;
-  --muted-foreground: 215.4 16.3% 56.9%;
+  --muted-foreground: 215 20% 75%; /* Brightened for better contrast on dark backgrounds */
   
   --accent: 216 34% 17%;
   --accent-foreground: 210 40% 98%;
   
-  --border: 216 34% 17%;
-  --input: 216 34% 17%;
+  --border: 216 34% 25%; /* Slightly brighter border for visibility */
+  --input: 216 34% 25%;
   
-  --glass-bg: rgba(15, 23, 42, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(15, 23, 42, 0.75); /* Increased opacity */
+  --glass-border: rgba(255, 255, 255, 0.12); /* Brighter border */
+  --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
 
   /* Layout Surface Shading (Dark) */
   --nav-bg: 222 47% 6%;
   --sidebar-bg: 222 47% 3%;
-  --menu-bg-active: var(--primary) / 0.15;
+  --menu-bg-active: var(--primary) / 0.25; /* Higher opacity for better visibility */
   --menu-text-active: 210 40% 98%;
-  --nav-link-hover: var(--primary) / 0.08;
+  --nav-link-hover: var(--primary) / 0.15;
   
   /* Modal Overrides */
   --bs-modal-bg: hsl(var(--background)) !important;
   --bs-body-bg: hsl(var(--background)) !important;
-  --bs-card-bg: hsla(var(--background), 0.45) !important;
-  --bs-tertiary-bg: hsla(var(--background), 0.4) !important;
+  --bs-card-bg: hsla(var(--background), 0.6) !important;
+  --bs-tertiary-bg: hsla(var(--background), 0.5) !important;
+
+  /* Specific fix for purple-on-black contrast: slightly shift primary in dark mode if needed */
+  /* --primary: 250 84% 65%;  Brightened for dark mode */
 }
 
 [data-mode="dark"] .form-control,
@@ -178,7 +181,15 @@
 }
 
 [data-mode="dark"] .table-striped tbody tr:nth-of-type(odd) {
-  --bs-table-accent-bg: hsla(var(--foreground), 0.02) !important;
+  --bs-table-accent-bg: hsla(var(--foreground), 0.05) !important;
+}
+
+[data-mode="dark"] ::placeholder {
+  color: hsla(var(--foreground), 0.5) !important;
+}
+
+::placeholder {
+  color: hsla(var(--foreground), 0.45) !important;
 }
 
 * {
@@ -532,11 +543,11 @@ h1, h2, h3, h4, h5, h6 {
 .table {
   --bs-table-bg: transparent !important;
   --bs-table-color: hsl(var(--foreground)) !important;
-  --bs-table-border-color: hsla(var(--foreground), 0.08) !important;
+  --bs-table-border-color: hsla(var(--foreground), 0.12) !important;
   --bs-table-striped-color: hsl(var(--foreground)) !important;
-  --bs-table-striped-bg: hsla(var(--primary), 0.03) !important;
+  --bs-table-striped-bg: hsla(var(--primary), 0.08) !important;
   --bs-table-hover-color: hsl(var(--foreground)) !important;
-  --bs-table-hover-bg: hsla(var(--primary), 0.05) !important;
+  --bs-table-hover-bg: hsla(var(--primary), 0.12) !important;
 }
 
 [data-mode="dark"] .table-hover tbody tr:hover {
@@ -596,16 +607,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 .text-muted {
   color: hsl(var(--muted-foreground)) !important;
+  opacity: 1 !important; /* Ensure full opacity for the color now that the color itself is adjusted */
 }
 .text-foreground {
   color: hsl(var(--foreground)) !important;
 }
 .text-nav {
   color: hsl(var(--muted-foreground)) !important;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 .text-nav:hover {
-  color: hsl(var(--menu-text-active)) !important;
+  color: hsl(var(--primary)) !important;
 }
 .border-primary {
   border-color: hsl(var(--primary)) !important;

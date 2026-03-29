@@ -348,7 +348,7 @@ function ModulesPage() {
                     >
                       {t('open_module') || 'Modülü Aç'}
                     </button>
-                    <span className={`transition-all ${isCollapsed ? '' : 'rotate-180'} d-flex opacity-50`}>
+                    <span className={`transition-all ${isCollapsed ? '' : 'rotate-180'} d-flex text-primary`}>
                       <Icon name="arrowLeft" size={20} className="rotate-270" />
                     </span>
                   </div>
@@ -382,7 +382,7 @@ function ModulesPage() {
                                     </td>
                                   ))}
                                   <td className="px-3 px-md-4 py-3 text-end">
-                                    <span className="text-primary fw-bold small">Detay →</span>
+                                    <span className="text-primary fw-extrabold small tracking-tight">DETAY →</span>
                                   </td>
                               </tr>
                             ))}

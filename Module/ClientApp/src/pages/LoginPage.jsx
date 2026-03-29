@@ -40,12 +40,12 @@ function LoginPage() {
                     <h1 className="display-5 fw-bold mb-2">
                         <span className="text-gradient">{t('app_name')}</span>
                     </h1>
-                    <p className="text-muted lead px-4">{t('login_subtitle') || 'Sistem yönetimine hoş geldiniz.'}</p>
+                    <p className="text-muted lead px-4">{t('login_subtitle')}</p>
                 </div>
                 
                 <div className="card shadow-premium border-0 overflow-hidden fade-in" style={{ animationDelay: '0.1s' }}>
                     <div className="card-body p-4 p-lg-5">
-                        <h2 className="fw-bold mb-4 fs-3">Giriş Yap</h2>
+                        <h2 className="fw-extrabold mb-4 fs-3">{t('login_title') || 'Giriş Yap'}</h2>
                         {error && (
                             <div className="alert alert-danger glass border-danger border-opacity-25 mb-4 py-3 shadow-sm d-flex align-items-center">
                                 <span className="me-2 fs-5">⚠️</span>
@@ -54,27 +54,27 @@ function LoginPage() {
                         )}
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-muted text-uppercase tracking-wider">Kullanıcı Adı</label>
+                                <label className="form-label small fw-bold text-primary text-uppercase tracking-wider">{t('username')}</label>
                                 <div className="input-group">
                                     <input
                                         type="text"
                                         className="form-control form-control-lg border-2"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Kullanıcı adınızı girin"
+                                        placeholder={t('username_placeholder') || 'Kullanıcı adınızı girin'}
                                         required
                                         autoFocus
                                     />
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-muted text-uppercase tracking-wider">Şifre</label>
+                                <label className="form-label small fw-bold text-primary text-uppercase tracking-wider">{t('password')}</label>
                                 <input
                                     type="password"
                                     className="form-control form-control-lg border-2"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Şifrenizi girin"
+                                    placeholder={t('password_placeholder') || 'Şifrenizi girin'}
                                     required
                                 />
                             </div>
@@ -82,15 +82,15 @@ function LoginPage() {
                                 {loading ? (
                                     <>
                                         <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Giriş Yapılıyor...
+                                        {t('logging_in') || 'Giriş Yapılıyor...'}
                                     </>
                                 ) : (
-                                    'Sisteme Giriş Yap'
+                                    t('login_button') || 'Sisteme Giriş Yap'
                                 )}
                             </button>
                             <div className="text-center pt-2">
-                                <span className="text-muted small">Hesabınız yok mu? </span>
-                                <a href="/register" className="text-primary fw-bold text-decoration-none small hover-underline">Kayıt Olun</a>
+                                <span className="text-nav small">{t('no_account') || 'Hesabınız yok mu?'} </span>
+                                <a href="/register" className="text-primary fw-bold text-decoration-none small hover-underline">{t('register_now') || 'Kayıt Olun'}</a>
                             </div>
                         </form>
                     </div>

@@ -429,11 +429,11 @@ function ModuleFieldsPage() {
                         <span className="badge bg-primary">{field.orderNo}</span>
                       </td>
                       <td>
-                        <code className="bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2 py-1 rounded">{field.name}</code>
+                        <code className="bg-primary bg-opacity-15 text-primary border border-primary border-opacity-20 px-2 py-1 rounded fw-bold">{field.name}</code>
                       </td>
                       <td className="fw-semibold">{field.label}</td>
                       <td>
-                        <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-20 px-2 py-1">{field.type}</span>
+                        <span className="badge bg-blur text-primary border border-primary border-opacity-20 px-2 py-1">{field.type}</span>
                       </td>
                       <td>
                         {field.options ? (
@@ -450,7 +450,7 @@ function ModuleFieldsPage() {
                             <span className="badge bg-secondary">{t('optional')}</span>
                           )}
                           {field.isDisplayField && (
-                            <span className="badge bg-info text-dark">{t('is_display_field')}</span>
+                            <span className="badge bg-primary text-white">{t('is_display_field')}</span>
                           )}
                         </div>
                       </td>

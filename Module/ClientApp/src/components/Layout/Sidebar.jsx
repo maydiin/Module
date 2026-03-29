@@ -103,7 +103,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
             {/* Mobile close button */}
             {isMobile && (
                 <div className="d-flex justify-content-between align-items-center mb-2 px-1">
-                    <span className="fw-bold text-muted small text-uppercase tracking-wider" style={{ fontSize: '0.65rem', opacity: 0.6 }}>
+                    <span className="fw-bold text-primary small text-uppercase tracking-wider" style={{ fontSize: '0.65rem' }}>
                         Menü
                     </span>
                     <button
@@ -129,7 +129,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
             >
                 <div className="py-4 px-3" style={{ width: '268px' }}>
                     <div className="mb-4 ps-2">
-                        <h6 className="text-uppercase text-muted fw-bold small tracking-wider" style={{ fontSize: '0.65rem', opacity: 0.8 }}>
+                        <h6 className="text-uppercase text-primary fw-extrabold small tracking-wider" style={{ fontSize: '0.65rem' }}>
                             {t('modules_title')}
                         </h6>
                     </div>
@@ -148,7 +148,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                 return (
                                     <li key={module.id} className="mb-2">
                                         <button
-                                            className={`btn border-0 w-100 text-start px-3 py-2 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'menu-active' : 'text-nav bg-primary bg-opacity-5 hover-bg-theme'}`}
+                                            className={`btn border-0 w-100 text-start px-3 py-2 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`}
                                             onClick={() => toggleModule(module.id)}
                                             aria-expanded={isExpanded}
                                             style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
