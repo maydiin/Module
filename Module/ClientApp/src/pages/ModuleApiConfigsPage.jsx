@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig, generateAiApiConfig } from '../services/api';
+import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig, generateAiApiConfig, executeApiSync } from '../services/api';
+import AiChatModal from '../components/AiChatModal';
 
 function ModuleApiConfigsPage() {
     const { t } = useTranslation();
@@ -16,6 +17,7 @@ function ModuleApiConfigsPage() {
     const [showAiModal, setShowAiModal] = useState(false);
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
+    const [executingConfigs, setExecutingConfigs] = useState({});
 
     const [formData, setFormData] = useState({
         name: '',
@@ -109,6 +111,20 @@ function ModuleApiConfigsPage() {
         }
     };
 
+    const handleExecute = async (configId) => {
+        try {
+            setExecutingConfigs(prev => ({ ...prev, [configId]: true }));
+            const result = await executeApiSync(configId);
+            alert(t('sync_success', { message: result.message }));
+        } catch (err) {
+            console.error(err);
+            const errorMsg = err.response?.data?.error || err.response?.data || err.message;
+            alert(t('sync_failed', { error: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) }));
+        } finally {
+            setExecutingConfigs(prev => ({ ...prev, [configId]: false }));
+        }
+    };
+
     const handleAiGenerate = async () => {
         try {
             setAiLoading(true);
@@ -186,56 +202,32 @@ function ModuleApiConfigsPage() {
             {error && <div className="alert alert-danger">{error}</div>}
 
             {/* AI Generation Modal */}
-            {showAiModal && (
-                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content shadow-lg border-0">
-                            <div className="modal-header border-bottom-0">
-                                <h5 className="modal-title fw-bold">{t('ai_api_config_title')}</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowAiModal(false)}></button>
-                            </div>
-                            <div className="modal-body p-4">
-                                <p className="text-muted small mb-3">
-                                    {t('ai_api_config_prompt_desc')}
-                                </p>
-                                <textarea
-                                    className="form-control"
-                                    rows="4"
-                                    placeholder={t('ai_api_config_prompt_placeholder')}
-                                    value={aiPrompt}
-                                    onChange={(e) => setAiPrompt(e.target.value)}
-                                    disabled={aiLoading}
-                                />
-                            </div>
-                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
-                                <button
-                                    type="button"
-                                    className="btn btn-light"
-                                    onClick={() => setShowAiModal(false)}
-                                    disabled={aiLoading}
-                                >
-                                    {t('cancel')}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-primary px-4"
-                                    onClick={handleAiGenerate}
-                                    disabled={aiLoading || !aiPrompt.trim()}
-                                >
-                                    {aiLoading ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-2"></span>
-                                            {t('ai_api_config_generating')}
-                                        </>
-                                    ) : (
-                                        t('ai_api_config_generate')
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AiChatModal
+                show={showAiModal}
+                onClose={() => setShowAiModal(false)}
+                generateAi={(prompt, history) => generateAiApiConfig(moduleId, prompt, history)}
+                onApply={(config) => {
+                    const configsList = config.ApiConfigs || config.apiConfigs;
+                    if (configsList && configsList.length > 0) {
+                        const generated = configsList[0];
+                        setEditConfigId(null);
+                        setFormData({
+                            name: generated.Name || generated.name || '',
+                            url: generated.Url || generated.url || '',
+                            method: generated.Method || generated.method || 'POST',
+                            headersJson: generated.HeadersJson || generated.headersJson || '',
+                            requestBodyTemplate: generated.RequestBodyTemplate || generated.requestBodyTemplate || '',
+                            responseMappingsJson: generated.ResponseMappingsJson || generated.responseMappingsJson || ''
+                        });
+                        setShowAiModal(false);
+                        setShowForm(true);
+                    } else {
+                        alert(t('ai_api_config_no_result'));
+                    }
+                }}
+                title={t('ai_api_config_title')}
+                placeholder={t('ai_api_config_prompt_placeholder')}
+            />
 
             {showForm && (
                 <div className="card shadow mb-4 border-0">
@@ -344,6 +336,19 @@ function ModuleApiConfigsPage() {
                                         <h5 className="mb-0">{config.name}</h5>
                                     </div>
                                     <div className="d-flex gap-2">
+                                        <button 
+                                            className="btn btn-outline-success btn-sm border-0" 
+                                            onClick={() => handleExecute(config.id)} 
+                                            disabled={executingConfigs[config.id]}
+                                            title={t('execute')}
+                                        >
+                                            {executingConfigs[config.id] ? (
+                                                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                            ) : (
+                                                <span className="me-1">🚀</span>
+                                            )}
+                                            {t('execute')}
+                                        </button>
                                         <button className="btn btn-outline-primary btn-sm border-0" onClick={() => handleEdit(config)} title={t('edit_api_config')}>
                                             <span>📝 {t('edit_api_config')}</span>
                                         </button>

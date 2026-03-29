@@ -22,7 +22,7 @@ public class AiGenerationService : IAiGenerationService
         _tenantService = tenantService;
     }
 
-    public async Task<AiSystemConfigDto> GenerateConfigAsync(string userPrompt)
+    public async Task<AiGenerationResponseDto> GenerateConfigAsync(string userPrompt, List<AiChatMessageDto> history)
     {
         var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
@@ -55,59 +55,63 @@ public class AiGenerationService : IAiGenerationService
         var currentConfigJson =
             JsonSerializer.Serialize(currentConfig, new JsonSerializerOptions { WriteIndented = true });
 
-        var systemPrompt = $$$$"""
+        var systemPrompt = $$$"""
                                You are an AI architect helper. Your goal is to convert a user's verbal description of a CRM or business system into a structured JSON configuration.
                                The output MUST be a valid JSON object matching the following structure exactly. Do not include markdown code blocks (```json ... ```), just return the raw JSON.
 
                                Structure:
                                {
-                                 "Modules": [
-                                   {
-                                     "Name": "ModuleName",
-                                     "AuditCreate": true,
-                                     "AuditUpdate": true,
-                                     "AuditDelete": true,
-                                     "Fields": [
-                                       {
-                                         "Name": "fieldName",
-                                         "Label": "Field Label",
-                                         "Type": "text|number|date|datetime|checkbox|select|email|phone|textarea|file|image|currency|percentage|multiselect|richtext|json|relation|formula",
-                                         "Required": boolean,
-                                         "Options": "option1,option2" (for select/multiselect) OR "TargetModuleName" (for relation) OR "{{field1}} * {{field2}}" (for formula),
-                                         "OrderNo": integer,
-                                         "IsDisplayField": boolean // true if this field should be used to display or identify the record (e.g., Name, Title, Reference Number)
-                                       }
-                                     ]
-                                   }
-                                 ],
-                                 "Scripts": [
-                                   {
-                                     "ModuleName": "ModuleName",
-                                     "TriggerType": "BeforeCreate|AfterCreate|BeforeUpdate|AfterUpdate|BeforeDelete|AfterDelete|CustomList",
-                                     "ScriptContent": "// JS code. Available: Db, Data, User, Fail(msg), Log(msg)",
-                                     "IsActive": true
-                                   }
-                                 ],
-                                 "ApiConfigs": [
-                                   {
-                                     "ModuleName": "ModuleName",
-                                     "Name": "Config Name",
-                                     "Url": "https://api.com/v1/{{Field}}",
-                                     "Method": "GET|POST|PUT|DELETE",
-                                     "HeadersJson": "{\"Auth\": \"Bearer ...\"}",
-                                     "RequestBodyTemplate": "{\"id\": {{Id}}}",
-                                     "ResponseMappingsJson": "{\"__root__\": \"data\", \"subead\": \"ŞubeAdı\", \"subeadres\": \"Adres\", \"subetel\": \"Telefon\", \"subemail\": \"Email\"}"
-                                   }
-                                 ],
-                                 "Reports": [
-                                   {
-                                     "ModuleName": "ModuleName",
-                                     "Name": "Report Name",
-                                     "Type": "List|Chart|Pivot",
-                                     "Configuration": "{\"columns\": [\"Field1\", \"Field2\"]} for List, OR {\"groupBy\": \"FieldName\"} for Chart" (JSON string),
-                                     "IsActive": true
-                                   }
-                                 ]
+                                 "NeedsMoreInfo": boolean,
+                                 "Message": "If NeedsMoreInfo is true, ask your clarification question here (in the user's language). If false, provide a brief success message.",
+                                 "Configuration": {
+                                   "Modules": [
+                                     {
+                                       "Name": "ModuleName",
+                                       "AuditCreate": true,
+                                       "AuditUpdate": true,
+                                       "AuditDelete": true,
+                                       "Fields": [
+                                         {
+                                           "Name": "fieldName",
+                                           "Label": "Field Label",
+                                           "Type": "text|number|date|datetime|checkbox|select|email|phone|textarea|file|image|currency|percentage|multiselect|richtext|json|relation|formula",
+                                           "Required": boolean,
+                                           "Options": "option1,option2" (for select/multiselect) OR "TargetModuleName" (for relation) OR "{{field1}} * {{field2}}" (for formula),
+                                           "OrderNo": integer,
+                                           "IsDisplayField": boolean // true if this field should be used to display or identify the record (e.g., Name, Title, Reference Number)
+                                         }
+                                       ]
+                                     }
+                                   ],
+                                   "Scripts": [
+                                     {
+                                       "ModuleName": "ModuleName",
+                                       "TriggerType": "BeforeCreate|AfterCreate|BeforeUpdate|AfterUpdate|BeforeDelete|AfterDelete|CustomList",
+                                       "ScriptContent": "// JS code. Available: Db, Data, User, Fail(msg), Log(msg)",
+                                       "IsActive": true
+                                     }
+                                   ],
+                                   "ApiConfigs": [
+                                     {
+                                       "ModuleName": "ModuleName",
+                                       "Name": "Config Name",
+                                       "Url": "https://api.com/v1/{{Field}}",
+                                       "Method": "GET|POST|PUT|DELETE",
+                                       "HeadersJson": "{\"Auth\": \"Bearer ...\"}",
+                                       "RequestBodyTemplate": "{\"id\": \"{Id}\"}",
+                                       "ResponseMappingsJson": "{\"__root__\": \"data\", \"subead\": \"ŞubeAdı\", \"subeadres\": \"Adres\", \"subetel\": \"Telefon\", \"subemail\": \"Email\"}"
+                                     }
+                                   ],
+                                   "Reports": [
+                                     {
+                                       "ModuleName": "ModuleName",
+                                       "Name": "Report Name",
+                                       "Type": "List|Chart|Pivot",
+                                       "Configuration": "{\"columns\": [\"Field1\", \"Field2\"]} for List, OR {\"groupBy\": \"FieldName\"} for Chart" (JSON string),
+                                       "IsActive": true
+                                     }
+                                   ]
+                                 }
                                }
 
                                Rules:
@@ -127,10 +131,11 @@ public class AiGenerationService : IAiGenerationService
                                   - Generate appropriate entries if the user asks for dashboards, reporting, or specific analysis.
                                 9. For 'ApiConfigs', 'ResponseMappingsJson' is a dictionary where key is the JS path in the JSON response (e.g. 'result.id' or '__root__' for data origin) and value is the Module field name to update.
                                    Example: {"__root__": "data", "subead": "ŞubeAdı", "subeadres": "Adres", "subetel": "Telefon", "subemail": "Email"}
+                               10. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
 
                                CURRENT SYSTEM CONFIGURATION:
                                The user already has the following modules and fields configured:
-                               {{{{currentConfigJson}}}}
+                               {{{currentConfigJson}}}
 
                                IMPORTANT:
                                - If the user asks to ADD something, generate the JSON for the NEW or MODIFIED parts.
@@ -139,13 +144,24 @@ public class AiGenerationService : IAiGenerationService
                                - If the user's request implies connecting to an existing module (e.g. "Add a project for a customer" where 'Customer' exists), use a 'relation' field pointing to the existing 'Customer' module.
 """;
 
-        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+        var chatHistory = new StringBuilder();
+        if (history != null && history.Any())
+        {
+            chatHistory.AppendLine("CHAT HISTORY:");
+            foreach (var msg in history)
+            {
+                chatHistory.AppendLine($"{msg.Role.ToUpper()}: {msg.Content}");
+            }
+            chatHistory.AppendLine();
+        }
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"{chatHistory}User Request: {userPrompt}");
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         try
         {
-            return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options)
-                   ?? new AiSystemConfigDto();
+            return JsonSerializer.Deserialize<AiGenerationResponseDto>(generatedText, options)
+                   ?? new AiGenerationResponseDto { NeedsMoreInfo = true, Message = "Failed to deserialize response." };
         }
         catch (JsonException ex)
         {
@@ -153,8 +169,7 @@ public class AiGenerationService : IAiGenerationService
         }
     }
     
-
-    public async Task<AiSystemConfigDto> GenerateReportConfigAsync(int moduleId, string userPrompt)
+    public async Task<AiGenerationResponseDto> GenerateReportConfigAsync(int moduleId, string userPrompt, List<AiChatMessageDto> history)
     {
         var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
@@ -205,15 +220,19 @@ The output MUST be a valid JSON object matching the following structure exactly.
 
 Structure:
 {
-  "Reports": [
-    {
-      "ModuleName": "{{{{module.Name}}}}",
-      "Name": "Report Name",
-      "Type": "List|Pivot|Chart:Bar|Chart:Line|Chart:Pie|Chart:Funnel|Chart:Gauge|Chart:Heatmap|Chart:Bubble",
-      "Configuration": "JSON string containing configuration",
-      "IsActive": true
-    }
-  ]
+  "NeedsMoreInfo": false,
+  "Message": "If NeedsMoreInfo is true, ask your clarification question here (in the user's language). If false, provide a brief success message.",
+  "Configuration": {
+    "Reports": [
+      {
+        "ModuleName": "{{{{module.Name}}}}",
+        "Name": "Report Name",
+        "Type": "List|Pivot|Chart:Bar|Chart:Line|Chart:Pie|Chart:Funnel|Chart:Gauge|Chart:Heatmap|Chart:Bubble",
+        "Configuration": "JSON string containing configuration",
+        "IsActive": true
+      }
+    ]
+  }
 }
 
 Configuration JSON Schemas:
@@ -251,22 +270,41 @@ Rules:
 2. If Type is 'Chart', prefix it with 'Chart:' but also set 'chartType' inside the configuration JSON correctly.
 3. Generate appropriate reports based on the user's description.
 4. Try to avoid duplicating existing reports unless asked to modify them.
+5. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
 
 MODULE STRUCTURE:
 {{{{currentConfigJson}}}}
 
 IMPORTANT:
 - Return ONLY the JSON for the NEW or MODIFIED report.
-- If the user's request is vague, guess likely useful reports for this type of module.
+- If the user's request is vague, ask for clarification.
 """;
 
-        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+        var chatHistory = new StringBuilder();
+        if (history != null && history.Any())
+        {
+            chatHistory.AppendLine("CHAT HISTORY:");
+            foreach (var msg in history)
+            {
+                chatHistory.AppendLine($"{msg.Role.ToUpper()}: {msg.Content}");
+            }
+            chatHistory.AppendLine();
+        }
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"{chatHistory}User Request: {userPrompt}");
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+        try 
+        {
+            return JsonSerializer.Deserialize<AiGenerationResponseDto>(generatedText, options) ?? new AiGenerationResponseDto { NeedsMoreInfo = true, Message = "Failed to deserialize response" };
+        }
+        catch (JsonException ex)
+        {
+             throw new InvalidOperationException($"Failed to parse AI response as JSON. Response: {generatedText}", ex);
+        }
     }
 
-    public async Task<AiSystemConfigDto> GenerateApiConfigAsync(int moduleId, string userPrompt)
+    public async Task<AiGenerationResponseDto> GenerateApiConfigAsync(int moduleId, string userPrompt, List<AiChatMessageDto> history)
     {
         var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
@@ -320,17 +358,21 @@ The output MUST be a valid JSON object matching the following structure exactly.
 
 Structure:
 {
-  "ApiConfigs": [
-    {
-      "ModuleName": "{{{{module.Name}}}}",
-      "Name": "Config Name",
-      "Url": "https://api.example.com/v1/{{FieldName}}",
-      "Method": "GET|POST|PUT|DELETE",
-      "HeadersJson": "{\"Authorization\": \"Bearer ...\", \"Content-Type\": \"application/json\"}",
-      "RequestBodyTemplate": "{\"id\": {{Id}}, \"action\": \"verify\"}",
-      "ResponseMappingsJson": "{\"__root__\": \"data\", \"subead\": \"ŞubeAdı\", \"subeadres\": \"Adres\", \"subetel\": \"Telefon\", \"subemail\": \"Email\"}"
-    }
-  ]
+  "NeedsMoreInfo": false,
+  "Message": "If NeedsMoreInfo is true, ask your clarification question here (in the user's language). If false, provide a brief success message.",
+  "Configuration": {
+    "ApiConfigs": [
+      {
+        "ModuleName": "{{{{module.Name}}}}",
+        "Name": "Config Name",
+        "Url": "https://api.example.com/v1/{{FieldName}}",
+        "Method": "GET|POST|PUT|DELETE",
+        "HeadersJson": "{\"Authorization\": \"Bearer ...\", \"Content-Type\": \"application/json\"}",
+        "RequestBodyTemplate": "{\"id\": {{Id}}, \"action\": \"verify\"}",
+        "ResponseMappingsJson": "{\"__root__\": \"data\", \"subead\": \"ŞubeAdı\", \"subeadres\": \"Adres\", \"subetel\": \"Telefon\", \"subemail\": \"Email\"}"
+      }
+    ]
+  }
 }
 
 Rules:
@@ -343,23 +385,42 @@ Rules:
 6. Try to avoid duplicating existing API configurations unless asked to modify them.
 7. Choose the most appropriate HTTP method for the integration type.
 8. Provide realistic, production-ready configurations based on common API patterns.
+9. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
 
 MODULE STRUCTURE:
 {{{{currentConfigJson}}}}
 
 IMPORTANT:
 - Return ONLY the JSON for the NEW API configuration(s).
-- If the user's request is vague, generate a sensible API integration configuration based on the module's fields and purpose.
+- If the user's request is vague, generate a sensible API integration configuration based on the module's fields and purpose, OR ask for clarification if strictly necessary.
 - Generate only ONE ApiConfig entry unless the user explicitly asks for multiple.
 """;
 
-        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+        var chatHistory = new StringBuilder();
+        if (history != null && history.Any())
+        {
+            chatHistory.AppendLine("CHAT HISTORY:");
+            foreach (var msg in history)
+            {
+                chatHistory.AppendLine($"{msg.Role.ToUpper()}: {msg.Content}");
+            }
+            chatHistory.AppendLine();
+        }
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"{chatHistory}User Request: {userPrompt}");
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+        try 
+        {
+            return JsonSerializer.Deserialize<AiGenerationResponseDto>(generatedText, options) ?? new AiGenerationResponseDto { NeedsMoreInfo = true, Message = "Failed to deserialize response" };
+        }
+        catch (JsonException ex)
+        {
+             throw new InvalidOperationException($"Failed to parse AI response as JSON. Response: {generatedText}", ex);
+        }
     }
 
-    public async Task<AiSystemConfigDto> GenerateScriptConfigAsync(int moduleId, string userPrompt)
+    public async Task<AiGenerationResponseDto> GenerateScriptConfigAsync(int moduleId, string userPrompt, List<AiChatMessageDto> history)
     {
         var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
         if (string.IsNullOrEmpty(apiKey))
@@ -411,14 +472,18 @@ The output MUST be a valid JSON object matching the following structure exactly.
 
 Structure:
 {
-  "Scripts": [
-    {
-      "ModuleName": "{{{{module.Name}}}}",
-      "TriggerType": "BeforeCreate|AfterCreate|BeforeUpdate|AfterUpdate|BeforeDelete|AfterDelete|CustomList",
-      "ScriptContent": "// JS code. Available: Db, Data, User, Fail(msg), Log(msg)",
-      "IsActive": true
-    }
-  ]
+  "NeedsMoreInfo": false,
+  "Message": "If NeedsMoreInfo is true, ask your clarification question here (in the user's language). If false, provide a brief success message.",
+  "Configuration": {
+    "Scripts": [
+      {
+        "ModuleName": "{{{{module.Name}}}}",
+        "TriggerType": "BeforeCreate|AfterCreate|BeforeUpdate|AfterUpdate|BeforeDelete|AfterDelete|CustomList",
+        "ScriptContent": "// JS code. Available: Db, Data, User, Fail(msg), Log(msg)",
+        "IsActive": true
+      }
+    ]
+  }
 }
 
 Scripting Context:
@@ -442,19 +507,38 @@ Rules:
 4. Try to avoid duplicating existing scripts unless asked to modify them.
 5. Provide clean, well-commented, and robust JavaScript code.
 6. Generate only ONE Script entry unless the user explicitly asks for multiple.
+7. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
 
 MODULE STRUCTURE & EXISTING SCRIPTS:
 {{{{currentConfigJson}}}}
 
 IMPORTANT:
 - Return ONLY the JSON for the NEW script configuration.
-- If the user's request is vague, generate a sensible script based on the module's fields (e.g., a basic validation or a 'Created At' timestamp setter).
+- If the user's request is vague, ask for clarification.
 """;
 
-        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+        var chatHistory = new StringBuilder();
+        if (history != null && history.Any())
+        {
+            chatHistory.AppendLine("CHAT HISTORY:");
+            foreach (var msg in history)
+            {
+                chatHistory.AppendLine($"{msg.Role.ToUpper()}: {msg.Content}");
+            }
+            chatHistory.AppendLine();
+        }
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"{chatHistory}User Request: {userPrompt}");
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        return JsonSerializer.Deserialize<AiSystemConfigDto>(generatedText, options) ?? new AiSystemConfigDto();
+        try 
+        {
+            return JsonSerializer.Deserialize<AiGenerationResponseDto>(generatedText, options) ?? new AiGenerationResponseDto { NeedsMoreInfo = true, Message = "Failed to deserialize response" };
+        }
+        catch (JsonException ex)
+        {
+             throw new InvalidOperationException($"Failed to parse AI response as JSON. Response: {generatedText}", ex);
+        }
     }
 
     /// <summary>

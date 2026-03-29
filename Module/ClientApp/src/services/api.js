@@ -304,23 +304,23 @@ export const getReportData = async (moduleId, reportId) => {
 };
 
 // AI Setup API
-export const generateAiConfig = async (prompt) => {
-  const response = await api.post('/ai-setup/generate', { prompt });
+export const generateAiConfig = async (prompt, history = []) => {
+  const response = await api.post('/ai-setup/generate', { prompt, history });
   return response.data;
 };
 
-export const generateAiReportConfig = async (moduleId, prompt) => {
-  const response = await api.post(`/ai-setup/generate-report/${moduleId}`, { prompt });
+export const generateAiReportConfig = async (moduleId, prompt, history = []) => {
+  const response = await api.post(`/ai-setup/generate-report/${moduleId}`, { prompt, history });
   return response.data;
 };
 
-export const generateAiApiConfig = async (moduleId, prompt) => {
-  const response = await api.post(`/ai-setup/generate-api-config/${moduleId}`, { prompt });
+export const generateAiApiConfig = async (moduleId, prompt, history = []) => {
+  const response = await api.post(`/ai-setup/generate-api-config/${moduleId}`, { prompt, history });
   return response.data;
 };
 
-export const generateAiScriptConfig = async (moduleId, prompt) => {
-  const response = await api.post(`/ai-setup/generate-script/${moduleId}`, { prompt });
+export const generateAiScriptConfig = async (moduleId, prompt, history = []) => {
+  const response = await api.post(`/ai-setup/generate-script/${moduleId}`, { prompt, history });
   return response.data;
 };
 

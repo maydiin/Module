@@ -314,7 +314,11 @@ const resources = {
             "related_data": "Related Data",
             "no_primary_fields": "No primary fields to display.",
             "edit": "Edit",
-            "delete": "Delete"
+            "delete": "Delete",
+            "execute": "Execute",
+            "sync_started": "Synchronization started...",
+            "sync_success": "Synchronization completed successfully: {{message}}",
+            "sync_failed": "Synchronization failed: {{error}}"
         }
     },
     tr: {
@@ -628,7 +632,11 @@ const resources = {
             "related_data": "İlgili Veriler",
             "no_primary_fields": "Görüntülenecek temel alan yok.",
             "edit": "Düzenle",
-            "delete": "Sil"
+            "delete": "Sil",
+            "execute": "Çalıştır",
+            "sync_started": "Senkronizasyon başlatıldı...",
+            "sync_success": "Senkronizasyon başarıyla tamamlandı: {{message}}",
+            "sync_failed": "Senkronizasyon başarısız oldu: {{error}}"
         }
     }
 };

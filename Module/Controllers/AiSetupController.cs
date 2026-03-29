@@ -32,8 +32,8 @@ public class AiSetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return BadRequest("Prompt is required.");
 
-        var config = await _aiGenerationService.GenerateConfigAsync(request.Prompt);
-        return Ok(config);
+        var response = await _aiGenerationService.GenerateConfigAsync(request.Prompt, request.History);
+        return Ok(response);
     }
 
     [HttpPost("generate-report/{moduleId}")]
@@ -42,8 +42,8 @@ public class AiSetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return BadRequest("Prompt is required.");
 
-        var config = await _aiGenerationService.GenerateReportConfigAsync(moduleId, request.Prompt);
-        return Ok(config);
+        var response = await _aiGenerationService.GenerateReportConfigAsync(moduleId, request.Prompt, request.History);
+        return Ok(response);
     }
 
     [HttpPost("generate-api-config/{moduleId}")]
@@ -52,8 +52,8 @@ public class AiSetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return BadRequest("Prompt is required.");
 
-        var config = await _aiGenerationService.GenerateApiConfigAsync(moduleId, request.Prompt);
-        return Ok(config);
+        var response = await _aiGenerationService.GenerateApiConfigAsync(moduleId, request.Prompt, request.History);
+        return Ok(response);
     }
 
     [HttpPost("generate-script/{moduleId}")]
@@ -62,8 +62,8 @@ public class AiSetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return BadRequest("Prompt is required.");
 
-        var config = await _aiGenerationService.GenerateScriptConfigAsync(moduleId, request.Prompt);
-        return Ok(config);
+        var response = await _aiGenerationService.GenerateScriptConfigAsync(moduleId, request.Prompt, request.History);
+        return Ok(response);
     }
 }
 

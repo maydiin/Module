@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getReports, createReport, updateReport, deleteReport, getModule, generateAiReportConfig } from '../services/api';
+import AiChatModal from '../components/AiChatModal';
 
 const ModuleReportsPage = () => {
     const { t } = useTranslation();
@@ -188,56 +189,33 @@ const ModuleReportsPage = () => {
             </div>
 
             {/* AI Generation Modal */}
-            {showAiModal && (
-                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content shadow-lg border-0">
-                            <div className="modal-header border-bottom-0">
-                                <h5 className="modal-title fw-bold">✨ AI {t('report_architect')}</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowAiModal(false)}></button>
-                            </div>
-                            <div className="modal-body p-4">
-                                <p className="text-muted small mb-3">
-                                    {t('ai_report_prompt_desc')}
-                                </p>
-                                <textarea
-                                    className="form-control"
-                                    rows="4"
-                                    placeholder={t('ai_report_prompt_placeholder')}
-                                    value={aiPrompt}
-                                    onChange={(e) => setAiPrompt(e.target.value)}
-                                    disabled={aiLoading}
-                                />
-                            </div>
-                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
-                                <button
-                                    type="button"
-                                    className="btn btn-light"
-                                    onClick={() => setShowAiModal(false)}
-                                    disabled={aiLoading}
-                                >
-                                    {t('cancel')}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-info text-white px-4"
-                                    onClick={handleAiGenerate}
-                                    disabled={aiLoading || !aiPrompt.trim()}
-                                >
-                                    {aiLoading ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-2"></span>
-                                            {t('generating')}...
-                                        </>
-                                    ) : (
-                                        t('generate_report')
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* AI Generation Modal */}
+            <AiChatModal
+                show={showAiModal}
+                onClose={() => setShowAiModal(false)}
+                generateAi={(prompt, history) => generateAiReportConfig(moduleId, prompt, history)}
+                onApply={(config) => {
+                    const reportsList = config.Reports || config.reports;
+                    if (reportsList && reportsList.length > 0) {
+                        const generatedReport = reportsList[0];
+                        setEditingReport(null);
+                        setFormData({
+                            name: generatedReport.Name || generatedReport.name || '',
+                            type: generatedReport.Type || generatedReport.type || 'List',
+                            configuration: typeof (generatedReport.Configuration || generatedReport.configuration) === 'string'
+                                ? (generatedReport.Configuration || generatedReport.configuration)
+                                : JSON.stringify((generatedReport.Configuration || generatedReport.configuration), null, 2),
+                            isActive: true
+                        });
+                        setShowAiModal(false);
+                        setShowModal(true);
+                    } else {
+                        alert(t('ai_generated_no_reports'));
+                    }
+                }}
+                title={`✨ AI ${t('report_architect')}`}
+                placeholder={t('ai_report_prompt_placeholder')}
+            />
 
             {/* Content */}
             {reports.length === 0 ? (

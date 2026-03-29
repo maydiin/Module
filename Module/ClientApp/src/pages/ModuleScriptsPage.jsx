@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getScripts, createScript, updateScript, deleteScript, getModule, generateAiScriptConfig } from '../services/api';
+import AiChatModal from '../components/AiChatModal';
 
 const ModuleScriptsPage = () => {
     const { t } = useTranslation();
@@ -256,56 +257,29 @@ const ModuleScriptsPage = () => {
             )}
 
             {/* AI Generation Modal */}
-            {showAiModal && (
-                <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content shadow-lg border-0">
-                            <div className="modal-header border-bottom-0">
-                                <h5 className="modal-title fw-bold">{t('ai_script_title')}</h5>
-                                <button type="button" className="btn-close" onClick={() => setShowAiModal(false)}></button>
-                            </div>
-                            <div className="modal-body p-4">
-                                <p className="text-muted small mb-3">
-                                    {t('ai_script_prompt_desc')}
-                                </p>
-                                <textarea
-                                    className="form-control"
-                                    rows="4"
-                                    placeholder={t('ai_script_prompt_placeholder')}
-                                    value={aiPrompt}
-                                    onChange={(e) => setAiPrompt(e.target.value)}
-                                    disabled={aiLoading}
-                                />
-                            </div>
-                            <div className="modal-footer border-top-0 pt-0 pb-4 px-4">
-                                <button
-                                    type="button"
-                                    className="btn btn-light"
-                                    onClick={() => setShowAiModal(false)}
-                                    disabled={aiLoading}
-                                >
-                                    {t('cancel')}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-primary px-4"
-                                    onClick={handleAiGenerate}
-                                    disabled={aiLoading || !aiPrompt.trim()}
-                                >
-                                    {aiLoading ? (
-                                        <>
-                                            <span className="spinner-border spinner-border-sm me-2"></span>
-                                            {t('ai_script_generating')}
-                                        </>
-                                    ) : (
-                                        t('ai_script_generate')
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AiChatModal
+                show={showAiModal}
+                onClose={() => setShowAiModal(false)}
+                generateAi={(prompt, history) => generateAiScriptConfig(moduleId, prompt, history)}
+                onApply={(config) => {
+                    const scriptsList = config.Scripts || config.scripts;
+                    if (scriptsList && scriptsList.length > 0) {
+                        const generated = scriptsList[0];
+                        setFormData({
+                            triggerType: generated.TriggerType || generated.triggerType || 'BeforeCreate',
+                            scriptContent: generated.ScriptContent || generated.scriptContent || '',
+                            isActive: generated.IsActive !== undefined ? generated.IsActive : (generated.isActive !== undefined ? generated.isActive : true)
+                        });
+                        setShowAiModal(false);
+                        setEditingScript(null);
+                        setShowModal(true);
+                    } else {
+                        alert(t('ai_script_no_result'));
+                    }
+                }}
+                title={t('ai_script_title')}
+                placeholder={t('ai_script_prompt_placeholder')}
+            />
 
             {/* Modal */}
             {showModal && (
