@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getRoles, getAllPermissions, addPermissionToRole, removePermissionFromRole, createRole, updateRole, deleteRole, refreshToken } from '../services/api';
 import { useTenant } from '../components/TenantContext';
 import Icon from '../components/Icon';
 
 function RolesPage() {
+    const { t } = useTranslation();
     const [roles, setRoles] = useState([]);
     const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ function RolesPage() {
     };
 
     const handleDeleteRole = async (roleId) => {
-        if (!window.confirm('Bu rolü silmek istediğinize emin misiniz?')) return;
+        if (!window.confirm(t('confirm_delete_role'))) return;
         try {
             await deleteRole(roleId);
             loadData();
@@ -111,10 +113,10 @@ function RolesPage() {
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="display-5 fw-bold mb-0 text-gradient d-flex align-items-center gap-3">
                     <Icon name="settings" size={40} className="icon-theme" />
-                    {t('role_permission_management', 'Rol ve İzin Yönetimi')}
+                    {t('role_permission_management')}
                 </h1>
                 <button className="btn btn-primary px-4 shadow-premium hover-lift" onClick={() => handleOpenModal()}>
-                    <Icon name="plus" size={20} className="me-2" /> {t('add_new_role', 'Yeni Rol Ekle')}
+                    <Icon name="plus" size={20} className="me-2" /> {t('add_new_role')}
                 </button>
             </div>
 
@@ -131,16 +133,16 @@ function RolesPage() {
                                 </div>
                                 <div className="btn-group">
                                     <button className="btn btn-sm btn-blur d-flex align-items-center gap-1" onClick={() => handleOpenModal(role)}>
-                                        <Icon name="edit" size={14} /> {t('edit', 'Düzenle')}
+                                        <Icon name="edit" size={14} /> {t('edit')}
                                     </button>
                                     <button className="btn btn-sm btn-light text-danger bg-transparent d-flex align-items-center gap-1" onClick={() => handleDeleteRole(role.id)}>
-                                        <Icon name="delete" size={14} /> {t('delete', 'Sil')}
+                                        <Icon name="delete" size={14} /> {t('delete')}
                                     </button>
                                 </div>
                             </div>
                             <div className="card-body">
                                 <div className="mb-3">
-                                    <label className="form-label fw-bold">İzinler</label>
+                                    <label className="form-label fw-bold">{t('permissions')}</label>
                                     <div className="d-flex flex-wrap gap-1">
                                         {role.permissions.map(perm => (
                                             <span key={perm} className="badge badge-outline-theme d-flex align-items-center gap-1">
@@ -158,7 +160,7 @@ function RolesPage() {
                                 </div>
                                 <div className="dropdown">
                                     <button className="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill px-3" data-bs-toggle="dropdown">
-                                        <Icon name="plus" size={14} className="me-1" /> {t('add_permission', 'İzin Ekle')}
+                                        <Icon name="plus" size={14} className="me-1" /> {t('add_permission')}
                                     </button>
                                     <ul className="dropdown-menu glass border-0 shadow-lg">
                                         {permissions.filter(p => !role.permissions.includes(p)).map(perm => (
@@ -184,14 +186,14 @@ function RolesPage() {
                             <div className="modal-header modal-header-premium border-0">
                                 <h5 className="modal-title fw-extrabold text-gradient d-flex align-items-center gap-2">
                                     <Icon name={editingRole ? "edit" : "plus"} size={24} />
-                                    {editingRole ? t('edit_role', 'Rolü Düzenle') : t('add_new_role', 'Yeni Rol Ekle')}
+                                    {editingRole ? t('edit_role') : t('add_new_role')}
                                 </h5>
                                 <button type="button" className="btn-close btn-close-premium" onClick={handleCloseModal}></button>
                             </div>
                             <form onSubmit={handleSaveRole}>
                                 <div className="modal-body modal-body-premium" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
                                     <div className="mb-4">
-                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">Rol Adı</label>
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('role_name')}</label>
                                         <input
                                             type="text"
                                             className="form-control form-control-lg border-2"
@@ -201,7 +203,7 @@ function RolesPage() {
                                         />
                                     </div>
                                     <div className="mb-0">
-                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">Açıklama</label>
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted">{t('description')}</label>
                                         <textarea
                                             className="form-control border-2"
                                             value={formData.description}
@@ -212,8 +214,8 @@ function RolesPage() {
                                     </div>
                                 </div>
                                 <div className="modal-footer modal-footer-premium border-0">
-                                    <button type="button" className="btn btn-blur px-4" onClick={handleCloseModal}>İptal</button>
-                                    <button type="submit" className="btn btn-primary px-5 shadow-md">Kaydet</button>
+                                    <button type="button" className="btn btn-blur px-4" onClick={handleCloseModal}>{t('cancel')}</button>
+                                    <button type="submit" className="btn btn-primary px-5 shadow-md">{t('save_role')}</button>
                                 </div>
                             </form>
                         </div>
