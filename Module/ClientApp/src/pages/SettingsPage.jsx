@@ -170,42 +170,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        {/* Sidebar for future settings info */}
-        <div className="col-12 col-xl-12 mt-4">
-          <div className="glass-card p-5 bg-opacity-10">
-            <h4 className="mb-4">{t('upcoming_features', 'Yakında Gelecekler')}</h4>
-            <div className="row g-4">
-              <div className="col-md-4">
-                <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
-                  <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
-                    <Icon name="type" size={20} color="white" />
-                  </div>
-                  <div>
-                    <div className="fw-bold small">Yazı Tipi</div>
-                    <div className="text-muted extra-small">Özel font seçenekleri (Planlanıyor)</div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
-                  <div className="bg-secondary p-2 rounded-3 text-white d-flex align-items-center justify-content-center">
-                    <Icon name="bell" size={20} color="white" />
-                  </div>
-                  <div>
-                    <div className="fw-bold small">Bildirimler</div>
-                    <div className="text-muted extra-small">Sistem bildirim tercihleri</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-
-      <style>{`
-        .extra-small { font-size: 0.75rem; }
-        .grayscale { filter: grayscale(1); }
-      `}</style>
     </div>
   );
 }
