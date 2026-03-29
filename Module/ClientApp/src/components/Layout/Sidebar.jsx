@@ -63,21 +63,35 @@ function Sidebar({ isOpen = true, className = '' }) {
 
     return (
         <div
-            className={`bg-white border-end shadow-sm transition-all ${className}`}
+            className={`transition-all ${className}`}
             style={{
-                width: isOpen ? '280px' : '0px',
+                width: isOpen ? '300px' : '0px',
                 minHeight: '100%',
-                overflowY: isOpen ? 'auto' : 'hidden',
-                overflowX: 'hidden'
+                overflow: 'hidden',
+                zIndex: 1010,
+                padding: isOpen ? '1rem' : '0',
+                pointerEvents: isOpen ? 'all' : 'none'
             }}
         >
-            <div style={{ width: '280px', opacity: isOpen ? 1 : 0, transition: 'opacity 0.2s', visibility: isOpen ? 'visible' : 'hidden' }}>
-                <div className="p-3">
-                    <h6 className="text-uppercase text-muted fw-bold mb-3 small tracking-wider">{t('modules_title')}</h6>
+            <div 
+                className="glass-card h-100 overflow-auto border-0" 
+                style={{ 
+                    opacity: isOpen ? 1 : 0, 
+                    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                    visibility: isOpen ? 'visible' : 'hidden',
+                    borderRadius: '24px'
+                }}
+            >
+                <div className="py-4 px-3" style={{ width: '268px' }}>
+                    <div className="mb-4 ps-2">
+                        <h6 className="text-uppercase text-muted fw-bold small tracking-wider opacity-60" style={{ fontSize: '0.65rem' }}>
+                            {t('modules_title')}
+                        </h6>
+                    </div>
                     {visibleModules.length === 0 ? (
-                        <p className="text-muted small">{t('empty_workspace_desc')}</p>
+                        <p className="text-muted small ps-2">{t('empty_workspace_desc')}</p>
                     ) : (
-                        <ul className="list-unstyled mb-0">
+                        <ul className="list-unstyled mb-0 stagger-in">
                             {visibleModules.map(module => {
                                 const isExpanded = expandedModule === module.id;
 
@@ -88,29 +102,35 @@ function Sidebar({ isOpen = true, className = '' }) {
                                 const canScript = isSuperAdmin || userPermissions.includes(`Module.${module.name}.Script`);
 
                                 return (
-                                    <li key={module.id} className="mb-1">
+                                    <li key={module.id} className="mb-2">
                                         <button
-                                            className={`btn btn-toggle d-flex align-items-center rounded border-0 w-100 text-start px-2 py-2 fw-medium ${isExpanded ? 'bg-light text-primary' : 'hover-bg-accent text-dark'}`}
+                                            className={`btn border-0 w-100 text-start px-3 py-2 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'bg-primary text-white shadow-md' : 'text-secondary bg-white bg-opacity-20 hover-bg-light'}`}
                                             onClick={() => toggleModule(module.id)}
                                             aria-expanded={isExpanded}
+                                            style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
                                         >
-                                            <span className="me-2 opacity-75">📁</span>
-                                            <span className="flex-grow-1 text-truncate">{module.name}</span>
-                                            <span className="ms-auto opacity-50 small">
+                                            <div className="d-flex align-items-center flex-grow-1 overflow-hidden">
+                                                <span className={`me-3 fs-5 transition-all ${isExpanded ? 'scale-110' : 'opacity-70'}`}>
+                                                    {isExpanded ? '📂' : '📁'}
+                                                </span>
+                                                <span className="text-truncate" style={{ fontSize: '0.925rem' }}>{module.name}</span>
+                                            </div>
+                                            <span className={`ms-auto transition-all ${isExpanded ? 'rotate-90' : ''}`} style={{ fontSize: '0.6rem', opacity: isExpanded ? 0.8 : 0.3 }}>
                                                 {isExpanded ? '▼' : '▶'}
                                             </span>
                                         </button>
 
                                         {isExpanded && (
-                                            <div className="collapse show">
-                                                <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4 mt-1">
+                                            <div className="mt-2 ms-2 ps-3 border-start border-primary border-opacity-20 fade-in">
+                                                <ul className="list-unstyled fw-normal pb-1 small mt-1">
                                                     {canView && (
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/records`}
-                                                                className={({ isActive }) => `text-decoration-none d-block py-1 px-2 rounded ${isActive ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'text-body hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
                                                             >
-                                                                📋 {t('records')}
+                                                                <span className="me-2" style={{ width: '20px' }}>📋</span>
+                                                                {t('records')}
                                                             </NavLink>
                                                         </li>
                                                     )}
@@ -118,9 +138,10 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/fields`}
-                                                                className={({ isActive }) => `text-decoration-none d-block py-1 px-2 rounded ${isActive ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'text-body hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
                                                             >
-                                                                ⚙️ {t('fields')}
+                                                                <span className="me-2" style={{ width: '20px' }}>⚙️</span>
+                                                                {t('fields')}
                                                             </NavLink>
                                                         </li>
                                                     )}
@@ -128,9 +149,10 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/api-configs`}
-                                                                className={({ isActive }) => `text-decoration-none d-block py-1 px-2 rounded ${isActive ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'text-body hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
                                                             >
-                                                                🔌 API
+                                                                <span className="me-2" style={{ width: '20px' }}>🔌</span>
+                                                                API
                                                             </NavLink>
                                                         </li>
                                                     )}
@@ -138,9 +160,10 @@ function Sidebar({ isOpen = true, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/scripts`}
-                                                                className={({ isActive }) => `text-decoration-none d-block py-1 px-2 rounded ${isActive ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'text-body hover-bg-light'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'bg-primary text-white shadow-sm fw-bold scale-105' : 'text-secondary hover-bg-light'}`}
                                                             >
-                                                                📜 Scripts
+                                                                <span className="me-2" style={{ width: '20px' }}>📜</span>
+                                                                Scripts
                                                             </NavLink>
                                                         </li>
                                                     )}

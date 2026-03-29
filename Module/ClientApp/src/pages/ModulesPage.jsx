@@ -166,59 +166,58 @@ function ModulesPage() {
 
   return (
     <div className="fade-in">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-        <div>
-          <h1 className="display-5 mb-1">{t('modules_title')}</h1>
-          <p className="text-muted lead mb-0">{t('modules_subtitle')}</p>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 fade-in">
+        <div className="d-flex align-items-center">
+          <div className="bg-primary bg-opacity-10 text-primary rounded-4 p-3 me-4 shadow-sm">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 className="display-5 mb-1 fw-800">
+              <span className="text-gradient">
+                {t('modules')}
+              </span>
+            </h1>
+            <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('manage_blueprints_desc')}</p>
+          </div>
         </div>
-
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-3 flex-wrap">
           <button
-            className="btn btn-outline-primary btn-lg px-4 shadow-sm"
+            className="btn btn-secondary bg-white bg-opacity-50 text-dark border-0 shadow-premium hover-lift px-4"
             onClick={() => setShowAiModal(true)}
+            style={{ backdropFilter: 'blur(10px)' }}
           >
-            {t('ai_architect_btn')}
+            <span className="me-2">✨</span> {t('ai_architect') || 'AI Architect'}
           </button>
-
-
-
-          {/* Dynamic creation button usually requires high-level manage permission */}
-          {isSuperAdmin || hasPermission('Schema.Manage') || userPermissions.some(p => p.endsWith('.Manage')) ? (
-            <button
-              className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
-              onClick={() => {
-                if (showForm) resetForm();
-                else setShowForm(true);
-              }}
-            >
-              {showForm ? (
-                <>
-                  <span className="fs-5">✕</span> {t('cancel')}
-                </>
-              ) : (
-                <>
-                  <span className="fs-5">+</span> {t('create_module')}
-                </>
-              )}
-            </button>
-          ) : null}
+          <button
+            className="btn btn-primary px-4 shadow-premium hover-lift"
+            onClick={() => {
+              setEditingModuleId(null);
+              setModuleName('');
+              setShowForm(true);
+            }}
+            disabled={showForm}
+          >
+            <span className="me-2 fs-5">+</span> {t('new_module')}
+          </button>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-danger glass border-danger border-opacity-25 shadow-sm mb-4" role="alert">
+        <div className="alert alert-danger glass border-danger border-opacity-25 shadow-premium mb-4" role="alert">
           {error}
         </div>
       )}
 
       {showForm && (
-        <div className="card shadow-lg border-0 mb-5 overflow-hidden">
-          <div className="card-header bg-primary py-3">
-            <h5 className="card-title mb-0 text-white">
+        <div className="card shadow-premium border-0 mb-5 overflow-hidden fade-in">
+          <div className="card-header bg-gradient-to-r from-primary to-secondary py-3 border-0">
+            <h5 className="card-title mb-0 text-white fw-bold">
               {editingModuleId ? t('edit_module') : t('new_module_blueprint')}
             </h5>
           </div>
-          <div className="card-body p-4">
+          <div className="card-body p-4 p-lg-5">
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label htmlFor="moduleName" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
@@ -295,97 +294,107 @@ function ModulesPage() {
         </div>
       )}
 
-      {visibleModules.length === 0 ? (
-        <div className="text-center py-5 glass rounded-4 border-dashed border-2">
-          <div className="fs-1 mb-3 opacity-50">📁</div>
-          <h3 className="h4">{t('empty_workspace_title')}</h3>
-          <p className="text-muted">{t('empty_workspace_desc')}</p>
+      {modules.length === 0 ? (
+        <div className="text-center py-5 glass-card border-0 stagger-in">
+          <div className="display-1 mb-4 opacity-10">🧩</div>
+          <h3 className="text-muted fw-bold">{t('no_modules_yet')}</h3>
+          <p className="text-muted mb-4">{t('start_by_creating')}</p>
+          <button
+            className="btn btn-primary px-5 shadow-lg"
+            onClick={() => setShowForm(true)}
+          >
+            {t('create_first_blueprint')}
+          </button>
         </div>
       ) : (
-        <div className="row g-4">
-          <div className="col-12">
-              <div className="d-flex flex-column gap-3">
-                {summaries.map((summary) => {
-                  const isCollapsed = collapsedModules.includes(summary.moduleId);
-                  const displayCols = summary.fields.filter(f => f.isDisplayField).length > 0
-                    ? summary.fields.filter(f => f.isDisplayField)
-                    : summary.fields.slice(0, 3);
+        <div className="d-flex flex-column gap-4 stagger-in">
+          {summaries.map((summary) => {
+            const isCollapsed = collapsedModules.includes(summary.moduleId);
+            const displayCols = summary.fields.filter(f => f.isDisplayField).length > 0
+              ? summary.fields.filter(f => f.isDisplayField)
+              : summary.fields.slice(0, 3);
 
-                  return (
-                    <div key={summary.moduleId} className="card border-0 shadow-sm overflow-hidden">
-                      <div
-                        className="card-header bg-white py-2 d-flex justify-content-between align-items-center cursor-pointer"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => toggleModuleCollapse(summary.moduleId)}
-                      >
-                        <div className="d-flex align-items-center">
-                          <div className="bg-primary bg-opacity-10 text-primary rounded-2 p-1 me-2">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                          </div>
-                          <h6 className="mb-0 fw-bold">{summary.moduleName}</h6>
-                        </div>
-                        <div className="d-flex align-items-center gap-2">
-                          <button
-                            className="btn btn-sm btn-link text-primary text-decoration-none py-0 px-2 fw-bold"
-                            style={{ fontSize: '0.8rem' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/modules/${summary.moduleId}/records`);
-                            }}
-                          >
-                            {t('view_all')}
-                          </button>
-                          <span className={`transform-transition ${isCollapsed ? '' : 'rotate-180'} d-flex`}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                          </span>
-                        </div>
-                      </div>
-                      {!isCollapsed && (
-                        <div className="card-body p-0 border-top">
-                          {summary.latestRecords.length === 0 ? (
-                            <div className="p-3 text-center text-muted small">
-                              {t('no_records_found')}
-                            </div>
-                          ) : (
-                            <div className="table-responsive">
-                              <table className="table table-hover align-middle mb-0 table-sm">
-                                <thead className="table-light">
-                                  <tr>
-                                    {displayCols.map(col => (
-                                      <th key={col.id} className="px-3 py-2 x-small fw-bold text-uppercase text-muted" style={{ fontSize: '0.65rem' }}>{col.label || col.name}</th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {summary.latestRecords.map(record => (
-                                    <tr key={record.id} className="cursor-pointer" onClick={() => navigate(`/modules/${summary.moduleId}/records`)}>
-                                      {displayCols.map(col => (
-                                        <td key={col.id} className="px-3 py-1 small text-truncate" style={{ maxWidth: '200px' }}>
-                                          {record.data[col.name] !== undefined ? String(record.data[col.name]) : '-'}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-                        </div>
-                      )}
+            return (
+              <div key={summary.moduleId} className="glass-card border-0 overflow-hidden">
+                <div
+                  className="card-header bg-white bg-opacity-30 py-4 px-4 d-flex justify-content-between align-items-center transition-all hover-bg-light"
+                  style={{ cursor: 'pointer', border: 'none' }}
+                  onClick={() => toggleModuleCollapse(summary.moduleId)}
+                >
+                  <div className="d-flex align-items-center">
+                    <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                      </svg>
                     </div>
-                  );
-                })}
+                    <div>
+                      <h4 className="mb-0 fw-800 fs-5">{summary.moduleName}</h4>
+                      <span className="text-muted fw-bold opacity-60" style={{ fontSize: '0.75rem', letterSpacing: '0.02em' }}>
+                        {summary.latestRecords.length} {t('entries') || 'Kayıt'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center gap-3">
+                    <button
+                      className="btn btn-primary btn-sm rounded-pill px-4 shadow-md transition-all hover-lift fw-bold"
+                      style={{ fontSize: '0.8rem' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/modules/${summary.moduleId}/records`);
+                      }}
+                    >
+                      {t('open_module') || 'Modülü Aç'}
+                    </button>
+                    <span className={`transition-all ${isCollapsed ? '' : 'rotate-180'} d-flex opacity-50`}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+                {!isCollapsed && (
+                  <div className="card-body p-0 border-top border-white border-opacity-20 fade-in">
+                    {summary.latestRecords.length === 0 ? (
+                      <div className="p-5 text-center text-muted small fw-medium">
+                        <div className="fs-2 mb-2 opacity-10">📄</div>
+                        {t('no_records_found')}
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="table table-hover align-middle mb-0">
+                          <thead>
+                            <tr>
+                              {displayCols.map(col => (
+                                <th key={col.id} className="px-4 py-3">{col.label || col.name}</th>
+                              ))}
+                              <th className="px-4 py-3 text-end" style={{ width: '100px' }}>{t('actions')}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {summary.latestRecords.map(record => (
+                              <tr key={record.id} className="cursor-pointer" onClick={() => navigate(`/modules/${summary.moduleId}/records/${record.id}`)}>
+                                {displayCols.map(col => (
+                                  <td key={col.id} className="px-4 py-3 text-truncate fw-medium" style={{ maxWidth: '250px' }}>
+                                    {record.data[col.name] !== undefined ? String(record.data[col.name]) : <span className="opacity-25">-</span>}
+                                  </td>
+                                ))}
+                                <td className="px-4 py-3 text-end">
+                                  <span className="text-primary fw-bold small">Detay →</span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-        </div >
-      )
-      }
+            );
+          })}
+        </div>
+      )}
 
-      {/* AI Modal */}
       {/* AI Modal */}
       <AiChatModal
         show={showAiModal}

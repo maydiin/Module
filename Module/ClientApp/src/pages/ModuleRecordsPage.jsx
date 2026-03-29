@@ -347,43 +347,45 @@ function ModuleRecordsPage() {
   return (
     <div className="fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-        <div>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 fade-in">
+        <div className="d-flex align-items-center">
           <button
-            className="btn btn-link mb-2 p-0 text-decoration-none text-primary d-flex align-items-center gap-2"
+            className="btn btn-light bg-white bg-opacity-50 border-0 me-3 shadow-sm hover-shift-left transition-all p-3 d-none d-md-flex align-items-center justify-content-center"
             onClick={() => navigate('/')}
+            style={{ borderRadius: '18px', width: '56px', height: '56px' }}
           >
-            <span>←</span> {t('back_to_dashboard')}
+            <span className="fs-4">←</span>
           </button>
-          <h1 className="display-6 mb-1">
-            <span className="opacity-50 me-2">📋</span>
-            {module.name} {t('records_title')}
-          </h1>
-          <p className="text-muted mb-0">{t('records_subtitle')}</p>
+          <div>
+            <h1 className="display-5 mb-1 fw-800">
+              <span className="text-gradient">
+                {module.name}
+              </span>
+              <span className="opacity-40 ms-3 fw-400" style={{ fontSize: '0.8em' }}>{t('records_title')}</span>
+            </h1>
+            <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('records_subtitle')}</p>
+          </div>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap">
           <button
-            className="btn btn-outline-secondary border-2 px-4 shadow-sm"
+            className="btn btn-secondary bg-white bg-opacity-50 border-0 px-4 shadow-premium hover-lift text-dark fw-bold"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
+            style={{ backdropFilter: 'blur(10px)' }}
           >
-            ⚙️ {t('schema')}
+            <span className="me-2">⚙️</span> {t('schema')}
           </button>
           <button
-            className="btn btn-outline-info border-2 px-4 shadow-sm"
-            onClick={() => navigate(`/modules/${moduleId}/reports`)}
-          >
-            📊 {t('reports')}
-          </button>
-          <button
-            className="btn btn-primary px-4 shadow-sm"
+            className="btn btn-primary px-4 shadow-premium hover-lift fw-bold"
             onClick={() => {
               setEditingRecord(null);
               setShowForm(true);
             }}
             disabled={showForm}
           >
-            <span>+</span> {t('new_entry')}
+            <span className="me-2 fs-5">+</span> {t('new_entry')}
           </button>
         </div>
+      </div>
       </div>
 
       {error && (
@@ -393,9 +395,9 @@ function ModuleRecordsPage() {
       )}
 
       {showForm && (
-        <div className="card shadow-lg border-0 mb-5 overflow-hidden">
-          <div className={`card-header py-3 ${editingRecord ? 'bg-warning' : 'bg-primary'}`}>
-            <h5 className="card-title mb-0 text-white">
+        <div className="card shadow-premium border-0 mb-5 overflow-hidden fade-in">
+          <div className={`card-header py-3 border-0 bg-gradient-to-r ${editingRecord ? 'from-warning to-orange-400' : 'from-primary to-secondary'}`}>
+            <h5 className="card-title mb-0 text-white fw-bold">
               {editingRecord ? `✏️ ${t('update_existing_record')}` : `➕ ${t('forge_new_record')}`}
             </h5>
           </div>
@@ -416,13 +418,14 @@ function ModuleRecordsPage() {
         </div>
       )}
 
-      <div className="card shadow-sm border-0 mb-4">
-        <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-          <h6 className="mb-0">{t('filters_panel_title')}</h6>
+      <div className="card shadow-sm border-0 mb-4 overflow-hidden">
+        <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+          <h6 className="mb-0 fw-bold text-muted text-uppercase tracking-wider" style={{ fontSize: '0.75rem' }}>{t('filters_panel_title')}</h6>
           <button
-            className="btn btn-sm btn-outline-secondary"
+            className="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm hover-lift"
             type="button"
             onClick={() => setShowFilterPanel(prev => !prev)}
+            style={{ fontSize: '0.75rem' }}
           >
             {showFilterPanel ? t('hide_filters_panel') : t('show_filters_panel')}
           </button>
@@ -607,12 +610,18 @@ function ModuleRecordsPage() {
         )}
       </div>
 
-      <div className="card shadow-soft border-0 overflow-hidden">
-        <div className="card-header bg-white py-4 px-4 border-bottom">
-          <h5 className="mb-0 fw-bold">
-            <span className="opacity-75 me-2">📁</span>
+      <div className="glass-card border-0 overflow-hidden stagger-in">
+        <div className="card-header bg-white bg-opacity-30 py-4 px-4 border-bottom border-white border-opacity-20 d-flex align-items-center justify-content-between">
+          <h5 className="mb-0 fw-800 d-flex align-items-center">
+            <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+            </div>
             {t('data_inventory')}
-            <span className="badge bg-light text-primary border ms-2 px-3 rounded-pill fw-normal">{total}</span>
+            <span className="badge bg-primary bg-opacity-10 text-primary border-primary border-opacity-10 ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{total} {t('records')}</span>
           </h5>
         </div>
         <div className="card-body p-0">

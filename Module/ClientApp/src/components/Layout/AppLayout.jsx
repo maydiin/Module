@@ -54,157 +54,162 @@ function AppLayout({ children }) {
   const currentTenant = tenants.find(t => String(t.id) === String(selectedTenantId));
 
   return (
-    <div className="min-vh-100 d-flex flex-column bg-light">
-      <nav className="navbar navbar-expand-lg navbar-light glass sticky-top py-3">
-        <div className="container">
-          <div className="d-flex align-items-center">
-            <button
-              className="btn btn-light border-0 me-3 d-flex align-items-center justify-content-center text-secondary shadow-sm transition-all hover-scale"
-              onClick={toggleSidebar}
-              style={{ width: '38px', height: '38px', borderRadius: '50%' }}
-              title="Menüyü Aç/Kapat"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
-            <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center m-0" to="/">
-              <span className="me-2 text-primary">📦</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                {t('app_name')}
-              </span>
-            </Link>
-          </div>
-          <button
-            className="navbar-toggler border-0"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto gap-2 align-items-center">
-              <li className="nav-item">
-                <Link
-                  className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'hover-bg-accent'
-                    }`}
-                  to="/"
-                >
-                  {t('dashboard')}
-                </Link>
-              </li>
-              <HasPermission permission="User.Manage">
-                <li className="nav-item">
-                  <Link
-                    className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/users'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'hover-bg-accent'
-                      }`}
-                    to="/users"
-                  >
-                    Kullanıcılar
-                  </Link>
-                </li>
-              </HasPermission>
-              <HasPermission permission="Role.Manage">
-                <li className="nav-item">
-                  <Link
-                    className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/roles'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'hover-bg-accent'
-                      }`}
-                    to="/roles"
-                  >
-                    Roller
-                  </Link>
-                </li>
-              </HasPermission>
-              <HasPermission permission="AuditLog.View">
-                <li className="nav-item">
-                  <Link
-                    className={`nav-link px-3 rounded-pill transition-all ${location.pathname === '/audit-logs'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'hover-bg-accent'
-                      }`}
-                    to="/audit-logs"
-                  >
-                    {t('audit_logs_nav')}
-                  </Link>
-                </li>
-              </HasPermission>
+    <div className="min-vh-100 d-flex flex-column position-relative overflow-hidden" 
+         style={{ backgroundColor: 'hsl(var(--background))' }}>
+      
+      {/* iOS Background Vibrancy Blobs */}
+      <div className="position-absolute" style={{ 
+          top: '-10%', left: '-10%', width: '40%', height: '40%', 
+          background: 'radial-gradient(circle, hsla(250, 84%, 54%, 0.08) 0%, transparent 70%)',
+          filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none',
+          animation: 'blobFloat 20s ease-in-out infinite alternate'
+      }}></div>
+      <div className="position-absolute" style={{ 
+          bottom: '-10%', right: '-10%', width: '50%', height: '50%', 
+          background: 'radial-gradient(circle, hsla(260, 80%, 65%, 0.08) 0%, transparent 70%)',
+          filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none',
+          animation: 'blobFloat 25s ease-in-out infinite alternate-reverse'
+      }}></div>
 
-              {/* Tenant Selector for Super Admin */}
-              {isSuperAdmin && tenants.length > 0 && (
-                <li className="nav-item ms-lg-2">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="text-muted small">🏢</span>
+      <nav className="navbar navbar-expand-lg sticky-top py-4 transition-all" style={{ zIndex: 1020 }}>
+        <div className="container-fluid px-lg-5">
+          <div className="glass-pill px-4 py-2 d-flex align-items-center w-100 shadow-premium">
+            <div className="d-flex align-items-center me-auto">
+              <button
+                className="btn btn-light border-0 me-3 d-flex align-items-center justify-content-center text-secondary shadow-sm hover-lift p-0"
+                onClick={toggleSidebar}
+                style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'rgba(255,255,255,0.7)' }}
+                title="Menüyü Aç/Kapat"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
+              <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center m-0" to="/">
+                <span className="me-2 fs-3">📦</span>
+                <span className="text-gradient">
+                  {t('app_name')}
+                </span>
+              </Link>
+            </div>
+            
+            <div className="collapse navbar-collapse flex-grow-0" id="navbarNav">
+              <ul className="navbar-nav gap-2 align-items-center">
+                <li className="nav-item">
+                  <Link
+                    className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/'
+                      ? 'bg-primary text-white shadow-md scale-105'
+                      : 'text-secondary hover-bg-light'
+                      }`}
+                    style={{ fontSize: '0.9rem' }}
+                    to="/"
+                  >
+                    {t('dashboard')}
+                  </Link>
+                </li>
+                <HasPermission permission="User.Manage">
+                  <li className="nav-item">
+                    <Link
+                      className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/users'
+                        ? 'bg-primary text-white shadow-md scale-105'
+                        : 'text-secondary hover-bg-light'
+                        }`}
+                      style={{ fontSize: '0.9rem' }}
+                      to="/users"
+                    >
+                      Kullanıcılar
+                    </Link>
+                  </li>
+                </HasPermission>
+                <HasPermission permission="Role.Manage">
+                  <li className="nav-item">
+                    <Link
+                      className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/roles'
+                        ? 'bg-primary text-white shadow-md scale-105'
+                        : 'text-secondary hover-bg-light'
+                        }`}
+                      style={{ fontSize: '0.9rem' }}
+                      to="/roles"
+                    >
+                      Roller
+                    </Link>
+                  </li>
+                </HasPermission>
+                <HasPermission permission="AuditLog.View">
+                  <li className="nav-item">
+                    <Link
+                      className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/audit-logs'
+                        ? 'bg-primary text-white shadow-md scale-105'
+                        : 'text-secondary hover-bg-light'
+                        }`}
+                      style={{ fontSize: '0.9rem' }}
+                      to="/audit-logs"
+                    >
+                      {t('audit_logs_nav')}
+                    </Link>
+                  </li>
+                </HasPermission>
+
+                <div className="vr mx-2 text-muted opacity-25 d-none d-lg-block" style={{ height: '20px' }}></div>
+
+                {isSuperAdmin && tenants.length > 0 && (
+                  <li className="nav-item ms-lg-2">
                     <select
-                      className="form-select form-select-sm border-primary border-opacity-50 rounded-pill px-3"
-                      style={{ minWidth: '180px', fontSize: '0.85rem' }}
+                      className="form-select form-select-sm border-0 bg-white bg-opacity-50 rounded-pill px-3 shadow-sm hover-lift"
+                      style={{ minWidth: '160px', fontSize: '0.8rem', height: '36px', backdropFilter: 'blur(10px)' }}
                       value={selectedTenantId || ''}
                       onChange={handleTenantChange}
                     >
-                      <option value="">Kendi Tenant'ım</option>
+                      <option value="">🏢 Kendi Tenant'ım</option>
                       {tenants.filter(t => !t.isHost).map((tenant) => (
                         <option key={tenant.id} value={tenant.id}>
-                          {tenant.name}
+                          🏢 {tenant.name}
                         </option>
                       ))}
                     </select>
+                  </li>
+                )}
+
+                <li className="nav-item ms-lg-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-white bg-opacity-50 px-3 py-1 rounded-pill shadow-sm d-flex align-items-center border border-white border-opacity-50" style={{ height: '36px', backdropFilter: 'blur(10px)' }}>
+                      <span className="text-dark small fw-bold">{username}</span>
+                    </div>
+                    <button onClick={handleLogout} className="btn-blur small rounded-pill px-3 shadow-sm hover-lift" style={{ height: '36px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                      Çıkış
+                    </button>
                   </div>
                 </li>
-              )}
-
-              <li className="nav-item ms-lg-3">
-                <div className="d-flex align-items-center gap-3">
-                  <span className="text-muted small">👤 {username}</span>
-                  <button onClick={handleLogout} className="btn btn-sm btn-outline-danger rounded-pill px-3">
-                    Çıkış Yap
-                  </button>
-                </div>
-              </li>
-              <li className="nav-item ms-lg-3">
-                <div className="btn-group" role="group">
-                  <button
-                    type="button"
-                    className={`btn btn-sm rounded-start-pill ${i18n.language.startsWith('en') ? 'btn-primary' : 'btn-outline-primary'}`}
-                    onClick={() => changeLanguage('en')}
-                  >
-                    EN
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn btn-sm rounded-end-pill ${i18n.language.startsWith('tr') ? 'btn-primary' : 'btn-outline-primary'}`}
-                    onClick={() => changeLanguage('tr')}
-                  >
-                    TR
-                  </button>
-                </div>
-              </li>
-            </ul>
+              </ul>
+            </div>
           </div>
         </div>
       </nav>
-      <div className="d-flex flex-grow-1 overflow-hidden">
+
+      <div className="d-flex flex-grow-1 overflow-hidden position-relative" style={{ zIndex: 1 }}>
         <Sidebar className="flex-shrink-0" isOpen={isSidebarOpen} />
         <div className="d-flex flex-column flex-grow-1 w-100 overflow-auto">
-          <main className="container-fluid py-4 px-lg-5 flex-grow-1 fade-in">
+          <main className="container-fluid py-4 px-lg-5 flex-grow-1 fade-in stagger-in">
             {children}
           </main>
-          <footer className="py-4 border-top bg-white mt-auto">
+          <footer className="py-4 mt-auto">
             <div className="container-fluid text-center">
-              <p className="text-muted mb-0 small">
+              <p className="text-muted mb-0 small opacity-50 fw-medium">
                 &copy; {new Date().getFullYear()} {t('footer_text')}
               </p>
             </div>
           </footer>
         </div>
       </div>
+
+      <style>{`
+        @keyframes blobFloat {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(100px, 50px); }
+        }
+      `}</style>
     </div>
   );
 }
