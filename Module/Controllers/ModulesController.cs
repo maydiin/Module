@@ -271,14 +271,29 @@ public class ModulesController : ControllerBase
             .OrderBy(m => m.Name)
             .ToListAsync();
 
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var isSuperAdmin = _tenantService.IsSuperAdmin();
+        
+        // Fetch all permissions for the current user once to avoid multiple DB calls in the loop
+        var userPermissions = isSuperAdmin ? new List<string>() : await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .SelectMany(ur => ur.Role.RolePermissions)
+            .Select(rp => rp.Permission.Name)
+            .Distinct()
+            .ToListAsync();
+
         var summaries = new List<ModuleSummaryDto>();
 
         foreach (var module in modules)
         {
             // Simple permission check: if user has any Module.{Name}.* permission OR is Super Admin
             var permissionPrefix = $"Module.{module.Name}.";
-            var hasViewPermission = User.HasClaim(c => c.Type == "Permission" && c.Value.StartsWith(permissionPrefix)) ||
-                                    User.IsInRole("Super Admin");
+            var hasViewPermission = isSuperAdmin || userPermissions.Any(p => p.StartsWith(permissionPrefix));
 
             if (!hasViewPermission) continue;
 

@@ -297,7 +297,7 @@ function ModulesPage() {
         </div>
       )}
 
-      {modules.length === 0 ? (
+      {summaries.length === 0 ? (
         <div className="text-center py-5 glass-card border-0 stagger-in">
           <div className="mb-4 opacity-10 d-flex justify-content-center">
             <Icon name="puzzle" size={120} className="icon-theme" strokeWidth={1.5} />
