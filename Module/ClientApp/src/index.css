@@ -135,19 +135,122 @@
   box-sizing: border-box;
 }
 
-input, textarea, select {
-  background-color: hsla(var(--background), 0.5) !important;
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select,
+.form-control,
+.form-select {
+  background-color: hsla(var(--background), 1) !important;
   color: hsl(var(--foreground)) !important;
-  border: 1px solid hsla(var(--primary), 0.15) !important;
-  transition: all 0.3s ease !important;
-  border-radius: calc(var(--radius) * 0.5) !important;
+  border: 2px solid hsla(var(--foreground), 0.2) !important; /* Solid visible grey border */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1.25rem !important;
 }
 
-input:focus, textarea:focus, select:focus {
-  background-color: hsla(var(--background), 0.8) !important;
+input:not([type="checkbox"]):not([type="radio"]):hover, 
+textarea:hover, 
+select:hover,
+.form-control:hover,
+.form-select:hover {
   border-color: hsl(var(--primary)) !important;
-  box-shadow: 0 0 0 4px hsla(var(--primary), 0.1) !important;
+  background-color: hsla(var(--background), 1) !important;
+}
+
+input:focus, 
+textarea:focus, 
+select:focus,
+.form-control:focus,
+.form-select:focus {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.15) !important;
   outline: none !important;
+}
+
+/* Premium Custom Checkbox & Radio */
+input[type="checkbox"], 
+input[type="radio"], 
+.form-check-input {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 1.5rem !important; /* Larger size */
+  height: 1.5rem !important;
+  border: 2px solid hsla(var(--foreground), 0.25) !important; /* Visible Grey border */
+  border-radius: 8px !important;
+  background-color: white !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-top: 0 !important;
+}
+
+.form-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding-left: 0 !important;
+  margin-bottom: 0.75rem !important;
+  min-height: 1.5rem !important;
+}
+
+.form-check-label {
+  cursor: pointer !important;
+  user-select: none !important;
+  margin-top: 0 !important;
+  font-weight: 500 !important;
+}
+
+input[type="radio"], .form-check-input[type="radio"] {
+  border-radius: 50% !important;
+}
+
+input[type="checkbox"]:hover, 
+input[type="radio"]:hover, 
+.form-check-input:hover {
+  border-color: hsl(var(--primary)) !important;
+  background-color: hsla(var(--primary), 0.05) !important;
+  transform: scale(1.05);
+}
+
+input[type="checkbox"]:checked, 
+input[type="radio"]:checked, 
+.form-check-input:checked {
+  background-color: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 4px 12px hsla(var(--primary), 0.25) !important;
+  background-image: none !important;
+}
+
+input[type="checkbox"]:checked::after, 
+.form-check-input[type="checkbox"]:checked::after {
+  content: '';
+  width: 0.65rem;
+  height: 0.35rem;
+  border: 2.5px solid white;
+  border-top: none;
+  border-right: none;
+  transform: rotate(-45deg) translateY(-2px) translateX(1px);
+}
+
+input[type="radio"]:checked::after, 
+.form-check-input[type="radio"]:checked::after {
+  content: '';
+  width: 0.6rem;
+  height: 0.6rem;
+  background-color: white;
+  border-radius: 50%;
+}
+
+input[type="checkbox"]:focus, 
+input[type="radio"]:focus, 
+.form-check-input:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 4px hsla(var(--primary), 0.2) !important;
 }
 
 body {
@@ -338,10 +441,8 @@ body {
 }
 
 .btn-blur {
-  background: hsla(var(--primary), 0.05);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border: 1px solid hsla(var(--primary), 0.1);
+  background: hsla(var(--primary), 0.08);
+  border: 1px solid hsla(var(--primary), 0.15);
   color: hsl(var(--foreground));
 }
 
@@ -460,8 +561,7 @@ h1, h2, h3, h4, h5, h6 {
 .bg-opacity-50 { --bs-bg-opacity: 0.5; }
 
 .bg-glass {
-  background: hsla(var(--background), 0.7) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
+  background: hsla(var(--background), 0.98) !important;
 }
 
 .bg-surface {
@@ -474,9 +574,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* PREMIUM MODAL SYSTEM */
 .glass-modal {
-  background: rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: blur(25px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+  background: rgba(0, 0, 0, 0.45) !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -492,15 +590,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glass-modal .modal-content {
-  background: hsla(var(--background), 0.85) !important;
-  backdrop-filter: blur(25px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
-  border: 1px solid hsla(var(--primary), 0.15) !important;
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsla(var(--primary), 0.2) !important;
   border-radius: calc(var(--radius) * 1.5) !important;
   box-shadow: 
-    0 30px 70px -10px rgba(0, 0, 0, 0.25),
-    0 0 0 1px hsla(var(--primary), 0.1),
-    inset 0 1px 0 0 hsla(0, 0%, 100%, 0.1) !important;
+    0 40px 100px -20px rgba(0, 0, 0, 0.35),
+    0 0 0 1px hsla(var(--primary), 0.1) !important;
   overflow: hidden;
 }
 

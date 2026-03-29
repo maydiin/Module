@@ -189,7 +189,7 @@ function AppLayout({ children }) {
                 {isSuperAdmin && tenants.length > 0 && (
                   <li className="nav-item ms-lg-2">
                     <select
-                      className="form-select form-select-sm border-0 bg-white bg-opacity-40 rounded-pill px-3 shadow-sm hover-lift text-foreground"
+                      className="form-select form-select-sm bg-white bg-opacity-40 rounded-pill px-3 shadow-sm hover-lift text-foreground"
                       style={{ minWidth: '160px', fontSize: '0.8rem', height: '36px', backdropFilter: 'blur(10px)' }}
                       value={selectedTenantId || ''}
                       onChange={handleTenantChange}
