@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Modern iOS Premium Palette (HSL) */
+  /* Default: Indigo/Violet */
   --primary: 250 84% 54%;
   --primary-hover: 250 84% 45%;
   --primary-foreground: 0 0% 100%;
@@ -21,19 +21,51 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 250 84% 54%;
-  --radius: 1.25rem; /* Larger, more iOS-like radius */
+  --radius: 1.25rem;
 
-  /* iOS High-Fidelity Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.45); /* More translucent */
+  /* Glassmorphism Defaults */
+  --glass-bg: rgba(255, 255, 255, 0.45);
   --glass-border: rgba(255, 255, 255, 0.3);
   --glass-shadow: 0 12px 40px -6px rgba(0, 0, 0, 0.08);
   
-  /* Soft UI Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --shadow-premium: 0 30px 60px -12px rgba(0, 0, 0, 0.08);
+}
+
+/* Theme Overrides */
+[data-theme="emerald"] {
+  --primary: 161 94% 30%;
+  --primary-hover: 161 94% 20%;
+  --secondary: 161 72% 45%;
+  --ring: 161 94% 30%;
+  --accent-foreground: 161 94% 30%;
+}
+
+[data-theme="rose"] {
+  --primary: 346 84% 61%;
+  --primary-hover: 346 84% 51%;
+  --secondary: 350 89% 68%;
+  --ring: 346 84% 61%;
+  --accent-foreground: 346 84% 61%;
+}
+
+[data-theme="amber"] {
+  --primary: 38 92% 50%;
+  --primary-hover: 38 72% 40%;
+  --secondary: 25 95% 53%;
+  --ring: 38 92% 50%;
+  --accent-foreground: 38 92% 50%;
+}
+
+[data-theme="sky"] {
+  --primary: 199 89% 48%;
+  --primary-hover: 199 89% 38%;
+  --secondary: 217 91% 60%;
+  --ring: 199 89% 48%;
+  --accent-foreground: 199 89% 48%;
 }
 
 * {
@@ -50,17 +82,18 @@ body {
   line-height: 1.6;
   letter-spacing: -0.015em;
   background-color: hsl(var(--background));
-  /* Dynamic Mesh Background */
+  /* Dynamic Mesh Background using Variables */
   background-image: 
-    radial-gradient(at 0% 0%, hsla(250, 84%, 54%, 0.05) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(260, 80%, 65%, 0.05) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(250, 84%, 54%, 0.05) 0, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(210, 40%, 96%, 0.1) 0, transparent 50%),
-    radial-gradient(at 50% 100%, hsla(250, 84%, 54%, 0.05) 0, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(260, 80%, 65%, 0.05) 0, transparent 50%);
+    radial-gradient(at 0% 0%, hsla(var(--primary), 0.05) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(var(--secondary), 0.05) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(var(--primary), 0.05) 0, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(var(--accent), 0.1) 0, transparent 50%),
+    radial-gradient(at 50% 100%, hsla(var(--primary), 0.05) 0, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(var(--secondary), 0.05) 0, transparent 50%);
   background-attachment: fixed;
   animation: backgroundDrift 15s ease-in-out infinite alternate;
 }
+
 
 @keyframes backgroundDrift {
   from { background-position: 0% 0%; }

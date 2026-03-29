@@ -17,12 +17,15 @@ import RolesPage from './pages/RolesPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { TenantProvider } from './components/TenantContext';
+import { ThemeProvider } from './components/ThemeContext';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
     <AuthProvider>
       <TenantProvider>
-        <Router>
+        <ThemeProvider>
+          <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -44,6 +47,7 @@ function App() {
                       <Route path="/users" element={<UsersPage />} />
                       <Route path="/roles" element={<RolesPage />} />
                       <Route path="/audit-logs" element={<AuditLogsPage />} />
+                      <Route path="/settings" element={<SettingsPage />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </AppLayout>
@@ -51,7 +55,8 @@ function App() {
               }
             />
           </Routes>
-        </Router>
+          </Router>
+        </ThemeProvider>
       </TenantProvider>
     </AuthProvider>
   );

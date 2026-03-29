@@ -6,6 +6,7 @@ import { useTenant } from '../TenantContext';
 import HasPermission from '../HasPermission';
 import Sidebar from './Sidebar';
 import { useAuth } from '../AuthContext';
+import { useTheme } from '../ThemeContext';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
@@ -17,6 +18,7 @@ function AppLayout({ children }) {
   const [tenants, setTenants] = useState([]);
   const [tenantsLoaded, setTenantsLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { theme } = useTheme();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -60,13 +62,13 @@ function AppLayout({ children }) {
       {/* iOS Background Vibrancy Blobs */}
       <div className="position-absolute" style={{ 
           top: '-10%', left: '-10%', width: '40%', height: '40%', 
-          background: 'radial-gradient(circle, hsla(250, 84%, 54%, 0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, hsla(var(--primary), 0.08) 0%, transparent 70%)',
           filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none',
           animation: 'blobFloat 20s ease-in-out infinite alternate'
       }}></div>
       <div className="position-absolute" style={{ 
           bottom: '-10%', right: '-10%', width: '50%', height: '50%', 
-          background: 'radial-gradient(circle, hsla(260, 80%, 65%, 0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, hsla(var(--secondary), 0.08) 0%, transparent 70%)',
           filter: 'blur(100px)', zIndex: 0, pointerEvents: 'none',
           animation: 'blobFloat 25s ease-in-out infinite alternate-reverse'
       }}></div>
@@ -152,8 +154,6 @@ function AppLayout({ children }) {
                   </li>
                 </HasPermission>
 
-                <div className="vr mx-2 text-muted opacity-25 d-none d-lg-block" style={{ height: '20px' }}></div>
-
                 {isSuperAdmin && tenants.length > 0 && (
                   <li className="nav-item ms-lg-2">
                     <select
@@ -171,6 +171,21 @@ function AppLayout({ children }) {
                     </select>
                   </li>
                 )}
+
+                {/* Settings Link */}
+                <li className="nav-item">
+                  <Link
+                    to="/settings"
+                    className={`nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'bg-primary text-white scale-110 shadow-md' : 'btn-blur'}`}
+                    style={{ width: '36px', height: '36px' }}
+                    title={t('settings', 'Ayarlar')}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                  </Link>
+                </li>
 
                 <li className="nav-item ms-lg-2">
                   <div className="d-flex align-items-center gap-2">

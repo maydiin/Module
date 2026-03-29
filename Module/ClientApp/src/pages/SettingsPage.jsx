@@ -1,0 +1,130 @@
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../components/ThemeContext';
+
+function SettingsPage() {
+  const { t } = useTranslation();
+  const { theme, setTheme, themes } = useTheme();
+
+  return (
+    <div className="fade-in">
+      <div className="d-flex align-items-center mb-5">
+        <div className="bg-primary bg-opacity-10 p-3 rounded-4 me-4 shadow-sm">
+          <span className="fs-1">⚙️</span>
+        </div>
+        <div>
+          <h1 className="mb-1">{t('settings', 'Ayarlar')}</h1>
+          <p className="text-muted mb-0 fw-medium opacity-70">
+            {t('settings_desc', 'Uygulama tercihlerini ve görünüm ayarlarını buradan yönetebilirsiniz.')}
+          </p>
+        </div>
+      </div>
+
+      <div className="row g-4">
+        {/* Appearance Section */}
+        <div className="col-12 col-xl-8">
+          <div className="glass-card p-5 h-100">
+            <div className="d-flex align-items-center mb-5">
+              <div className="bg-primary p-2 rounded-3 me-3 text-white shadow-sm">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 2a10 10 0 0 1 10 10"></path>
+                </svg>
+              </div>
+              <h3 className="mb-0">{t('appearance', 'Görünüm')}</h3>
+            </div>
+
+            <div className="mb-5">
+              <label className="form-label fw-bold mb-3 d-flex align-items-center">
+                <span>{t('theme_color', 'Tema Rengi')}</span>
+                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem' }}>{themes.find(t => t.id === theme)?.label}</span>
+              </label>
+              
+              <div className="d-flex flex-wrap gap-4 mt-2">
+                {themes.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTheme(t.id)}
+                    className={`btn p-4 border-0 rounded-4 transition-all position-relative overflow-hidden ${theme === t.id ? 'scale-110 shadow-lg ring-4 ring-primary ring-opacity-20' : 'opacity-60 hover-opacity-100 hover-lift shadow-sm'}`}
+                    style={{ 
+                      minWidth: '120px',
+                      background: theme === t.id ? `linear-gradient(135deg, hsl(${t.color}), hsl(${t.color} / 0.8))` : 'white',
+                    }}
+                  >
+                    <div className="d-flex flex-column align-items-center gap-3">
+                      <div 
+                        className="rounded-circle shadow-sm border border-2 border-white" 
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          backgroundColor: `hsl(${t.color})`,
+                        }}
+                      />
+                      <span className={`fw-bold small ${theme === t.id ? 'text-white' : 'text-dark'}`}>{t.label}</span>
+                    </div>
+                    {theme === t.id && (
+                      <div className="position-absolute top-0 end-0 p-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-10">
+              <div className="d-flex align-items-start gap-3">
+                <span className="fs-4">💡</span>
+                <div>
+                  <h6 className="fw-bold mb-1">{t('pro_tip', 'İpucu')}</h6>
+                  <p className="small text-muted mb-0 opacity-80">
+                    Seçtiğiniz tema tüm cihazlarınızda yerel olarak saklanır. Gelecekte karanlık mod ve yazı tipi özelleştirmeleri de eklenecektir.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar for future settings info */}
+        <div className="col-12 col-xl-4">
+          <div className="glass-card p-5 h-100 bg-opacity-10">
+            <h4 className="mb-4">{t('upcoming_features', 'Yakında Gelecekler')}</h4>
+            <div className="d-flex flex-column gap-4">
+              <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
+                <div className="bg-secondary p-2 rounded-3 text-white">🌙</div>
+                <div>
+                  <div className="fw-bold small">Karanlık Mod</div>
+                  <div className="text-muted extra-small">Göz yorgunluğunu azaltın (Planlanıyor)</div>
+                </div>
+              </div>
+              <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
+                <div className="bg-secondary p-2 rounded-3 text-white">🌐</div>
+                <div>
+                  <div className="fw-bold small">Dil Ayarları</div>
+                  <div className="text-muted extra-small">Çoklu dil desteği yönetimi</div>
+                </div>
+              </div>
+              <div className="d-flex align-items-center gap-3 opacity-50 grayscale">
+                <div className="bg-secondary p-2 rounded-3 text-white">🔔</div>
+                <div>
+                  <div className="fw-bold small">Bildirimler</div>
+                  <div className="text-muted extra-small">Sistem bildirim tercihleri</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .extra-small { font-size: 0.75rem; }
+        .grayscale { filter: grayscale(1); }
+      `}</style>
+    </div>
+  );
+}
+
+export default SettingsPage;
