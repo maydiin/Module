@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getScripts, createScript, updateScript, deleteScript, getModule, generateAiScriptConfig } from '../services/api';
@@ -290,8 +291,8 @@ const ModuleScriptsPage = () => {
             />
 
             {/* Modal */}
-            {showModal && (
-                <div className="modal fade show d-block glass-modal" tabIndex="-1">
+            {showModal && createPortal(
+                <div className="modal show d-block glass-modal" tabIndex="-1">
                     <div className="modal-dialog modal-xl modal-dialog-centered modal-animate-in">
                         <div className="modal-content border-0 shadow-premium overflow-hidden rounded-4">
                             <div className="modal-header modal-header-premium border-0 py-4 px-4">
@@ -411,7 +412,8 @@ const ModuleScriptsPage = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

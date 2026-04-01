@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from './Icon';
 
@@ -68,8 +69,8 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
     }
   };
 
-  return (
-    <div className="modal fade show d-block glass-modal" tabIndex="-1">
+  return createPortal(
+    <div className="modal show d-block glass-modal" tabIndex="-1">
       <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
         <div className="modal-content border-0 shadow-xl overflow-hidden">
           <div className="modal-header modal-header-premium border-0">
@@ -78,7 +79,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
           </div>
           <div className="modal-body p-0 d-flex flex-column" style={{ height: '600px' }}>
             {/* Chat Area */}
-            <div className="flex-grow-1 p-4 overflow-auto bg-glass">
+            <div className="flex-grow-1 p-4 overflow-auto">
               {chatHistory.length === 0 ? (
                 <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-40">
                   <div className="text-primary p-4 mb-4 d-flex align-items-center justify-content-center">
@@ -90,7 +91,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
                 chatHistory.map((msg, index) => (
                   <div key={index} className={`d-flex mb-4 ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
                     <div 
-                      className={`p-3 px-4 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-surface border-theme-accent border'}`} 
+                      className={`p-3 px-4 rounded-4 shadow-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-surface border-theme-accent border'}`} 
                       style={{ maxWidth: '85%', whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}
                     >
                       {msg.role === 'ai' && <div className="fw-extrabold mb-2 small text-primary tracking-wider uppercase">AI</div>}
@@ -124,10 +125,10 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-glass border-top border-theme-accent">
+            <div className="p-4 border-top border-theme-accent">
                <div className="input-group shadow-sm rounded-4 overflow-hidden border border-theme-accent">
                 <textarea
-                  className="form-control border-0 bg-white"
+                  className="form-control border-0 bg-transparent"
                   rows="2"
                   placeholder={placeholder || t('ai_prompt_placeholder')}
                   value={aiPrompt}
@@ -142,7 +143,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
                   onClick={handleSend}
                   disabled={aiLoading || !aiPrompt.trim()}
                 >
-                  <Icon name="sparkles" size={20} color="white" />
+                  <Icon name="sparkles" size={20} className="text-white" />
                 </button>
               </div>
               <div className="d-flex justify-content-end mt-3 gap-3">
@@ -164,7 +165,8 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

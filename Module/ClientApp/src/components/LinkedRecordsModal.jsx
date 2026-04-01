@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModules } from '../services/api';
@@ -85,8 +86,8 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
         }
     };
 
-    return (
-        <div className="modal fade show d-block glass-modal" tabIndex="-1">
+    return createPortal(
+        <div className="modal show d-block glass-modal" tabIndex="-1">
             <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
                 <div className="modal-content border-0 shadow-xl overflow-hidden">
                     <div className="modal-header modal-header-premium border-0">
@@ -189,7 +190,8 @@ function LinkedRecordsModal({ moduleName, recordId, onClose }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

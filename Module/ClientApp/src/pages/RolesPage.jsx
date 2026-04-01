@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { getRoles, getAllPermissions, addPermissionToRole, removePermissionFromRole, createRole, updateRole, deleteRole, refreshToken } from '../services/api';
 import { useTenant } from '../components/TenantContext';
@@ -179,8 +180,8 @@ function RolesPage() {
             </div>
 
             {/* Role Modal */}
-            {showModal && (
-                <div className="modal fade show d-block glass-modal" tabIndex="-1">
+            {showModal && createPortal(
+                <div className="modal show d-block glass-modal" tabIndex="-1">
                     <div className="modal-dialog modal-dialog-centered modal-animate-in">
                         <div className="modal-content border-0 shadow-xl overflow-hidden">
                             <div className="modal-header modal-header-premium border-0">
@@ -220,7 +221,8 @@ function RolesPage() {
                             </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

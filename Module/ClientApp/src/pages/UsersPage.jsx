@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { getUsers, getRoles, assignRole, removeRole, refreshToken, createUser } from '../services/api';
 import { useTenant } from '../components/TenantContext';
@@ -180,8 +181,8 @@ function UsersPage() {
 
 
             {/* Create User Modal */}
-            {showCreateModal && (
-                <div className="modal fade show d-block glass-modal" tabIndex="-1">
+            {showCreateModal && createPortal(
+                <div className="modal show d-block glass-modal" tabIndex="-1">
                     <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
                         <div className="modal-content border-0 shadow-xl overflow-hidden">
                             <div className="modal-header modal-header-premium border-0">
@@ -296,7 +297,8 @@ function UsersPage() {
                             </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div >
     );
