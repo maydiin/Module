@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig, generateAiApiConfig, executeApiSync } from '../services/api';
 import AiChatModal from '../components/AiChatModal';
+import Icon from '../components/Icon';
 
 function ModuleApiConfigsPage() {
     const { t } = useTranslation();
@@ -166,35 +167,47 @@ function ModuleApiConfigsPage() {
     }
 
     return (
-        <div className="container-fluid py-4">
-            <nav aria-label="breadcrumb">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item"><Link to="/">{t('modules')}</Link></li>
-                    <li className="breadcrumb-item active">{module?.name} {t('api_configs')}</li>
-                </ol>
-            </nav>
-
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 className="h3 mb-0">{t('api_configs_title')}</h1>
-                    <p className="text-muted">{t('api_configs_subtitle')} {module?.name}</p>
+        <div className="fade-in">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+                <div className="d-flex align-items-center">
+                    <button
+                        className="btn btn-blur bg-surface bg-opacity-50 border-0 me-3 shadow-sm hover-shift-left transition-all p-3 d-none d-md-flex align-items-center justify-content-center"
+                        onClick={() => navigate('/')}
+                        style={{ borderRadius: '18px', width: '56px', height: '56px' }}
+                    >
+                        <Icon name="arrowLeft" size={24} className="icon-theme" />
+                    </button>
+                    <div>
+                        <h1 className="display-5 mb-1 fw-800">
+                            <span className="text-gradient">
+                                {module?.name}
+                            </span>
+                            <span className="opacity-40 ms-3 fw-400" style={{ fontSize: '0.8em' }}>{t('api_configs')}</span>
+                        </h1>
+                        <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('api_configs_subtitle')}</p>
+                    </div>
                 </div>
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-2 flex-wrap align-items-center">
                     <button
                         onClick={() => setShowAiModal(true)}
-                        className="btn btn-outline-info px-3 shadow-sm"
+                        className="btn btn-blur bg-surface bg-opacity-50 border-0 px-4 shadow-premium hover-lift text-info fw-bold"
                         title={t('ai_api_config_btn')}
+                        style={{ backdropFilter: 'blur(10px)' }}
                     >
-                        <span className="me-1">✨</span> AI Config
+                        <span className="me-2">✨</span> AI Config
                     </button>
                     <button
-                        className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'}`}
+                        className={`btn ${showForm ? 'btn-danger' : 'btn-primary'} px-4 shadow-premium hover-lift fw-bold`}
                         onClick={() => {
                             if (showForm) resetForm();
                             else setShowForm(true);
                         }}
                     >
-                        {showForm ? t('cancel') : `+ ${t('add_new_config')}`}
+                        {showForm ? (
+                            <><Icon name="x" size={20} className="me-2" /> {t('cancel')}</>
+                        ) : (
+                            <><Icon name="plus" size={20} className="me-2" /> {t('add_new_config')}</>
+                        )}
                     </button>
                 </div>
             </div>
@@ -231,10 +244,10 @@ function ModuleApiConfigsPage() {
 
             {showForm && (
                 <div className="card glass-card shadow-premium mb-4 border-0 overflow-hidden fade-in">
-                    <div className={`card-header ${editConfigId ? 'bg-primary bg-opacity-20' : 'bg-surface bg-opacity-40'} border-bottom border-theme-accent py-3`}>
+                    <div className={`card-header ${editConfigId ? 'bg-primary' : 'bg-surface'} border-bottom border-theme-accent py-3 ${editConfigId ? 'text-white' : ''}`}>
                         <h5 className="mb-0 fw-bold">{editConfigId ? t('edit_api_config') : t('new_api_config')}</h5>
                     </div>
-                    <div className="card-body bg-muted bg-opacity-10">
+                    <div className="card-body">
                         <form onSubmit={handleSubmit}>
                             <div className="row">
                                 <div className="col-md-8 mb-3">
@@ -388,8 +401,8 @@ function ModuleApiConfigsPage() {
 
                                     {config.responseMappingsJson && (
                                         <div className="small">
-                                            <div className="fw-bold mb-1">{t('mappings')}:</div>
-                                            <pre className="bg-light border p-2 rounded small overflow-auto" style={{ maxHeight: '100px' }}>
+                                            <div className="fw-bold mb-1 opacity-80">{t('mappings')}:</div>
+                                            <pre className="bg-surface border border-theme-accent p-2 rounded small overflow-auto text-foreground" style={{ maxHeight: '100px' }}>
                                                 {config.responseMappingsJson}
                                             </pre>
                                         </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { useTranslation } from 'react-i18next';
+import Icon from '../components/Icon';
 
 function LoginPage() {
     const { t } = useTranslation();
@@ -36,11 +37,13 @@ function LoginPage() {
              }}>
             <div className="w-100" style={{ maxWidth: '440px' }}>
                 <div className="text-center mb-5 fade-in">
-                    <div className="fs-1 mb-3">📦</div>
-                    <h1 className="display-5 fw-bold mb-2">
+                    <div className="w-auto d-inline-flex p-0 mb-4 fade-in">
+                        <Icon name="box" size={64} className="icon-theme" />
+                    </div>
+                    <h1 className="display-5 fw-800 mb-2">
                         <span className="text-gradient">{t('app_name')}</span>
                     </h1>
-                    <p className="text-muted lead px-4">{t('login_subtitle')}</p>
+                    <p className="text-muted lead px-4 fw-medium opacity-80">{t('login_subtitle')}</p>
                 </div>
                 
                 <div className="card shadow-premium border-0 overflow-hidden fade-in" style={{ animationDelay: '0.1s' }}>

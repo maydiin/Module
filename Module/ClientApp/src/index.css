@@ -142,28 +142,80 @@
   --accent: 216 34% 17%;
   --accent-foreground: 210 40% 98%;
   
-  --border: 216 34% 25%; /* Slightly brighter border for visibility */
-  --input: 216 34% 25%;
+  --border: 216 34% 35%; /* Increased contrast for borders */
+  --input: 216 34% 30%;
   
-  --glass-bg: rgba(15, 23, 42, 0.75); /* Increased opacity */
-  --glass-border: rgba(255, 255, 255, 0.12); /* Brighter border */
+  --glass-bg: rgba(15, 23, 42, 0.85); /* Increased opacity for better text contrast */
+  --glass-border: rgba(255, 255, 255, 0.15); /* Brighter border */
   --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
 
   /* Layout Surface Shading (Dark) */
-  --nav-bg: 222 47% 6%;
-  --sidebar-bg: 222 47% 3%;
-  --menu-bg-active: var(--primary) / 0.25; /* Higher opacity for better visibility */
-  --menu-text-active: 210 40% 98%;
-  --nav-link-hover: var(--primary) / 0.15;
+  --nav-bg: 222 47% 8%; /* Slightly lighter for depth */
+  --sidebar-bg: 222 47% 5%;
+  --menu-bg-active: hsl(var(--primary) / 0.3); /* Higher opacity */
+  --menu-text-active: 0 0% 100%; /* Pure white for active icons/text */
+  --nav-link-hover: var(--primary) / 0.2;
   
   /* Modal Overrides */
   --bs-modal-bg: hsl(var(--background)) !important;
   --bs-body-bg: hsl(var(--background)) !important;
-  --bs-card-bg: hsla(var(--background), 0.6) !important;
-  --bs-tertiary-bg: hsla(var(--background), 0.5) !important;
+  --bs-card-bg: hsla(var(--background), 0.7) !important;
+  --bs-tertiary-bg: hsla(var(--background), 0.6) !important;
 
-  /* Specific fix for purple-on-black contrast: slightly shift primary in dark mode if needed */
-  /* --primary: 250 84% 65%;  Brightened for dark mode */
+  /* Automatic primary color brightening in dark mode for better visibility */
+  --primary-glow: hsla(var(--primary), 0.3);
+}
+
+/* Theme-Specific Dark Mode Brightening for Contrast */
+[data-mode="dark"] {
+  --primary: 250 84% 75%; /* Default (Indigo) brightened */
+}
+
+[data-mode="dark"][data-theme="emerald"] {
+  --primary: 161 94% 60%; /* Emerald brightened from 30% for visibility */
+}
+
+[data-mode="dark"][data-theme="rose"] {
+  --primary: 346 84% 75%; /* Rose brightened */
+}
+
+[data-mode="dark"][data-theme="amber"] {
+  --primary: 38 92% 65%; /* Amber brightened */
+}
+
+[data-mode="dark"][data-theme="sky"] {
+  --primary: 199 89% 65%; /* Sky brightened */
+}
+
+/* Enhanced Theme-Aware Overrides for Bootstrap Utilities */
+[data-mode="dark"] .bg-light {
+  background-color: hsla(var(--muted), 0.8) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-mode="dark"] .text-dark {
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-mode="dark"] .btn-light {
+  background-color: hsla(var(--muted), 0.8) !important;
+  border-color: hsla(var(--foreground), 0.1) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-mode="dark"] .breadcrumb-item.active {
+  color: hsl(var(--primary)) !important;
+}
+
+[data-mode="dark"] .badge.bg-light {
+  background-color: hsla(var(--primary), 0.15) !important;
+  color: hsl(var(--primary)) !important;
+  border: 1px solid hsla(var(--primary), 0.2) !important;
+}
+
+[data-mode="dark"] .accordion-button:not(.collapsed) {
+  background-color: hsla(var(--primary), 0.15) !important;
+  color: hsl(var(--primary)) !important;
 }
 
 [data-mode="dark"] .form-control,
@@ -416,7 +468,14 @@ body {
 
 .icon-theme {
   color: hsl(var(--primary)) !important;
-  stroke: hsl(var(--primary));
+  stroke: hsl(var(--primary)) !important; /* Ensure stroke is also primary if usable */
+  fill: none !important;
+  stroke-width: 2.5 !important;
+  transition: all 0.2s ease;
+}
+
+[data-mode="dark"] .icon-theme {
+  filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.15)); /* Subtle glow for focus */
 }
 
 .icon-stroke {
@@ -594,10 +653,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Bootstrap Utility Overrides for Theme Consistency */
 .bg-primary {
-  background-color: hsl(var(--primary)) !important;
+  background-color: hsl(var(--primary) / var(--bs-bg-opacity, 1)) !important;
 }
 .bg-secondary {
-  background-color: hsl(var(--secondary)) !important;
+  background-color: hsl(var(--secondary) / var(--bs-bg-opacity, 1)) !important;
 }
 .text-primary {
   color: hsl(var(--primary)) !important;
@@ -616,6 +675,18 @@ h1, h2, h3, h4, h5, h6 {
   color: hsl(var(--muted-foreground)) !important;
   transition: all 0.2s ease;
   font-weight: 500;
+}
+.badge-soft-primary {
+  background-color: hsl(var(--primary) / 0.12) !important;
+  color: hsl(var(--primary)) !important;
+  border: 1px solid hsl(var(--primary) / 0.15) !important;
+  font-weight: 700 !important;
+}
+[data-mode="dark"] .badge-soft-primary {
+  background-color: hsl(var(--primary) / 0.2) !important;
+  color: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary) / 0.3) !important;
+  filter: brightness(1.2); /* Boost visibility slightly in dark mode */
 }
 .text-nav:hover {
   color: hsl(var(--primary)) !important;
@@ -641,17 +712,17 @@ h1, h2, h3, h4, h5, h6 {
 .bg-opacity-50 { --bs-bg-opacity: 0.5; }
 
 .bg-glass {
-  background: hsla(var(--background), 0.98) !important;
+  background: hsl(var(--background) / 0.98) !important;
 }
 
 .bg-surface {
-  background-color: hsla(var(--sidebar-bg), var(--bs-bg-opacity, 0.95)) !important;
+  background-color: hsl(var(--sidebar-bg) / var(--bs-bg-opacity, 0.95)) !important;
 }
 .bg-muted {
-  background-color: hsla(var(--muted), var(--bs-bg-opacity, 0.5)) !important;
+  background-color: hsl(var(--muted) / var(--bs-bg-opacity, 0.5)) !important;
 }
 .border-theme-accent {
-  border-color: hsla(var(--primary), 0.15) !important;
+  border-color: hsl(var(--primary) / 0.15) !important;
 }
 
 .border-theme-accent {

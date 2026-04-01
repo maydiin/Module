@@ -221,7 +221,7 @@ function RecordDetailPage() {
                         <Link 
                             key={idx} 
                             to={`/modules/${link.moduleId}/records/${link.recordId}`}
-                            className="badge bg-light text-primary border text-decoration-none"
+                            className="badge badge-soft-primary text-decoration-none"
                         >
                             <Icon name="link" size={12} className="me-1" /> {link.display}
                         </Link>
@@ -276,7 +276,9 @@ function RecordDetailPage() {
                         <Icon name="arrowLeft" size={20} className="me-1" /> {t('back_to_records')}
                     </button>
                     <h1 className="display-6 mb-1 d-flex align-items-center gap-3">
-                        <Icon name="script" size={40} className="opacity-50 icon-theme" />
+                        <div className="text-primary me-3 me-md-4 d-flex align-items-center justify-content-center">
+                            <Icon name="records" size={32} className="icon-theme" />
+                        </div>
                         {t('record_details')} <span className="text-muted fs-4">#{record.id}</span>
                     </h1>
                     <p className="text-muted mb-0">{module.name} Module</p>
@@ -285,8 +287,8 @@ function RecordDetailPage() {
 
             <div className="row g-4 mb-4">
                 <div className="col-lg-6">
-                    <div className="card shadow-sm border-0 h-100 bg-surface bg-opacity-20">
-                        <div className="card-header bg-surface bg-opacity-40 py-3 border-bottom border-theme-accent">
+                    <div className="card shadow-sm border-0 h-100">
+                        <div className="card-header py-3 border-bottom">
                             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
                                 <Icon name="records" size={20} className="opacity-75" /> {t('primary_details')}
                             </h5>
@@ -306,7 +308,7 @@ function RecordDetailPage() {
                                             </div>
                                         </li>
                                     ))}
-                                    <li className="list-group-item d-flex justify-content-between align-items-start py-3 bg-muted bg-opacity-20 border-theme-accent">
+                                    <li className="list-group-item d-flex justify-content-between align-items-start py-3">
                                          <div className="ms-2 me-auto">
                                                 <div className="fw-bold text-muted small text-uppercase mb-1">{t('created_at')}</div>
                                                 <div className="fs-6 text-foreground">{new Date(record.createdAt).toLocaleString()}</div>
@@ -319,20 +321,22 @@ function RecordDetailPage() {
                 </div>
 
                 <div className="col-lg-6">
-                    <div className="card shadow-sm border-0 h-100 bg-surface bg-opacity-20">
-                        <div className="card-header bg-primary text-white py-3 border-bottom border-0">
+                    <div className="card shadow-sm border-0 h-100">
+                        <div className="card-header py-3 border-bottom">
                             <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
                                 <Icon name="link" size={20} className="opacity-75" /> {t('related_data')}
                             </h5>
                         </div>
-                        <div className="card-body p-4 bg-muted bg-opacity-10">
+                        <div className="card-body p-4">
                             {loadingSummary ? (
                                 <div className="text-center py-4">
                                      <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                                 </div>
                             ) : summary.length === 0 ? (
-                                <div className="text-center py-5 text-muted bg-surface bg-opacity-40 rounded shadow-sm border border-theme-accent">
-                                    <Icon name="folder" size={48} className="opacity-25 icon-theme mb-3" strokeWidth={1.2} />
+                                <div className="text-center py-5 text-muted">
+                                    <div className="text-primary me-3 d-flex align-items-center justify-content-center">
+                                        <Icon name="settings" size={24} className="icon-theme" strokeWidth={2} />
+                                    </div>
                                     <p className="mb-0 mt-2">{t('no_references_found')}</p>
                                 </div>
                             ) : (
@@ -341,7 +345,7 @@ function RecordDetailPage() {
                                         <div className="accordion-item border-0 mb-2 rounded overflow-hidden" key={item.module}>
                                             <h2 className="accordion-header">
                                                 <button
-                                                    className={`accordion-button bg-surface bg-opacity-40 border-theme-accent ${expandedModule === item.module ? 'text-primary fw-bold' : 'text-foreground collapsed'}`}
+                                                    className={`accordion-button bg-surface bg-opacity-30 border-theme-accent ${expandedModule === item.module ? 'text-primary fw-bold' : 'text-foreground collapsed'}`}
                                                     type="button"
                                                     onClick={() => handleExpand(item.module)}
                                                     style={{ boxShadow: 'none' }}
@@ -369,12 +373,12 @@ function RecordDetailPage() {
                                                                         {targetModule ? (
                                                                             <Link 
                                                                                 to={`/modules/${targetModule.id}/records/${rel.recordId}`}
-                                                                                className="fw-medium text-primary text-decoration-none"
+                                                                                className="fw-bold text-primary text-decoration-none"
                                                                             >
                                                                                 {rel.display}
                                                                             </Link>
                                                                         ) : (
-                                                                            <span className="fw-medium text-dark">{rel.display}</span>
+                                                                            <span className="fw-bold text-foreground">{rel.display}</span>
                                                                         )}
                                                                     </div>
                                                                     <div className="d-flex align-items-center gap-2">
@@ -388,15 +392,15 @@ function RecordDetailPage() {
                                                     </div>
 
                                                     {moduleRecords[item.module]?.loading && (
-                                                        <div className="text-center py-3 bg-light">
+                                                        <div className="text-center py-3 bg-surface bg-opacity-20 border-top border-theme-accent">
                                                             <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                                                         </div>
                                                     )}
-
+                                                    
                                                     {!moduleRecords[item.module]?.loading && moduleRecords[item.module]?.hasMore && (
-                                                        <div className="p-3 text-center bg-light">
+                                                        <div className="p-3 text-center bg-surface bg-opacity-20 border-top border-theme-accent">
                                                             <button
-                                                                className="btn btn-sm btn-outline-primary px-4 rounded-pill"
+                                                                className="btn btn-sm btn-outline-primary px-4 rounded-pill shadow-sm"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     loadRecords(item.module, module.name, record.id, (moduleRecords[item.module]?.page || 1) + 1);
@@ -408,8 +412,8 @@ function RecordDetailPage() {
                                                     )}
                                                     
                                                     {!moduleRecords[item.module]?.loading && !moduleRecords[item.module]?.hasMore && (moduleRecords[item.module]?.records?.length > 0) && (
-                                                        <div className="p-2 text-center bg-light border-top">
-                                                            <small className="text-muted">{t('no_more_records') || 'No more records'}</small>
+                                                        <div className="p-2 text-center bg-surface bg-opacity-20 border-top border-theme-accent">
+                                                            <small className="text-muted small fw-bold opacity-70">{t('no_more_records') || 'No more records'}</small>
                                                         </div>
                                                     )}
                                                 </div>

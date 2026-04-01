@@ -169,8 +169,8 @@ function ModulesPage() {
     <div className="fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mb-md-5 gap-3 fade-in">
         <div className="d-flex align-items-center">
-          <div className="bg-primary bg-opacity-10 text-primary rounded-4 p-2 p-md-3 me-3 me-md-4 shadow-sm d-flex align-items-center justify-content-center">
-            <Icon name="box" size={28} className="icon-theme" />
+          <div className="text-primary me-3 me-md-4 d-flex align-items-center justify-content-center">
+            <Icon name="box" size={32} className="icon-theme" />
           </div>
           <div>
             <h1 className="display-5 mb-1 fw-800">
@@ -183,7 +183,7 @@ function ModulesPage() {
         </div>
         <div className="d-flex gap-2 gap-md-3 flex-wrap">
           <button
-            className="btn btn-blur bg-surface bg-opacity-50 text-foreground border-0 shadow-premium hover-lift px-3 px-md-4"
+            className="btn btn-blur text-foreground border-0 shadow-premium hover-lift px-3 px-md-4"
             onClick={() => setShowAiModal(true)}
             style={{ backdropFilter: 'blur(10px)' }}
           >
@@ -322,12 +322,12 @@ function ModulesPage() {
             return (
               <div key={summary.moduleId} className="glass-card border-0 overflow-hidden">
                 <div
-                  className="card-header bg-surface bg-opacity-40 py-4 px-4 d-flex justify-content-between align-items-center transition-all hover-bg-theme"
+                  className="card-header bg-surface bg-opacity-30 py-4 px-4 d-flex justify-content-between align-items-center transition-all hover-bg-theme"
                   style={{ cursor: 'pointer', border: 'none' }}
                   onClick={() => toggleModuleCollapse(summary.moduleId)}
                 >
                   <div className="d-flex align-items-center">
-                    <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
+                    <div className="text-primary me-3 d-flex align-items-center justify-content-center">
                       <Icon name="folder" size={24} className="icon-theme" />
                     </div>
                     <div>

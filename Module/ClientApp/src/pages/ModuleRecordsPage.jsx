@@ -347,7 +347,6 @@ function ModuleRecordsPage() {
 
   return (
     <div className="fade-in">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 fade-in">
         <div className="d-flex align-items-center">
           <button
@@ -367,7 +366,7 @@ function ModuleRecordsPage() {
             <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('records_subtitle')}</p>
           </div>
         </div>
-        <div className="d-flex gap-2 flex-wrap">
+        <div className="d-flex gap-2 flex-wrap align-items-center">
           <button
             className="btn btn-blur bg-surface bg-opacity-50 border-0 px-4 shadow-premium hover-lift text-foreground fw-bold"
             onClick={() => navigate(`/modules/${moduleId}/fields`)}
@@ -386,7 +385,6 @@ function ModuleRecordsPage() {
             <Icon name="plus" size={20} className="me-2" /> {t('new_entry')}
           </button>
         </div>
-      </div>
       </div>
 
       {error && (
@@ -615,11 +613,11 @@ function ModuleRecordsPage() {
       <div className="glass-card border-0 overflow-hidden stagger-in">
         <div className="card-header bg-surface bg-opacity-40 py-4 px-4 border-bottom border-theme-accent d-flex align-items-center justify-content-between">
           <h5 className="mb-0 fw-800 d-flex align-items-center">
-            <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
+            <div className="text-primary me-3 d-flex align-items-center justify-content-center">
               <Icon name="records" size={24} className="icon-theme" strokeWidth={2} />
             </div>
             {t('data_inventory')}
-            <span className="badge bg-primary bg-opacity-10 text-primary border-primary border-opacity-10 ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{total} {t('records')}</span>
+            <span className="badge badge-soft-primary ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{total} {t('records')}</span>
           </h5>
         </div>
         <div className="card-body p-0">

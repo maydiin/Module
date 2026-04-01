@@ -288,8 +288,8 @@ function AppLayout({ children }) {
       <div className={`mobile-nav-sheet d-lg-none ${isMobileNavOpen ? 'open' : ''}`}>
         <div className="d-flex align-items-center justify-content-between mb-3">
           <div className="d-flex align-items-center gap-2">
-            <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <Icon name="settings" size={18} className="icon-theme" />
+            <div className="text-primary d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
+              <Icon name="settings" size={24} className="icon-theme" />
             </div>
             <span className="fw-bold text-foreground">{username}</span>
           </div>

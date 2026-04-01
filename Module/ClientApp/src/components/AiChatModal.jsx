@@ -81,8 +81,8 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
             <div className="flex-grow-1 p-4 overflow-auto bg-glass">
               {chatHistory.length === 0 ? (
                 <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-40">
-                  <div className="bg-primary bg-opacity-10 rounded-circle p-4 mb-4 d-flex align-items-center justify-content-center">
-                    <Icon name="sparkles" size={48} className="icon-theme" />
+                  <div className="text-primary p-4 mb-4 d-flex align-items-center justify-content-center">
+                    <Icon name="sparkles" size={64} className="icon-theme" />
                   </div>
                   <p className="fw-medium">{t('ai_chat_empty_state') || "Describe your requirements to get started."}</p>
                 </div>

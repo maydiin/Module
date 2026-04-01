@@ -47,13 +47,19 @@ const icons = {
       <path d="M10 14h4"></path>
     </>
   ),
+  terminal: (
+    <>
+      <polyline points="4 17 10 11 4 5" stroke="currentColor" fill="none" strokeWidth="2.5"></polyline>
+      <line x1="12" y1="19" x2="20" y2="19" stroke="currentColor" strokeWidth="2.5"></line>
+    </>
+  ),
   script: (
     <>
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="8" y1="13" x2="16" y2="13"></line>
-      <line x1="8" y1="17" x2="16" y2="17"></line>
-      <line x1="10" y1="9" x2="8" y2="9"></line>
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" stroke="currentColor" fill="none"></path>
+      <polyline points="14 2 14 8 20 8" stroke="currentColor" fill="none"></polyline>
+      <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor"></line>
+      <line x1="8" y1="17" x2="16" y2="17" stroke="currentColor"></line>
+      <line x1="10" y1="9" x2="8" y2="9" stroke="currentColor"></line>
     </>
   ),
   eye: (

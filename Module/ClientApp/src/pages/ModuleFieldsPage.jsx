@@ -154,8 +154,8 @@ function ModuleFieldsPage() {
 
   return (
     <div className="fade-in">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-        <div className="d-flex align-items-center mb-4 mb-md-0">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3 fade-in">
+        <div className="d-flex align-items-center">
           <button
             className="btn btn-blur bg-surface bg-opacity-50 border-0 me-3 shadow-sm hover-shift-left transition-all p-3 d-none d-md-flex align-items-center justify-content-center"
             onClick={() => navigate('/')}
@@ -173,23 +173,21 @@ function ModuleFieldsPage() {
             <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('fields_subtitle')}</p>
           </div>
         </div>
-        <button
-          className={`btn ${showForm ? 'btn-outline-danger' : 'btn-primary'} btn-lg px-4 shadow-sm`}
-          onClick={() => {
-            setShowForm(!showForm);
-            if (showForm) setEditingFieldId(null);
-          }}
-        >
-          {showForm ? (
-            <>
-              <span className="fs-5">✕</span> {t('cancel')}
-            </>
-          ) : (
-            <>
-              <span className="fs-5">+</span> {t('new_field')}
-            </>
-          )}
-        </button>
+        <div className="d-flex gap-2 flex-wrap align-items-center">
+          <button
+            className={`btn ${showForm ? 'btn-danger' : 'btn-primary'} px-4 shadow-premium hover-lift fw-bold`}
+            onClick={() => {
+              setShowForm(!showForm);
+              if (showForm) setEditingFieldId(null);
+            }}
+          >
+            {showForm ? (
+              <><Icon name="x" size={20} className="me-2" /> {t('cancel')}</>
+            ) : (
+              <><Icon name="plus" size={20} className="me-2" /> {t('new_field')}</>
+            )}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -307,7 +305,7 @@ function ModuleFieldsPage() {
                   />
                 </div>
                 <div className="col-md-4 d-flex align-items-center pt-md-4">
-                  <div className="form-check form-switch p-2 ps-5 rounded bg-surface border border-theme-accent w-100">
+                  <div className="form-check form-switch p-2 ps-5 rounded bg-surface bg-opacity-50 border border-theme-accent w-100">
                     <input
                       className="form-check-input ms-0"
                       type="checkbox"
@@ -317,11 +315,11 @@ function ModuleFieldsPage() {
                       onChange={handleInputChange}
                       style={{ float: 'none', marginRight: '10px' }}
                     />
-                    <label className="form-check-label fw-bold text-muted small text-uppercase" htmlFor="required">
+                    <label className="form-check-label fw-bold text-foreground opacity-80 small text-uppercase" htmlFor="required">
                       {t('mandatory')}
                     </label>
                   </div>
-                  <div className="form-check form-switch p-2 ps-5 rounded bg-surface border border-theme-accent w-100 mt-2">
+                  <div className="form-check form-switch p-2 ps-5 rounded bg-surface bg-opacity-50 border border-theme-accent w-100 mt-2">
                     <input
                       className="form-check-input ms-0"
                       type="checkbox"
@@ -331,7 +329,7 @@ function ModuleFieldsPage() {
                       onChange={handleInputChange}
                       style={{ float: 'none', marginRight: '10px' }}
                     />
-                    <label className="form-check-label fw-bold text-muted small text-uppercase" htmlFor="isDisplayField">
+                    <label className="form-check-label fw-bold text-foreground opacity-80 small text-uppercase" htmlFor="isDisplayField">
                       {t('is_display_field')}
                     </label>
                   </div>
@@ -389,11 +387,11 @@ function ModuleFieldsPage() {
       <div className="glass-card border-0 overflow-hidden stagger-in">
         <div className="card-header bg-surface bg-opacity-30 py-4 px-4 border-bottom border-theme-accent d-flex justify-content-between align-items-center">
           <h5 className="mb-0 fw-800 d-flex align-items-center">
-            <div className="bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-3 shadow-sm border border-primary border-opacity-10 d-flex align-items-center justify-content-center">
+            <div className="text-primary me-3 d-flex align-items-center justify-content-center">
               <Icon name="settings" size={24} className="icon-theme" strokeWidth={2} />
             </div>
             {t('schema_attributes')}
-            <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{fields.length}</span>
+            <span className="badge badge-soft-primary ms-3 px-3 rounded-pill fw-bold" style={{ fontSize: '0.8rem' }}>{fields.length}</span>
           </h5>
           <button
             className="btn btn-outline-primary btn-sm rounded-pill px-3"
@@ -429,7 +427,7 @@ function ModuleFieldsPage() {
                         <span className="badge bg-primary">{field.orderNo}</span>
                       </td>
                       <td>
-                        <code className="bg-primary bg-opacity-15 text-primary border border-primary border-opacity-20 px-2 py-1 rounded fw-bold">{field.name}</code>
+                        <code className="badge-soft-primary px-2 py-1 rounded fw-bold">{field.name}</code>
                       </td>
                       <td className="fw-semibold">{field.label}</td>
                       <td>

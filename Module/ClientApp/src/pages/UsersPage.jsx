@@ -252,7 +252,7 @@ function UsersPage() {
                                                 {roles.map(role => (
                                                     <div key={role.id} className="col-sm-6 col-md-4">
                                                         <div 
-                                                            className={`form-check p-3 rounded-3 border-2 transition-all ${newUser.roles.includes(role.name) ? 'bg-primary bg-opacity-10 border-primary' : 'bg-surface bg-opacity-50 border-theme-accent border-opacity-20 opacity-80'}`}
+                                                            className={`form-check p-3 rounded-3 border-2 transition-all ${newUser.roles.includes(role.name) ? 'bg-surface border-primary shadow-sm' : 'bg-surface bg-opacity-50 border-theme-accent border-opacity-30 opacity-80'}`}
                                                             style={{ cursor: 'pointer' }}
                                                             onClick={() => handleNewUserRoleChange(role.name)}
                                                         >

@@ -210,7 +210,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                                 to={`/modules/${module.id}/scripts`}
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
-                                                                <Icon name="script" size={18} className="me-2" />
+                                                                <Icon name="terminal" size={18} className="me-2" />
                                                                 Scripts
                                                             </NavLink>
                                                         </li>

@@ -17,7 +17,7 @@ function SettingsPage() {
   return (
     <div className="fade-in">
       <div className="d-flex align-items-center mb-4 mb-md-5">
-        <div className="bg-primary bg-opacity-10 p-2 p-md-3 rounded-4 me-3 me-md-4 shadow-sm d-flex align-items-center justify-content-center">
+        <div className="text-primary p-2 p-md-3 me-3 me-md-4 d-flex align-items-center justify-content-center">
           <Icon name="settings" size={32} className="icon-theme" />
         </div>
         <div>
@@ -33,8 +33,8 @@ function SettingsPage() {
         <div className="col-12 col-xl-8">
           <div className="glass-card p-5 h-100">
             <div className="d-flex align-items-center mb-5">
-              <div className="bg-primary p-2 rounded-3 me-3 text-white shadow-sm d-flex align-items-center justify-content-center">
-                <Icon name="box" size={24} color="white" />
+              <div className="text-primary me-3 d-flex align-items-center justify-content-center">
+                <Icon name="box" size={24} className="icon-theme" />
               </div>
               <h3 className="mb-0">{t('appearance', 'Görünüm')}</h3>
             </div>
@@ -42,7 +42,7 @@ function SettingsPage() {
             <div className="mb-5">
               <label className="form-label fw-bold mb-3 d-flex align-items-center">
                 <span>{t('color_scale', 'Renk Skalası')}</span>
-                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>{themes.find(t => t.id === theme)?.label}</span>
+                <span className="badge badge-soft-primary ms-2 px-2 py-1" style={{ fontSize: '0.65rem', textTransform: 'uppercase' }}>{themes.find(t => t.id === theme)?.label}</span>
               </label>
               
               <div className="d-flex flex-wrap gap-3 mt-2">
@@ -85,7 +85,7 @@ function SettingsPage() {
             <div className="mb-5 pt-4 border-top border-primary border-opacity-10">
               <label className="form-label fw-bold mb-3 d-flex align-items-center">
                 <span>{t('theme_mode', 'Tema Modu')}</span>
-                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>
+                <span className="badge badge-soft-primary ms-2 px-2 py-1" style={{ fontSize: '0.65rem', textTransform: 'uppercase' }}>
                   {isDarkMode ? t('dark_mode', 'Karanlık') : t('light_mode', 'Aydınlık')}
                 </span>
               </label>
@@ -107,9 +107,9 @@ function SettingsPage() {
               </div>
             </div>
 
-            <div className="p-4 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-10">
+            <div className="p-4 rounded-4 bg-surface border border-theme-accent shadow-sm">
               <div className="d-flex align-items-start gap-3">
-                <div className="bg-primary bg-opacity-10 p-2 rounded-3">
+                <div className="text-primary">
                   <Icon name="lightbulb" size={24} className="icon-theme" />
                 </div>
                 <div>
@@ -127,8 +127,8 @@ function SettingsPage() {
         <div className="col-12 col-xl-4">
           <div className="glass-card p-5 h-100">
             <div className="d-flex align-items-center mb-5">
-              <div className="bg-primary p-2 rounded-3 me-3 text-white shadow-sm d-flex align-items-center justify-content-center">
-                <Icon name="globe" size={24} color="white" />
+              <div className="text-primary me-3 d-flex align-items-center justify-content-center">
+                <Icon name="globe" size={24} className="icon-theme" />
               </div>
               <h3 className="mb-0">{t('language', 'Dil')}</h3>
             </div>
@@ -136,7 +136,7 @@ function SettingsPage() {
             <div className="mb-5">
               <label className="form-label fw-bold mb-3 d-flex align-items-center">
                 <span>{t('select_language', 'Dil Seçimi')}</span>
-                <span className="badge bg-primary bg-opacity-10 text-primary ms-2 px-2 py-1" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>
+                <span className="badge badge-soft-primary ms-2 px-2 py-1" style={{ fontSize: '0.65rem', textTransform: 'uppercase' }}>
                   {languages.find(l => l.id === currentLanguage)?.label}
                 </span>
               </label>
@@ -149,7 +149,7 @@ function SettingsPage() {
                     className={`btn d-flex align-items-center justify-content-between p-3 border-0 rounded-4 transition-all ${currentLanguage === l.id ? 'bg-primary text-white shadow-lg' : 'bg-surface hover-lift shadow-sm opacity-80'}`}
                   >
                     <div className="d-flex align-items-center gap-3">
-                      <div className={`p-2 rounded-3 ${currentLanguage === l.id ? 'bg-white bg-opacity-20' : 'bg-primary bg-opacity-10'}`}>
+                      <div className={`p-2 rounded-3 ${currentLanguage === l.id ? 'bg-primary' : 'bg-surface border border-theme-accent'}`}>
                         <span className="fw-bold fs-7">{l.id.toUpperCase()}</span>
                       </div>
                       <span className="fw-bold">{l.label}</span>
@@ -162,7 +162,7 @@ function SettingsPage() {
               </div>
             </div>
 
-            <div className="p-4 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-10 mt-auto">
+            <div className="p-4 rounded-4 bg-surface border border-theme-accent mt-auto">
               <p className="small text-muted mb-0 opacity-80">
                 {t('language_desc', 'Uygulama dilini buradan değiştirebilirsiniz.')}
               </p>
