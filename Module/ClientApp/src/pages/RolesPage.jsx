@@ -126,7 +126,7 @@ function RolesPage() {
             <div className="row g-4">
                 {roles.map(role => (
                     <div key={role.id} className="col-md-6">
-                        <div className="glass-card border-0 h-100 overflow-hidden fade-in">
+                        <div className="glass-card border-0 h-100 fade-in" style={{ paddingBottom: '2rem' }}>
                             <div className="card-header bg-surface bg-opacity-40 border-bottom border-theme-accent py-3 d-flex justify-content-between align-items-center">
                                 <div>
                                     <h5 className="mb-0 fw-bold">{role.name}</h5>
@@ -163,7 +163,7 @@ function RolesPage() {
                                     <button className="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill px-3" data-bs-toggle="dropdown">
                                         <Icon name="plus" size={14} className="me-1" /> {t('add_permission')}
                                     </button>
-                                    <ul className="dropdown-menu glass border-0 shadow-lg">
+                                    <ul className="dropdown-menu bg-surface border border-theme-accent shadow-lg">
                                         {permissions.filter(p => !role.permissions.includes(p)).map(perm => (
                                             <li key={perm}>
                                                 <button className="dropdown-item hover-bg-theme rounded-2 mx-1 my-1" style={{ width: 'calc(100% - 0.5rem)' }} onClick={() => handleAddPermission(role.id, perm)}>

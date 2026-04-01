@@ -123,8 +123,8 @@ function UsersPage() {
 
             {error && <div className="alert alert-danger">{error}</div>}
 
-            <div className="glass-card border-0 overflow-hidden">
-                <div className="table-responsive">
+            <div className="glass-card border-0" style={{ paddingBottom: '3rem' }}>
+                <div className="table-responsive" style={{ overflow: 'visible' }}>
                     <table className="table table-hover align-middle mb-0">
                         <thead className="bg-surface bg-opacity-50">
                             <tr className="border-bottom border-theme-accent">

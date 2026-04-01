@@ -290,6 +290,8 @@ const resources = {
             "ai_success_msg": "System updated successfully!",
             "ai_generate_error": "Failed to generate config: ",
             "ai_apply_error": "Failed to apply config: ",
+            "ai_chat_empty_state": "Describe your requirements to get started.",
+            "error_occurred_please_try_again": "An error occurred, please try again.",
             "reports": "Reports",
             "custom_reports": "Custom Reports",
             "reports_subtitle_desc": "Design and view specialized data visualizations for this module.",
@@ -365,7 +367,8 @@ const resources = {
             "assign_role": "Assign Role",
             "save_role": "Save Role",
             "user_roles_help": "Select permissions to assign to the user.",
-            "remove_role": "Remove Role"
+            "remove_role": "Remove Role",
+            "add_role": "Add Role"
         }
     },
     tr: {
@@ -655,6 +658,8 @@ const resources = {
             "ai_success_msg": "Sistem başarıyla güncellendi!",
             "ai_generate_error": "Yapılandırma oluşturulamadı: ",
             "ai_apply_error": "Yapılandırma uygulanamadı: ",
+            "ai_chat_empty_state": "İhtiyaçlarınızı tarif ederek başlayın.",
+            "error_occurred_please_try_again": "Bir hata oluştu, lütfen tekrar deneyin.",
             "reports": "Raporlar",
             "custom_reports": "Özel Raporlar",
             "reports_subtitle_desc": "Bu modül için özel veri görselleştirmeleri tasarlayın ve inceleyin.",
@@ -730,7 +735,8 @@ const resources = {
             "assign_role": "Rol Ata",
             "save_role": "Rolü Kaydet",
             "user_roles_help": "Kullanıcıya atanacak yetkileri buradan seçebilirsiniz.",
-            "remove_role": "Rolü Kaldır"
+            "remove_role": "Rolü Kaldır",
+            "add_role": "Rol Ekle"
         }
     }
 };
