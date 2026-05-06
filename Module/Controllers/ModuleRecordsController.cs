@@ -145,7 +145,7 @@ public class ModuleRecordsController : ControllerBase
         query = query.Where(r => r.TenantId == tenantId);
 
         // Visibility Rules Hook
-        query = await ApplyVisibilityRulesAsync(query, moduleId);
+        query = await ApplyVisibilityRulesAsync(query, module);
 
         // 1. Global Search (at DB level)
         if (!string.IsNullOrWhiteSpace(search))
@@ -405,11 +405,14 @@ public class ModuleRecordsController : ControllerBase
     [HasModulePermission("View")]
     public async Task<ActionResult<ModuleRecordDto>> GetRecord(int moduleId, int recordId)
     {
+        var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null) return NotFound();
+
         var query = _context.ModuleRecords
             .Where(r => r.Id == recordId && r.ModuleId == moduleId);
             
         // Apply Visibility Rules Hook
-        query = await ApplyVisibilityRulesAsync(query, moduleId);
+        query = await ApplyVisibilityRulesAsync(query, module);
 
         var record = await query
             .Include(r => r.Module)
@@ -559,7 +562,7 @@ public class ModuleRecordsController : ControllerBase
         query = query.Where(r => r.TenantId == tenantId);
 
         // Visibility Rules Hook
-        query = await ApplyVisibilityRulesAsync(query, module.Id);
+        query = await ApplyVisibilityRulesAsync(query, module);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -612,7 +615,7 @@ public class ModuleRecordsController : ControllerBase
         });
     }
 
-    private async Task<IQueryable<Module.Entities.ModuleRecord>> ApplyVisibilityRulesAsync(IQueryable<Module.Entities.ModuleRecord> query, int moduleId)
+    private async Task<IQueryable<Module.Entities.ModuleRecord>> ApplyVisibilityRulesAsync(IQueryable<Module.Entities.ModuleRecord> query, Module.Entities.Module module)
     {
         var isSuperAdminClaim = User.FindFirst("IsSuperAdmin");
         if (isSuperAdminClaim != null && bool.TryParse(isSuperAdminClaim.Value, out var isSuperAdmin) && isSuperAdmin)
@@ -629,7 +632,7 @@ public class ModuleRecordsController : ControllerBase
             .ToListAsync();
 
         var rules = await _context.ModuleVisibilityRules
-            .Where(r => r.ModuleId == moduleId && r.IsActive)
+            .Where(r => r.ModuleId == module.Id && r.IsActive)
             .Where(r => r.RoleId == null || userRoleIds.Contains(r.RoleId.Value))
             .ToListAsync();
 
@@ -640,58 +643,162 @@ public class ModuleRecordsController : ControllerBase
 
         foreach (var hr in hideRules)
         {
-            query = ApplyRuleCondition(query, hr, negate: true, userId);
+            query = query.Where(BuildRuleExpression(hr, negate: true, userId, module));
         }
 
-        foreach (var sr in showRules)
+        if (showRules.Any())
         {
-            query = ApplyRuleCondition(query, sr, negate: false, userId);
+            System.Linq.Expressions.Expression<Func<Module.Entities.ModuleRecord, bool>>? combinedShow = null;
+            foreach (var sr in showRules)
+            {
+                var expr = BuildRuleExpression(sr, negate: false, userId, module);
+                if (combinedShow == null)
+                    combinedShow = expr;
+                else
+                    combinedShow = CombineWithOr(combinedShow, expr);
+            }
+            if (combinedShow != null)
+                query = query.Where(combinedShow);
         }
 
         return query;
     }
 
-    private IQueryable<Module.Entities.ModuleRecord> ApplyRuleCondition(IQueryable<Module.Entities.ModuleRecord> query, Module.Entities.ModuleVisibilityRule rule, bool negate, int currentUserId)
+    private System.Linq.Expressions.Expression<Func<Module.Entities.ModuleRecord, bool>> CombineWithOr(
+        System.Linq.Expressions.Expression<Func<Module.Entities.ModuleRecord, bool>> first, 
+        System.Linq.Expressions.Expression<Func<Module.Entities.ModuleRecord, bool>> second)
     {
-        var field = rule.Field;
+        var parameter = System.Linq.Expressions.Expression.Parameter(typeof(Module.Entities.ModuleRecord), "r");
+
+        var leftVisitor = new ReplaceExpressionVisitor(first.Parameters[0], parameter);
+        var left = leftVisitor.Visit(first.Body);
+
+        var rightVisitor = new ReplaceExpressionVisitor(second.Parameters[0], parameter);
+        var right = rightVisitor.Visit(second.Body);
+
+        return System.Linq.Expressions.Expression.Lambda<Func<Module.Entities.ModuleRecord, bool>>(
+            System.Linq.Expressions.Expression.OrElse(left, right), parameter);
+    }
+
+    private class ReplaceExpressionVisitor : System.Linq.Expressions.ExpressionVisitor
+    {
+        private readonly System.Linq.Expressions.Expression _oldValue;
+        private readonly System.Linq.Expressions.Expression _newValue;
+
+        public ReplaceExpressionVisitor(System.Linq.Expressions.Expression oldValue, System.Linq.Expressions.Expression newValue)
+        {
+            _oldValue = oldValue;
+            _newValue = newValue;
+        }
+
+        public override System.Linq.Expressions.Expression Visit(System.Linq.Expressions.Expression node)
+        {
+            if (node == _oldValue)
+                return _newValue;
+            return base.Visit(node);
+        }
+    }
+
+    private System.Linq.Expressions.Expression<Func<Module.Entities.ModuleRecord, bool>> BuildRuleExpression(Module.Entities.ModuleVisibilityRule rule, bool negate, int currentUserId, Module.Entities.Module module)
+    {
+        var fieldName = rule.Field;
         var op = rule.Operator.ToLowerInvariant();
         var val = rule.Value?.Replace("{{CurrentUser.Id}}", currentUserId.ToString()) ?? "";
 
-        if (field == "__createdByUserId")
+        if (fieldName == "__createdByUserId")
         {
             if (int.TryParse(val, out var targetUserId))
             {
                 if (negate)
                 {
-                    return op switch { "eq" => query.Where(r => r.CreatedByUserId != targetUserId), "neq" => query.Where(r => r.CreatedByUserId == targetUserId), _ => query };
+                    return op switch { "eq" => r => r.CreatedByUserId != targetUserId, "neq" => r => r.CreatedByUserId == targetUserId, _ => r => true };
                 }
                 else
                 {
-                    return op switch { "eq" => query.Where(r => r.CreatedByUserId == targetUserId), "neq" => query.Where(r => r.CreatedByUserId != targetUserId), _ => query };
+                    return op switch { "eq" => r => r.CreatedByUserId == targetUserId, "neq" => r => r.CreatedByUserId != targetUserId, _ => r => false };
                 }
             }
-            return query;
+            return r => negate;
         }
 
-        var jsonPath = $"$.{field}";
+        var field = module.Fields?.FirstOrDefault(f => f.Name == fieldName);
+        var jsonPath = $"$.{fieldName}";
+
+        if (field != null && (field.Type == "number" || field.Type == "currency" || field.Type == "percentage"))
+        {
+            if (decimal.TryParse(val, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var decimalVal))
+            {
+                if (negate)
+                {
+                    return op switch
+                    {
+                        "eq" or "equals" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) != decimalVal,
+                        "neq" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) == decimalVal,
+                        "gt" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) <= decimalVal,
+                        "lt" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) >= decimalVal,
+                        _ => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) != decimalVal
+                    };
+                }
+                else
+                {
+                    return op switch
+                    {
+                        "eq" or "equals" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) == decimalVal,
+                        "neq" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) != decimalVal,
+                        "gt" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) > decimalVal,
+                        "lt" => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) < decimalVal,
+                        _ => r => Convert.ToDecimal(AppDbContext.JsonValue(r.Data, jsonPath)) == decimalVal
+                    };
+                }
+            }
+        }
+        else if (field != null && (field.Type == "date" || field.Type == "datetime"))
+        {
+            if (DateTime.TryParse(val, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal, out var dateVal))
+            {
+                if (negate)
+                {
+                    return op switch
+                    {
+                        "eq" or "equals" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) != dateVal,
+                        "neq" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) == dateVal,
+                        "gt" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) <= dateVal,
+                        "lt" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) >= dateVal,
+                        _ => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) != dateVal
+                    };
+                }
+                else
+                {
+                    return op switch
+                    {
+                        "eq" or "equals" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) == dateVal,
+                        "neq" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) != dateVal,
+                        "gt" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) > dateVal,
+                        "lt" => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) < dateVal,
+                        _ => r => Convert.ToDateTime(AppDbContext.JsonValue(r.Data, jsonPath)) == dateVal
+                    };
+                }
+            }
+        }
+
         if (negate)
         {
              return op switch
              {
-                 "eq" or "equals" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) != val),
-                 "neq" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == val),
-                 "contains" => query.Where(r => !EF.Functions.Like(AppDbContext.JsonValue(r.Data, jsonPath), $"%{val}%")),
-                 _ => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) != val)
+                 "eq" or "equals" => r => AppDbContext.JsonValue(r.Data, jsonPath) != val,
+                 "neq" => r => AppDbContext.JsonValue(r.Data, jsonPath) == val,
+                 "contains" => r => !EF.Functions.Like(AppDbContext.JsonValue(r.Data, jsonPath), $"%{val}%"),
+                 _ => r => AppDbContext.JsonValue(r.Data, jsonPath) != val
              };
         }
         else
         {
              return op switch
              {
-                 "eq" or "equals" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == val),
-                 "neq" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) != val),
-                 "contains" => query.Where(r => EF.Functions.Like(AppDbContext.JsonValue(r.Data, jsonPath), $"%{val}%")),
-                 _ => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == val)
+                 "eq" or "equals" => r => AppDbContext.JsonValue(r.Data, jsonPath) == val,
+                 "neq" => r => AppDbContext.JsonValue(r.Data, jsonPath) != val,
+                 "contains" => r => EF.Functions.Like(AppDbContext.JsonValue(r.Data, jsonPath), $"%{val}%"),
+                 _ => r => AppDbContext.JsonValue(r.Data, jsonPath) == val
              };
         }
     }
