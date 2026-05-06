@@ -48,7 +48,10 @@ public class ModuleRecordsController : ControllerBase
         // Script Hook: BeforeCreate
         await _scriptService.ExecuteBeforeHookAsync("BeforeCreate", moduleId, dto.Data);
 
-        var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data));
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var currentUserId = int.TryParse(userIdStr, out var id) ? id : (int?)null;
+
+        var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data, currentUserId));
         
         var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module != null && module.AuditCreate)
@@ -74,7 +77,10 @@ public class ModuleRecordsController : ControllerBase
             return BadRequest(new { error = "Records data is required" });
         }
 
-        var result = await _mediator.Send(new Features.Records.Commands.BulkCreateRecordsCommand(moduleId, recordsData));
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var currentUserId = int.TryParse(userIdStr, out var id) ? id : (int?)null;
+
+        var result = await _mediator.Send(new Features.Records.Commands.BulkCreateRecordsCommand(moduleId, recordsData, currentUserId));
         
         var module = await _context.Modules.FindAsync(moduleId);
         if (module != null && module.AuditCreate)
@@ -137,6 +143,9 @@ public class ModuleRecordsController : ControllerBase
             
         // Always apply tenant filter (TenantService handles super admin header override)
         query = query.Where(r => r.TenantId == tenantId);
+
+        // Visibility Rules Hook
+        query = await ApplyVisibilityRulesAsync(query, moduleId);
 
         // 1. Global Search (at DB level)
         if (!string.IsNullOrWhiteSpace(search))
@@ -396,10 +405,16 @@ public class ModuleRecordsController : ControllerBase
     [HasModulePermission("View")]
     public async Task<ActionResult<ModuleRecordDto>> GetRecord(int moduleId, int recordId)
     {
-        var record = await _context.ModuleRecords
+        var query = _context.ModuleRecords
+            .Where(r => r.Id == recordId && r.ModuleId == moduleId);
+            
+        // Apply Visibility Rules Hook
+        query = await ApplyVisibilityRulesAsync(query, moduleId);
+
+        var record = await query
             .Include(r => r.Module)
             .ThenInclude(m => m.Fields)
-            .FirstOrDefaultAsync(r => r.Id == recordId && r.ModuleId == moduleId);
+            .FirstOrDefaultAsync();
 
         if (record == null)
         {
@@ -543,6 +558,9 @@ public class ModuleRecordsController : ControllerBase
         var tenantId = _tenantService.GetCurrentTenantId();
         query = query.Where(r => r.TenantId == tenantId);
 
+        // Visibility Rules Hook
+        query = await ApplyVisibilityRulesAsync(query, module.Id);
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             // Search in the Data JSON
@@ -592,6 +610,90 @@ public class ModuleRecordsController : ControllerBase
             PageSize = pageSize,
             TotalPages = totalPages
         });
+    }
+
+    private async Task<IQueryable<Module.Entities.ModuleRecord>> ApplyVisibilityRulesAsync(IQueryable<Module.Entities.ModuleRecord> query, int moduleId)
+    {
+        var isSuperAdminClaim = User.FindFirst("IsSuperAdmin");
+        if (isSuperAdminClaim != null && bool.TryParse(isSuperAdminClaim.Value, out var isSuperAdmin) && isSuperAdmin)
+        {
+            return query; // Super admins see everything
+        }
+
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdStr, out var userId)) return query.Where(r => false); // Safety fallback
+
+        var userRoleIds = await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.RoleId)
+            .ToListAsync();
+
+        var rules = await _context.ModuleVisibilityRules
+            .Where(r => r.ModuleId == moduleId && r.IsActive)
+            .Where(r => r.RoleId == null || userRoleIds.Contains(r.RoleId.Value))
+            .ToListAsync();
+
+        if (!rules.Any()) return query;
+
+        var showRules = rules.Where(r => r.Action == "Show").ToList();
+        var hideRules = rules.Where(r => r.Action == "Hide").ToList();
+
+        foreach (var hr in hideRules)
+        {
+            query = ApplyRuleCondition(query, hr, negate: true, userId);
+        }
+
+        foreach (var sr in showRules)
+        {
+            query = ApplyRuleCondition(query, sr, negate: false, userId);
+        }
+
+        return query;
+    }
+
+    private IQueryable<Module.Entities.ModuleRecord> ApplyRuleCondition(IQueryable<Module.Entities.ModuleRecord> query, Module.Entities.ModuleVisibilityRule rule, bool negate, int currentUserId)
+    {
+        var field = rule.Field;
+        var op = rule.Operator.ToLowerInvariant();
+        var val = rule.Value?.Replace("{{CurrentUser.Id}}", currentUserId.ToString()) ?? "";
+
+        if (field == "__createdByUserId")
+        {
+            if (int.TryParse(val, out var targetUserId))
+            {
+                if (negate)
+                {
+                    return op switch { "eq" => query.Where(r => r.CreatedByUserId != targetUserId), "neq" => query.Where(r => r.CreatedByUserId == targetUserId), _ => query };
+                }
+                else
+                {
+                    return op switch { "eq" => query.Where(r => r.CreatedByUserId == targetUserId), "neq" => query.Where(r => r.CreatedByUserId != targetUserId), _ => query };
+                }
+            }
+            return query;
+        }
+
+        var jsonPath = $"$.{field}";
+        if (negate)
+        {
+             return op switch
+             {
+                 "eq" or "equals" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) != val),
+                 "neq" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == val),
+                 "contains" => query.Where(r => !EF.Functions.Like(AppDbContext.JsonValue(r.Data, jsonPath), $"%{val}%")),
+                 _ => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) != val)
+             };
+        }
+        else
+        {
+             return op switch
+             {
+                 "eq" or "equals" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == val),
+                 "neq" => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) != val),
+                 "contains" => query.Where(r => EF.Functions.Like(AppDbContext.JsonValue(r.Data, jsonPath), $"%{val}%")),
+                 _ => query.Where(r => AppDbContext.JsonValue(r.Data, jsonPath) == val)
+             };
+        }
     }
 
 

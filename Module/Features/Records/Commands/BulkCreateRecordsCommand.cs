@@ -10,7 +10,7 @@ using System.Text.Json;
 
 namespace Module.Features.Records.Commands;
 
-public record BulkCreateRecordsCommand(int ModuleId, List<Dictionary<string, object>> RecordsData) : ICommand<List<ModuleRecordDto>>;
+public record BulkCreateRecordsCommand(int ModuleId, List<Dictionary<string, object>> RecordsData, int? CreatedByUserId = null) : ICommand<List<ModuleRecordDto>>;
 
 public class BulkCreateRecordsHandler : IRequestHandler<BulkCreateRecordsCommand, List<ModuleRecordDto>>
 {
@@ -86,7 +86,8 @@ public class BulkCreateRecordsHandler : IRequestHandler<BulkCreateRecordsCommand
                     ModuleId = request.ModuleId,
                     Data = JsonSerializer.Serialize(data),
                     CreatedAt = DateTime.UtcNow,
-                    TenantId = tenantId
+                    TenantId = tenantId,
+                    CreatedByUserId = request.CreatedByUserId
                 };
 
                 _context.ModuleRecords.Add(record);

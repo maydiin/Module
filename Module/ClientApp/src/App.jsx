@@ -8,6 +8,7 @@ import RecordDetailPage from './pages/RecordDetailPage';
 import ModuleApiConfigsPage from './pages/ModuleApiConfigsPage';
 import ModuleScriptsPage from './pages/ModuleScriptsPage';
 import ModuleReportsPage from './pages/ModuleReportsPage';
+import ModuleVisibilityRulesPage from './pages/ModuleVisibilityRulesPage';
 import ReportViewerPage from './pages/ReportViewerPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -42,6 +43,7 @@ function App() {
                       <Route path="/modules/:moduleId/records/:recordId" element={<RecordDetailPage />} />
                       <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
                       <Route path="/modules/:moduleId/scripts" element={<ModuleScriptsPage />} />
+                      <Route path="/modules/:moduleId/visibility-rules" element={<ModuleVisibilityRulesPage />} />
                       <Route path="/modules/:moduleId/reports" element={<ModuleReportsPage />} />
                       <Route path="/modules/:moduleId/reports/:reportId/view" element={<ReportViewerPage />} />
                       <Route path="/users" element={<UsersPage />} />

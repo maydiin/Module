@@ -16,5 +16,6 @@ public class Module
     
     public ICollection<ModuleField> Fields { get; set; } = new List<ModuleField>();
     public ICollection<ModuleRecord> Records { get; set; } = new List<ModuleRecord>();
+    public ICollection<ModuleVisibilityRule> VisibilityRules { get; set; } = new List<ModuleVisibilityRule>();
 }
 

@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<ModuleScript> ModuleScripts { get; set; }
     public DbSet<ModuleReport> ModuleReports { get; set; }
+    public DbSet<ModuleVisibilityRule> ModuleVisibilityRules { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -85,10 +86,41 @@ public class AppDbContext : DbContext
                 .WithMany(t => t.ModuleRecords)
                 .HasForeignKey(e => e.TenantId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
             
             entity.HasIndex(e => e.ModuleId);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.TenantId);
+        });
+
+        modelBuilder.Entity<ModuleVisibilityRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Field).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Operator).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Value).HasMaxLength(200);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(20);
+
+            entity.HasOne(e => e.Module)
+                .WithMany(m => m.VisibilityRules)
+                .HasForeignKey(e => e.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Role)
+                .WithMany()
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.SetNull);
+                
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.TenantId, e.ModuleId });
         });
 
         modelBuilder.Entity<ExternalApiConfig>(entity =>

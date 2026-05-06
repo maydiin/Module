@@ -11,6 +11,10 @@ public class ModuleRecord
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
     
+    // Creator info for ownership
+    public int? CreatedByUserId { get; set; }
+    public User? CreatedByUser { get; set; }
+    
     public Module Module { get; set; } = null!;
 }
 

@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace Module.Features.Records.Commands;
 
-public record CreateRecordCommand(int ModuleId, Dictionary<string, object> Data) : ICommand<ModuleRecordDto>;
+public record CreateRecordCommand(int ModuleId, Dictionary<string, object> Data, int? CreatedByUserId = null) : ICommand<ModuleRecordDto>;
 
 public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRecordDto>
 {
@@ -94,7 +94,8 @@ public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRe
             ModuleId = request.ModuleId,
             Data = json,
             CreatedAt = DateTime.UtcNow,
-            TenantId = _tenantService.GetCurrentTenantId()
+            TenantId = _tenantService.GetCurrentTenantId(),
+            CreatedByUserId = request.CreatedByUserId
         };
 
         _context.ModuleRecords.Add(record);

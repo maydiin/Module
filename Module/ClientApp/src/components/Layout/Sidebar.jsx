@@ -215,6 +215,17 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                             </NavLink>
                                                         </li>
                                                     )}
+                                                    {canManage && (
+                                                        <li>
+                                                            <NavLink
+                                                                to={`/modules/${module.id}/visibility-rules`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                            >
+                                                                <Icon name="users" size={18} className="me-2" />
+                                                                Görünürlük
+                                                            </NavLink>
+                                                        </li>
+                                                    )}
                                                 </ul>
                                             </div>
                                         )}

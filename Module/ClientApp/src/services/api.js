@@ -254,6 +254,27 @@ export const getScripts = async (moduleId) => {
   return response.data;
 };
 
+// Visibility Rules
+export const getVisibilityRules = async (moduleId) => {
+    const response = await api.get(`/modules/${moduleId}/visibility-rules`);
+    return response.data;
+};
+
+export const createVisibilityRule = async (moduleId, data) => {
+    const response = await api.post(`/modules/${moduleId}/visibility-rules`, data);
+    return response.data;
+};
+
+export const updateVisibilityRule = async (moduleId, id, data) => {
+    const response = await api.put(`/modules/${moduleId}/visibility-rules/${id}`, data);
+    return response.data;
+};
+
+export const deleteVisibilityRule = async (moduleId, id) => {
+    const response = await api.delete(`/modules/${moduleId}/visibility-rules/${id}`);
+    return response.data;
+};
+
 export const getScript = async (moduleId, scriptId) => {
   const response = await api.get(`/modules/${moduleId}/scripts/${scriptId}`);
   return response.data;
