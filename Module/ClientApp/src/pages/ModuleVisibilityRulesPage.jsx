@@ -9,9 +9,12 @@ import {
     deleteVisibilityRule, 
     getModule,
     getRoles,
-    getFields
+    getFields,
+    generateAiVisibilityRuleConfig,
+    applyAiConfig
 } from '../services/api';
 import Icon from '../components/Icon';
+import AiChatModal from '../components/AiChatModal';
 
 const ModuleVisibilityRulesPage = () => {
     const { t } = useTranslation();
@@ -25,6 +28,7 @@ const ModuleVisibilityRulesPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showAiModal, setShowAiModal] = useState(false);
     const [editingRule, setEditingRule] = useState(null);
     
     const [formData, setFormData] = useState({
@@ -190,6 +194,15 @@ const ModuleVisibilityRulesPage = () => {
                     </div>
                 </div>
                 <div className="d-flex gap-2 flex-wrap align-items-center">
+                    <button
+                        className="btn btn-blur text-foreground border-0 shadow-premium hover-lift px-4"
+                        onClick={() => setShowAiModal(true)}
+                        style={{ backdropFilter: 'blur(10px)' }}
+                    >
+                        <Icon name="sparkles" size={16} className="me-2" />
+                        <span className="d-none d-sm-inline">{t('ai_architect') || 'AI Architect'}</span>
+                        <span className="d-sm-none">AI</span>
+                    </button>
                     <button
                         onClick={handleAddNew}
                         className="btn btn-primary px-4 shadow-premium hover-lift fw-bold"
@@ -448,6 +461,25 @@ const ModuleVisibilityRulesPage = () => {
                 </div>,
                 document.body
             )}
+
+            {/* AI Modal */}
+            <AiChatModal
+                show={showAiModal}
+                onClose={() => setShowAiModal(false)}
+                generateAi={(prompt, history) => generateAiVisibilityRuleConfig(moduleId, prompt, history)}
+                onApply={async (config) => {
+                    try {
+                        await applyAiConfig(config);
+                        setShowAiModal(false);
+                        fetchData();
+                        alert(t('ai_success_msg'));
+                    } catch (err) {
+                        alert(t('ai_apply_error') + " " + (err.response?.data || err.message));
+                    }
+                }}
+                title={t('ai_architect_modal_title')}
+                placeholder={t('ai_prompt_placeholder')}
+            />
         </div>
     );
 };

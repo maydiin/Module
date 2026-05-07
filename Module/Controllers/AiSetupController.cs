@@ -65,6 +65,16 @@ public class AiSetupController : ControllerBase
         var response = await _aiGenerationService.GenerateScriptConfigAsync(moduleId, request.Prompt, request.History);
         return Ok(response);
     }
+
+    [HttpPost("generate-visibility-rule/{moduleId}")]
+    public async Task<IActionResult> GenerateVisibilityRule(int moduleId, [FromBody] AiGenerationRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Prompt))
+            return BadRequest("Prompt is required.");
+
+        var response = await _aiGenerationService.GenerateVisibilityRuleConfigAsync(moduleId, request.Prompt, request.History);
+        return Ok(response);
+    }
 }
 
 

@@ -6,6 +6,7 @@ public class AiSystemConfigDto
     public List<AiScriptConfigDto> Scripts { get; set; } = new();
     public List<AiApiConfigDto> ApiConfigs { get; set; } = new();
     public List<AiReportConfigDto> Reports { get; set; } = new();
+    public List<AiVisibilityRuleConfigDto> VisibilityRules { get; set; } = new();
 }
 
 public class AiModuleConfigDto
@@ -53,5 +54,16 @@ public class AiReportConfigDto
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = "List"; // List, Chart, Pivot
     public string Configuration { get; set; } = "{}";
+    public bool IsActive { get; set; } = true;
+}
+
+public class AiVisibilityRuleConfigDto
+{
+    public string ModuleName { get; set; } = string.Empty;
+    public string? RoleName { get; set; }
+    public string Field { get; set; } = string.Empty;
+    public string Operator { get; set; } = "eq";
+    public string Value { get; set; } = string.Empty;
+    public string Action { get; set; } = "Hide";
     public bool IsActive { get; set; } = true;
 }

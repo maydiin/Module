@@ -541,6 +541,121 @@ IMPORTANT:
         }
     }
 
+    public async Task<AiGenerationResponseDto> GenerateVisibilityRuleConfigAsync(int moduleId, string userPrompt, List<AiChatMessageDto> history)
+    {
+        var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException("AI API Key is not configured.");
+        }
+
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = await _context.Modules
+            .Include(m => m.Fields)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.TenantId == tenantId);
+
+        if (module == null)
+        {
+            throw new KeyNotFoundException($"Module with ID {moduleId} not found.");
+        }
+
+        var existingRoles = await _context.Roles.Where(r => r.TenantId == tenantId).ToListAsync();
+        
+        var existingRules = await _context.ModuleVisibilityRules
+            .Include(r => r.Role)
+            .Where(r => r.ModuleId == moduleId && r.TenantId == tenantId)
+            .ToListAsync();
+
+        var currentConfig = new
+        {
+            Module = new
+            {
+                module.Name,
+                Fields = module.Fields.Select(f => new
+                {
+                    f.Name,
+                    f.Label,
+                    f.Type
+                })
+            },
+            Roles = existingRoles.Select(r => r.Name),
+            ExistingRules = existingRules.Select(r => new
+            {
+                RoleName = r.Role?.Name,
+                r.Field,
+                r.Operator,
+                r.Value,
+                r.Action,
+                r.IsActive
+            })
+        };
+
+        var currentConfigJson = JsonSerializer.Serialize(currentConfig, new JsonSerializerOptions { WriteIndented = true });
+
+        var systemPrompt = $$$$"""
+You are an AI access control specialist. Your goal is to generate Module Visibility Rules for Row-Level Security.
+The output MUST be a valid JSON object matching the following structure exactly. Do not include markdown code blocks (```json ... ```), just return the raw JSON.
+
+Structure:
+{
+  "NeedsMoreInfo": false,
+  "Message": "If NeedsMoreInfo is true, ask your clarification question here (in the user's language). If false, provide a brief success message.",
+  "Configuration": {
+    "VisibilityRules": [
+      {
+        "ModuleName": "{{{{module.Name}}}}",
+        "RoleName": "Admin", // Optional. Can be null or omitted to apply to all roles.
+        "Field": "__createdByUserId", // e.g., __createdByUserId or a custom field name
+        "Operator": "eq|neq|contains|gt|lt",
+        "Value": "{{CurrentUser.Id}}", // Use {{CurrentUser.Id}} for dynamic user matching, or static values
+        "Action": "Show|Hide",
+        "IsActive": true
+      }
+    ]
+  }
+}
+
+Rules:
+1. Use the fields available in the provided module. The special field '__createdByUserId' is always available for matching the record's creator.
+2. Operator must be one of: eq (equals), neq (not equals), contains, gt (greater than), lt (less than).
+3. Action must be 'Show' or 'Hide'.
+4. If the rule should only apply to a specific role, set 'RoleName' to one of the provided roles. If it should apply to everyone, omit 'RoleName' or set it to null.
+5. If the user wants to filter by "their own records", set Field: "__createdByUserId", Operator: "eq", Value: "{{CurrentUser.Id}}", Action: "Show".
+6. If the user wants to hide other's records, set Field: "__createdByUserId", Operator: "neq", Value: "{{CurrentUser.Id}}", Action: "Hide".
+7. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
+
+MODULE STRUCTURE, ROLES & EXISTING RULES:
+{{{{currentConfigJson}}}}
+
+IMPORTANT:
+- Return ONLY the JSON for the NEW visibility rule configuration(s).
+- If the user's request is vague, ask for clarification.
+""";
+
+        var chatHistory = new StringBuilder();
+        if (history != null && history.Any())
+        {
+            chatHistory.AppendLine("CHAT HISTORY:");
+            foreach (var msg in history)
+            {
+                chatHistory.AppendLine($"{msg.Role.ToUpper()}: {msg.Content}");
+            }
+            chatHistory.AppendLine();
+        }
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"{chatHistory}User Request: {userPrompt}");
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        try 
+        {
+            return JsonSerializer.Deserialize<AiGenerationResponseDto>(generatedText, options) ?? new AiGenerationResponseDto { NeedsMoreInfo = true, Message = "Failed to deserialize response" };
+        }
+        catch (JsonException ex)
+        {
+             throw new InvalidOperationException($"Failed to parse AI response as JSON. Response: {generatedText}", ex);
+        }
+    }
+
     /// <summary>
     /// Routes the request to the configured AI provider.
     /// </summary>

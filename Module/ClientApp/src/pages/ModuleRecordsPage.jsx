@@ -368,13 +368,6 @@ function ModuleRecordsPage() {
         </div>
         <div className="d-flex gap-2 flex-wrap align-items-center">
           <button
-            className="btn btn-blur bg-surface bg-opacity-50 border-0 px-4 shadow-premium hover-lift text-foreground fw-bold"
-            onClick={() => navigate(`/modules/${moduleId}/fields`)}
-            style={{ backdropFilter: 'blur(10px)' }}
-          >
-            <Icon name="settings" size={18} className="me-2" /> {t('schema')}
-          </button>
-          <button
             className="btn btn-primary px-4 shadow-premium hover-lift fw-bold"
             onClick={() => {
               setEditingRecord(null);

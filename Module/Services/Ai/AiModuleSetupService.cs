@@ -211,6 +211,55 @@ public class AiModuleSetupService : IAiModuleSetupService
                 await _context.SaveChangesAsync();
             }
 
+            // 6. Create or Update Visibility Rules
+            if (config.VisibilityRules != null)
+            {
+                foreach (var ruleConfig in config.VisibilityRules)
+                {
+                    if (!moduleNameMap.TryGetValue(ruleConfig.ModuleName, out var moduleId)) continue;
+
+                    int? roleId = null;
+                    if (!string.IsNullOrEmpty(ruleConfig.RoleName))
+                    {
+                        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == ruleConfig.RoleName && r.TenantId == tenantId);
+                        if (role != null)
+                        {
+                            roleId = role.Id;
+                        }
+                    }
+
+                    // Check if a similar rule exists
+                    var existingRule = await _context.ModuleVisibilityRules
+                        .FirstOrDefaultAsync(r => r.ModuleId == moduleId && r.TenantId == tenantId && r.RoleId == roleId && r.Field == ruleConfig.Field && r.Action == ruleConfig.Action);
+
+                    if (existingRule == null)
+                    {
+                        var newRule = new ModuleVisibilityRule
+                        {
+                            ModuleId = moduleId,
+                            TenantId = tenantId,
+                            RoleId = roleId,
+                            Field = ruleConfig.Field,
+                            Operator = ruleConfig.Operator,
+                            Value = ruleConfig.Value,
+                            Action = ruleConfig.Action,
+                            IsActive = ruleConfig.IsActive
+                        };
+                        _context.ModuleVisibilityRules.Add(newRule);
+                    }
+                    else
+                    {
+                        // Update existing rule
+                        existingRule.Operator = ruleConfig.Operator;
+                        existingRule.Value = ruleConfig.Value;
+                        existingRule.IsActive = ruleConfig.IsActive;
+
+                        _context.ModuleVisibilityRules.Update(existingRule);
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
         }
         catch (Exception)

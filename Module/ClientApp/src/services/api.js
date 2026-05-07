@@ -341,8 +341,13 @@ export const generateAiApiConfig = async (moduleId, prompt, history = []) => {
 };
 
 export const generateAiScriptConfig = async (moduleId, prompt, history = []) => {
-  const response = await api.post(`/ai-setup/generate-script/${moduleId}`, { prompt, history });
-  return response.data;
+    const res = await api.post(`/ai-setup/generate-script/${moduleId}`, { prompt, history });
+    return res.data;
+};
+
+export const generateAiVisibilityRuleConfig = async (moduleId, prompt, history = []) => {
+    const res = await api.post(`/ai-setup/generate-visibility-rule/${moduleId}`, { prompt, history });
+    return res.data;
 };
 
 export const applyAiConfig = async (config) => {
