@@ -67,7 +67,7 @@ const ModuleVisibilityRulesPage = () => {
             setRoles(rolesData);
             setFields([
                 { name: '__createdByUserId', label: 'Oluşturan Kullanıcı ID' },
-                ...fieldsData.filter(f => f.isStored)
+                ...fieldsData.filter(f => f.isStored !== false)
             ]);
         } catch (err) {
             setError('Veriler yüklenirken bir hata oluştu.');
@@ -109,10 +109,13 @@ const ModuleVisibilityRulesPage = () => {
             try {
                 await deleteVisibilityRule(moduleId, id);
                 fetchData();
+                return true;
             } catch (err) {
                 alert('Silme işlemi başarısız oldu.');
+                return false;
             }
         }
+        return false;
     };
 
     const handleSubmit = async (e) => {
@@ -239,10 +242,10 @@ const ModuleVisibilityRulesPage = () => {
                                             <button
                                                 onClick={(e) => handleDelete(rule.id, e)}
                                                 className="btn btn-sm btn-outline-danger border-0 rounded-circle d-flex align-items-center justify-content-center"
-                                                title="Sil"
+                                                title={t('delete')}
                                                 style={{ width: '30px', height: '30px' }}
                                             >
-                                                <Icon name="x" size={14} />
+                                                <Icon name="delete" size={16} />
                                             </button>
                                         </div>
                                     </div>
@@ -326,21 +329,18 @@ const ModuleVisibilityRulesPage = () => {
                                     <div className="row g-4 mb-3">
                                         <div className="col-md-4">
                                             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Alan (Field)</label>
-                                            <input
-                                                type="text"
-                                                list="fieldList"
+                                            <select
                                                 value={formData.field}
                                                 onChange={(e) => setFormData({ ...formData, field: e.target.value })}
-                                                className="form-control border-2 shadow-sm"
-                                                placeholder="Örn: status veya __createdByUserId"
+                                                className="form-select border-2 shadow-sm"
                                                 style={{ height: '50px' }}
                                                 required
-                                            />
-                                            <datalist id="fieldList">
+                                            >
+                                                <option value="">-- Alan Seçin --</option>
                                                 {fields.map(f => (
                                                     <option key={f.name} value={f.name}>{f.label || f.name}</option>
                                                 ))}
-                                            </datalist>
+                                            </select>
                                         </div>
                                         <div className="col-md-4">
                                             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Operatör</label>
@@ -387,32 +387,61 @@ const ModuleVisibilityRulesPage = () => {
                                         <div className="d-flex">
                                             <div className="me-3 fs-3">💡</div>
                                             <div>
-                                                <h6 className="alert-heading fw-bold text-primary mb-1">Dinamik İpuçları</h6>
-                                                <p className="small mb-1 opacity-75">
-                                                    <strong>Sadece Kendi Kayıtlarını Görme:</strong> Alan olarak <code>__createdByUserId</code> Seçin, Operatör: <code>Eşit Değildir (!=)</code>, Değer olarak <code>{`{{CurrentUser.Id}}`}</code> girin ve Aksiyon: <code>Gizle</code> yapın.
-                                                </p>
+                                                <h6 className="alert-heading fw-bold text-primary mb-2">Dinamik İpuçları</h6>
+                                                <div className="small opacity-75">
+                                                    <div className="mb-2">
+                                                        <strong>Sadece Kendi Kayıtlarını Görme:</strong>
+                                                        <br />
+                                                        Alan: <code>Oluşturan Kullanıcı ID</code>, Operatör: <code>Eşittir (==)</code>, Değer: <code>{`{{CurrentUser.Id}}`}</code>, Aksiyon: <code>Göster</code>
+                                                    </div>
+                                                    <div className="mb-2">
+                                                        <strong>Başkalarının Kayıtlarını Gizleme:</strong>
+                                                        <br />
+                                                        Alan: <code>Oluşturan Kullanıcı ID</code>, Operatör: <code>Eşit Değildir (!=)</code>, Değer: <code>{`{{CurrentUser.Id}}`}</code>, Aksiyon: <code>Gizle</code>
+                                                    </div>
+                                                    <div className="mt-2 pt-2 border-top border-primary border-opacity-10">
+                                                        Değer alanında <code>{`{{CurrentUser.Id}}`}</code> değişkenini kullanarak dinamik, giriş yapmış kullanıcıya özel kurallar oluşturabilirsiniz.
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                 </form>
                             </div>
-                            <div className="modal-footer modal-footer-premium border-0 py-4 px-4 bg-surface bg-opacity-50">
-                                <button
-                                    type="button"
-                                    className="btn btn-blur px-5 fw-bold"
-                                    onClick={() => setShowModal(false)}
-                                >
-                                    {t('cancel')}
-                                </button>
-                                <button
-                                    type="submit"
-                                    form="ruleForm"
-                                    className="btn btn-primary px-5 py-2 shadow-premium hover-lift fw-extrabold text-uppercase d-flex align-items-center gap-2"
-                                >
-                                    <Icon name="check" size={18} />
-                                    Kaydet
-                                </button>
+                            <div className="modal-footer modal-footer-premium border-0 py-4 px-4 bg-surface bg-opacity-50 justify-content-between">
+                                <div className="d-flex gap-2">
+                                    {editingRule && (
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-danger px-4 fw-bold d-flex align-items-center gap-2"
+                                            onClick={async (e) => {
+                                                const success = await handleDelete(editingRule.id, e);
+                                                if (success) setShowModal(false);
+                                            }}
+                                        >
+                                            <Icon name="delete" size={18} />
+                                            {t('delete')}
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="d-flex gap-2">
+                                    <button
+                                        type="button"
+                                        className="btn btn-blur px-5 fw-bold"
+                                        onClick={() => setShowModal(false)}
+                                    >
+                                        {t('cancel')}
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        form="ruleForm"
+                                        className="btn btn-primary px-5 py-2 shadow-premium hover-lift fw-extrabold text-uppercase d-flex align-items-center gap-2"
+                                    >
+                                        <Icon name="check" size={18} />
+                                        Kaydet
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

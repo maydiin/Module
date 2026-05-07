@@ -65,6 +65,7 @@ public class ModuleFieldsController : ControllerBase
             Type = dto.Type.ToLower(),
             Required = dto.Required,
             Options = dto.Options,
+            IsStored = dto.IsStored,
             OrderNo = dto.OrderNo,
             IsDisplayField = dto.IsDisplayField
         };
@@ -83,6 +84,7 @@ public class ModuleFieldsController : ControllerBase
             Type = field.Type,
             Required = field.Required,
             Options = field.Options,
+            IsStored = field.IsStored,
             OrderNo = field.OrderNo,
             IsDisplayField = field.IsDisplayField
         });
@@ -110,6 +112,7 @@ public class ModuleFieldsController : ControllerBase
                 Type = f.Type,
                 Required = f.Required,
                 Options = f.Options,
+                IsStored = f.IsStored,
                 OrderNo = f.OrderNo,
                 IsDisplayField = f.IsDisplayField
             })
@@ -138,6 +141,7 @@ public class ModuleFieldsController : ControllerBase
             Type = field.Type,
             Required = field.Required,
             Options = field.Options,
+            IsStored = field.IsStored,
             OrderNo = field.OrderNo,
             IsDisplayField = field.IsDisplayField
         });
@@ -159,6 +163,7 @@ public class ModuleFieldsController : ControllerBase
         field.Required = dto.Required;
         field.Options = dto.Options;
         field.OrderNo = dto.OrderNo;
+        field.IsStored = dto.IsStored;
         field.IsDisplayField = dto.IsDisplayField;
 
         await _context.SaveChangesAsync();
@@ -174,6 +179,7 @@ public class ModuleFieldsController : ControllerBase
             Type = field.Type,
             Required = field.Required,
             Options = field.Options,
+            IsStored = field.IsStored,
             OrderNo = field.OrderNo,
             IsDisplayField = field.IsDisplayField
         });
