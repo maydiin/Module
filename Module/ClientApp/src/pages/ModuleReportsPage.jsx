@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getReports, createReport, updateReport, deleteReport, getModule, generateAiReportConfig } from '../services/api';
@@ -283,7 +284,7 @@ const ModuleReportsPage = () => {
             )}
 
             {/* Modal */}
-            {showModal && (
+            {showModal && createPortal(
                 <div className="modal show d-block glass-modal" tabIndex="-1">
                     <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
                         <div className="modal-content border-0 shadow-xl overflow-hidden">
@@ -411,7 +412,8 @@ const ModuleReportsPage = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

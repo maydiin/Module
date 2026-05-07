@@ -182,6 +182,17 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                             </NavLink>
                                                         </li>
                                                     )}
+                                                    {canView && (
+                                                        <li>
+                                                            <NavLink
+                                                                to={`/modules/${module.id}/reports`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                            >
+                                                                <Icon name="barChart" size={18} className="me-2" />
+                                                                {t('reports')}
+                                                            </NavLink>
+                                                        </li>
+                                                    )}
                                                     {canManage && (
                                                         <li>
                                                             <NavLink
