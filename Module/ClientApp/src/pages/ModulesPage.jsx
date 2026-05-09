@@ -18,6 +18,8 @@ function ModulesPage() {
   const [auditCreate, setAuditCreate] = useState(true);
   const [auditUpdate, setAuditUpdate] = useState(true);
   const [auditDelete, setAuditDelete] = useState(true);
+  const [kanbanField, setKanbanField] = useState('');
+  const [currentModuleFields, setCurrentModuleFields] = useState([]);
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -94,7 +96,8 @@ function ModulesPage() {
         name: moduleName.trim(),
         auditCreate,
         auditUpdate,
-        auditDelete
+        auditDelete,
+        kanbanField: kanbanField || null
       };
 
       if (editingModuleId) {
@@ -131,16 +134,20 @@ function ModulesPage() {
     setAuditCreate(true);
     setAuditUpdate(true);
     setAuditDelete(true);
+    setKanbanField('');
+    setCurrentModuleFields([]);
     setEditingModuleId(null);
     setShowForm(false);
   };
 
-  const handleEditClick = (module) => {
-    setEditingModuleId(module.id);
-    setModuleName(module.name);
-    setAuditCreate(module.auditCreate);
-    setAuditUpdate(module.auditUpdate);
-    setAuditDelete(module.auditDelete);
+  const handleEditClick = (summary) => {
+    setEditingModuleId(summary.moduleId);
+    setModuleName(summary.moduleName);
+    setAuditCreate(summary.auditCreate);
+    setAuditUpdate(summary.auditUpdate);
+    setAuditDelete(summary.auditDelete);
+    setKanbanField(summary.kanbanField || '');
+    setCurrentModuleFields(summary.fields || []);
     setShowForm(true);
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -280,6 +287,30 @@ function ModulesPage() {
                   </div>
                 </div>
               </div>
+
+              {editingModuleId && currentModuleFields.length > 0 && (
+                <div className="mb-4">
+                  <label htmlFor="kanbanField" className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">
+                    {t('kanban_group_by') || 'Kanban Gruplandırma (Varsayılan)'}
+                  </label>
+                  <select
+                    id="kanbanField"
+                    className="form-select border-2"
+                    value={kanbanField}
+                    onChange={(e) => setKanbanField(e.target.value)}
+                  >
+                    <option value="">{t('none') || 'Yok'}</option>
+                    {currentModuleFields
+                      .filter(f => f.type === 'select' || f.type === 'checkbox')
+                      .map(f => (
+                        <option key={f.id} value={f.name}>{f.label || f.name}</option>
+                      ))}
+                  </select>
+                  <small className="form-text text-muted">
+                    {t('kanban_field_help') || 'Kanban görünümünde varsayılan olarak hangi alana göre gruplandırma yapılacağını seçin.'}
+                  </small>
+                </div>
+              )}
               <div className="d-flex gap-2">
                 <button type="submit" className="btn btn-primary px-4">
                   <Icon name="check" size={18} className="me-2" /> {editingModuleId ? t('update') : t('finalize_module')}
@@ -347,6 +378,17 @@ function ModulesPage() {
                       }}
                     >
                       {t('open_module') || 'Modülü Aç'}
+                    </button>
+                    <button
+                      className="btn btn-outline-warning btn-sm rounded-pill px-3 shadow-sm hover-lift"
+                      style={{ fontSize: '0.8rem' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(summary);
+                      }}
+                    >
+                      <Icon name="edit" size={14} className="me-1" />
+                      {t('edit') || 'Düzenle'}
                     </button>
                     <span className={`transition-all ${isCollapsed ? '' : 'rotate-180'} d-flex text-primary`}>
                       <Icon name="arrowLeft" size={20} className="rotate-270" />

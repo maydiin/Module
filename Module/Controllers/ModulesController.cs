@@ -316,6 +316,9 @@ public class ModulesController : ControllerBase
                 ModuleId = module.Id,
                 ModuleName = module.Name,
                 KanbanField = module.KanbanField,
+                AuditCreate = module.AuditCreate,
+                AuditUpdate = module.AuditUpdate,
+                AuditDelete = module.AuditDelete,
                 Fields = module.Fields.Select(f => new ModuleFieldDto
                 {
                     Id = f.Id,
