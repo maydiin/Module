@@ -1044,19 +1044,41 @@ h1, h2, h3, h4, h5, h6 {
 
 .kanban-column {
   min-height: 500px;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .kanban-column:hover {
   background-color: hsla(var(--primary), 0.05) !important;
 }
 
+.kanban-column.drag-over {
+  background-color: hsla(var(--primary), 0.12) !important;
+  border-color: hsla(var(--primary), 0.4) !important;
+  box-shadow: inset 0 0 0 2px hsla(var(--primary), 0.2);
+  transform: translateY(-5px);
+}
+
 .kanban-card {
   user-select: none;
+  background-color: hsl(var(--background)) !important;
+  border: 1px solid hsla(var(--primary), 0.2) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.kanban-card:hover {
+  border-color: hsla(var(--primary), 0.5) !important;
 }
 
 .kanban-card:active {
   cursor: grabbing;
+}
+
+.kanban-card.dragging {
+  opacity: 1 !important;
+  transform: scale(1.02);
+  box-shadow: var(--shadow-xl) !important;
+  border: 2px solid hsl(var(--primary)) !important;
+  background-color: hsl(var(--background)) !important;
 }
 
 .dashed-border {
@@ -1090,5 +1112,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-mode="dark"] .kanban-card {
-  background-color: hsla(var(--background), 0.6) !important;
+  background-color: hsla(var(--background), 0.9) !important;
+  border-color: hsla(var(--primary), 0.25) !important;
 }

@@ -6,6 +6,7 @@ function KanbanView({ fields, records, onRecordUpdate, onRecordClick, groupByFie
   const { t } = useTranslation();
   const [columns, setColumns] = useState([]);
   const [draggedRecord, setDraggedRecord] = useState(null);
+  const [hoveredColumn, setHoveredColumn] = useState(null);
 
   const groupFieldMeta = fields.find(f => f.name === groupByField);
   
@@ -49,8 +50,19 @@ function KanbanView({ fields, records, onRecordUpdate, onRecordClick, groupByFie
     setDraggedRecord(record);
   };
 
-  const onDragOver = (e) => {
+  const onDragEnd = () => {
+    setDraggedRecord(null);
+  };
+
+  const onDragOver = (e, columnId) => {
     e.preventDefault();
+    if (hoveredColumn !== columnId) {
+      setHoveredColumn(columnId);
+    }
+  };
+
+  const onDragLeave = () => {
+    setHoveredColumn(null);
   };
 
   const onDrop = async (columnId) => {
@@ -69,6 +81,7 @@ function KanbanView({ fields, records, onRecordUpdate, onRecordClick, groupByFie
     
     onRecordUpdate(draggedRecord.id, updatedData);
     setDraggedRecord(null);
+    setHoveredColumn(null);
   };
 
   if (!groupFieldMeta) {
@@ -85,9 +98,10 @@ function KanbanView({ fields, records, onRecordUpdate, onRecordClick, groupByFie
       {columns.map(column => (
         <div 
           key={column.id} 
-          className="kanban-column bg-surface bg-opacity-40 rounded-4 p-3 d-flex flex-column" 
+          className={`kanban-column bg-surface bg-opacity-40 rounded-4 p-3 d-flex flex-column transition-all ${hoveredColumn === column.id ? 'drag-over' : ''}`} 
           style={{ minWidth: '300px', maxWidth: '300px', border: '1px solid rgba(255,255,255,0.05)' }}
-          onDragOver={onDragOver}
+          onDragOver={(e) => onDragOver(e, column.id)}
+          onDragLeave={onDragLeave}
           onDrop={() => onDrop(column.id)}
         >
           <div className="d-flex justify-content-between align-items-center mb-3 px-1">
@@ -103,7 +117,8 @@ function KanbanView({ fields, records, onRecordUpdate, onRecordClick, groupByFie
                 key={record.id}
                 draggable
                 onDragStart={() => onDragStart(record)}
-                className="kanban-card glass-card p-3 shadow-sm hover-lift cursor-pointer transition-all border-theme-accent"
+                onDragEnd={onDragEnd}
+                className={`kanban-card glass-card p-3 shadow-sm hover-lift cursor-pointer transition-all border-theme-accent ${draggedRecord?.id === record.id ? 'dragging' : ''}`}
                 onClick={() => onRecordClick(record)}
               >
                 <div className="d-flex justify-content-between align-items-start mb-2">
