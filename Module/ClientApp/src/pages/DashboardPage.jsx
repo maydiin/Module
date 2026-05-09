@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import {
     getDashboardWidgets, createDashboardWidget, updateDashboardWidget,
@@ -297,21 +298,24 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
 
     if (!show) return null;
 
-    return (
-        <div className="modal d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 2000 }} onClick={e => e.target === e.currentTarget && onClose()}>
-            <div className="modal-dialog modal-lg modal-dialog-centered" onClick={e => e.stopPropagation()}>
-                <div className="modal-content glass border-0 rounded-4 shadow-premium">
-                    <div className="modal-header border-0 px-4 pt-4 pb-0">
-                        <h5 className="modal-title fw-bold">{editing ? t('edit_widget') : t('add_new_widget')}</h5>
-                        <button className="btn-close" onClick={onClose} />
+    return createPortal(
+        <div className="modal show d-block glass-modal" tabIndex="-1" onClick={e => e.target === e.currentTarget && onClose()}>
+            <div className="modal-dialog modal-lg modal-dialog-centered modal-animate-in">
+                <div className="modal-content border-0 shadow-xl overflow-hidden">
+                    <div className="modal-header modal-header-premium border-0">
+                        <h5 className="modal-title text-gradient fw-800 fs-4 d-flex align-items-center gap-2">
+                            <Icon name={editing ? "edit" : "plus"} size={24} />
+                            {editing ? t('edit_widget') : t('add_new_widget')}
+                        </h5>
+                        <button type="button" className="btn-close btn-close-premium" onClick={onClose} disabled={saving}></button>
                     </div>
-                    <div className="modal-body px-4 py-3">
-                        <div className="row g-3">
+                    <div className="modal-body modal-body-premium">
+                        <div className="row g-4">
                             {/* Title */}
                             <div className="col-12">
-                                <label className="form-label small fw-semibold">{t('title')}</label>
+                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('title')}</label>
                                 <input
-                                    className="form-control rounded-3"
+                                    className="form-control form-control-lg border-2"
                                     value={form.title}
                                     onChange={e => set('title', e.target.value)}
                                     placeholder={t('title_placeholder') || '...'}
@@ -320,8 +324,8 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
 
                             {/* Widget Type */}
                             <div className="col-md-6">
-                                <label className="form-label small fw-semibold">{t('widget_type')}</label>
-                                <select className="form-select rounded-3" value={form.widgetType} onChange={e => set('widgetType', e.target.value)}>
+                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('widget_type')}</label>
+                                <select className="form-select form-select-lg border-2" value={form.widgetType} onChange={e => set('widgetType', e.target.value)}>
                                     {WIDGET_TYPES.map(t => (
                                         <option key={t.value} value={t.value}>{t.label}</option>
                                     ))}
@@ -330,8 +334,8 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
 
                             {/* ColSpan */}
                             <div className="col-md-6">
-                                <label className="form-label small fw-semibold">{t('width')}</label>
-                                <select className="form-select rounded-3" value={form.colSpan} onChange={e => set('colSpan', parseInt(e.target.value))}>
+                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('width')}</label>
+                                <select className="form-select form-select-lg border-2" value={form.colSpan} onChange={e => set('colSpan', parseInt(e.target.value))}>
                                     <option value={1}>{t('small_width')}</option>
                                     <option value={2}>{t('medium_width')}</option>
                                     <option value={3}>{t('full_width')}</option>
@@ -340,8 +344,8 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
 
                             {/* Module */}
                             <div className="col-md-6">
-                                <label className="form-label small fw-semibold">{t('module')}</label>
-                                <select className="form-select rounded-3" value={form.moduleId} onChange={e => set('moduleId', e.target.value)}>
+                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('module')}</label>
+                                <select className="form-select form-select-lg border-2" value={form.moduleId} onChange={e => set('moduleId', e.target.value)}>
                                     <option value="">{t('select_module_placeholder')}</option>
                                     {modules.map(m => (
                                         <option key={m.id} value={m.id}>{m.name}</option>
@@ -351,27 +355,33 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
 
                             {/* Time Period */}
                             <div className="col-md-6">
-                                <label className="form-label small fw-semibold">{t('time_range')}</label>
-                                <select className="form-select rounded-3" value={form.timePeriod} onChange={e => set('timePeriod', e.target.value)}>
+                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('time_range')}</label>
+                                <select className="form-select form-select-lg border-2" value={form.timePeriod} onChange={e => set('timePeriod', e.target.value)}>
                                     {TIME_PERIODS.map(p => (
                                         <option key={p.value} value={p.value}>{p.label}</option>
                                     ))}
                                 </select>
                             </div>
 
+                            {/* Configuration divider */}
+                            <div className="col-12 mt-4 mb-1">
+                                <h6 className="text-primary fw-bold small text-uppercase tracking-widest">{t('configuration')}</h6>
+                                <hr className="mt-2 mb-0 opacity-10" />
+                            </div>
+
                             {/* stat_card config */}
                             {form.widgetType === 'stat_card' && (
                                 <>
                                     <div className="col-md-6">
-                                        <label className="form-label small fw-semibold">{t('calculation')}</label>
-                                        <select className="form-select rounded-3" value={form.aggregateType} onChange={e => set('aggregateType', e.target.value)}>
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('calculation')}</label>
+                                        <select className="form-select border-2" value={form.aggregateType} onChange={e => set('aggregateType', e.target.value)}>
                                             {AGG_TYPES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                                         </select>
                                     </div>
                                     {form.aggregateType !== 'count' && (
                                         <div className="col-md-6">
-                                            <label className="form-label small fw-semibold">{t('value_field')}</label>
-                                            <select className="form-select rounded-3" value={form.aggregateField} onChange={e => set('aggregateField', e.target.value)}>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('value_field')}</label>
+                                            <select className="form-select border-2" value={form.aggregateField} onChange={e => set('aggregateField', e.target.value)}>
                                                 <option value="">{t('select_field_placeholder')}</option>
                                                 {numberFields.map(f => <option key={f.name} value={f.name}>{f.label || f.name}</option>)}
                                             </select>
@@ -384,22 +394,22 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
                             {(form.widgetType === 'bar_chart' || form.widgetType === 'pie_chart') && (
                                 <>
                                     <div className="col-md-6">
-                                        <label className="form-label small fw-semibold">{t('group_by_field')}</label>
-                                        <select className="form-select rounded-3" value={form.groupByField} onChange={e => set('groupByField', e.target.value)}>
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('group_by_field')}</label>
+                                        <select className="form-select border-2" value={form.groupByField} onChange={e => set('groupByField', e.target.value)}>
                                             <option value="">{t('select_field_placeholder')}</option>
                                             {fields.map(f => <option key={f.name} value={f.name}>{f.label || f.name}</option>)}
                                         </select>
                                     </div>
                                     <div className="col-md-6">
-                                        <label className="form-label small fw-semibold">{t('value_calculation')}</label>
-                                        <select className="form-select rounded-3" value={form.aggregateType} onChange={e => set('aggregateType', e.target.value)}>
+                                        <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('value_calculation')}</label>
+                                        <select className="form-select border-2" value={form.aggregateType} onChange={e => set('aggregateType', e.target.value)}>
                                             {AGG_TYPES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                                         </select>
                                     </div>
                                     {form.aggregateType !== 'count' && (
                                         <div className="col-md-6">
-                                            <label className="form-label small fw-semibold">{t('value_field')}</label>
-                                            <select className="form-select rounded-3" value={form.aggregateField} onChange={e => set('aggregateField', e.target.value)}>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('value_field')}</label>
+                                            <select className="form-select border-2" value={form.aggregateField} onChange={e => set('aggregateField', e.target.value)}>
                                                 <option value="">{t('select_field_placeholder')}</option>
                                                 {numberFields.map(f => <option key={f.name} value={f.name}>{f.label || f.name}</option>)}
                                             </select>
@@ -411,8 +421,8 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
                             {/* line_chart config */}
                             {form.widgetType === 'line_chart' && (
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-semibold">{t('grouping')}</label>
-                                    <select className="form-select rounded-3" value={form.lineGroupBy} onChange={e => set('lineGroupBy', e.target.value)}>
+                                    <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('grouping')}</label>
+                                    <select className="form-select border-2" value={form.lineGroupBy} onChange={e => set('lineGroupBy', e.target.value)}>
                                         <option value="day">{t('daily')}</option>
                                         <option value="week">{t('weekly')}</option>
                                         <option value="month">{t('monthly')}</option>
@@ -423,10 +433,10 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
                             {/* recent_records config */}
                             {form.widgetType === 'recent_records' && (
                                 <div className="col-md-6">
-                                    <label className="form-label small fw-semibold">{t('record_count_to_show')}</label>
+                                    <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('record_count_to_show')}</label>
                                     <input
                                         type="number"
-                                        className="form-control rounded-3"
+                                        className="form-control border-2"
                                         value={form.limit}
                                         min={1} max={20}
                                         onChange={e => set('limit', e.target.value)}
@@ -435,20 +445,21 @@ function WidgetModal({ show, editing, onClose, onSave, modules, WIDGET_TYPES, TI
                             )}
                         </div>
                     </div>
-                    <div className="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
-                        <button className="btn btn-blur rounded-pill px-4" onClick={onClose}>{t('cancel')}</button>
+                    <div className="modal-footer modal-footer-premium border-0">
+                        <button className="btn btn-blur px-4" onClick={onClose} disabled={saving}>{t('cancel')}</button>
                         <button
-                            className="btn btn-primary rounded-pill px-4"
+                            className="btn btn-primary px-5 shadow-premium hover-lift"
                             onClick={handleSave}
                             disabled={saving || !form.title.trim() || !form.moduleId}
                         >
-                            {saving ? <span className="spinner-border spinner-border-sm me-2" /> : null}
+                            {saving ? <span className="spinner-border spinner-border-sm me-2" /> : <Icon name="check" size={18} className="me-2" />}
                             {editing ? t('update') : t('add')}
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
