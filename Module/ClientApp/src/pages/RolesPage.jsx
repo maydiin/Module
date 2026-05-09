@@ -4,9 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { getRoles, getAllPermissions, addPermissionToRole, removePermissionFromRole, createRole, updateRole, deleteRole, refreshToken } from '../services/api';
 import { useTenant } from '../components/TenantContext';
 import Icon from '../components/Icon';
+import ConfirmModal from '../components/ConfirmModal';
+import { useToast } from '../components/ToastContext';
 
 function RolesPage() {
     const { t } = useTranslation();
+    const showToast = useToast();
     const [roles, setRoles] = useState([]);
     const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,6 +17,7 @@ function RolesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editingRole, setEditingRole] = useState(null);
     const [formData, setFormData] = useState({ name: '', description: '' });
+    const [deleteRoleId, setDeleteRoleId] = useState(null);
     const { selectedTenantId } = useTenant();
 
     useEffect(() => {
@@ -61,17 +65,18 @@ function RolesPage() {
             handleCloseModal();
             loadData();
         } catch (err) {
-            alert(err.response?.data?.error || t('error'));
+            showToast(err.response?.data?.error || t('error'), 'error');
         }
     };
 
-    const handleDeleteRole = async (roleId) => {
-        if (!window.confirm(t('confirm_delete_role'))) return;
+    const handleDeleteRole = async () => {
+        if (!deleteRoleId) return;
         try {
-            await deleteRole(roleId);
+            await deleteRole(deleteRoleId);
             loadData();
+            setDeleteRoleId(null);
         } catch (err) {
-            alert(err.response?.data?.error || t('error'));
+            showToast(err.response?.data?.error || t('error'), 'error');
         }
     };
 
@@ -87,7 +92,7 @@ function RolesPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || t('error'));
+            showToast(err.response?.data?.error || t('error'), 'error');
         }
     };
 
@@ -103,7 +108,7 @@ function RolesPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || t('error'));
+            showToast(err.response?.data?.error || t('error'), 'error');
         }
     };
 
@@ -136,7 +141,7 @@ function RolesPage() {
                                     <button className="btn btn-blur d-flex align-items-center gap-1" onClick={() => handleOpenModal(role)}>
                                         <Icon name="edit" size={14} /> {t('edit')}
                                     </button>
-                                    <button className="btn btn-outline-danger border-0 d-flex align-items-center gap-1" onClick={() => handleDeleteRole(role.id)}>
+                                    <button className="btn btn-outline-danger border-0 d-flex align-items-center gap-1" onClick={() => setDeleteRoleId(role.id)}>
                                         <Icon name="delete" size={14} /> {t('delete')}
                                     </button>
                                 </div>
@@ -224,6 +229,16 @@ function RolesPage() {
                 </div>,
                 document.body
             )}
+
+            <ConfirmModal
+                show={!!deleteRoleId}
+                onClose={() => setDeleteRoleId(null)}
+                onConfirm={handleDeleteRole}
+                title={t('delete_role')}
+                message={t('confirm_delete_role')}
+                confirmText={t('delete')}
+                type="danger"
+            />
         </div>
     );
 }

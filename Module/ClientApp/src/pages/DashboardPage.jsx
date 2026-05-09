@@ -7,6 +7,7 @@ import {
 } from '../services/api';
 import { useTenant } from '../components/TenantContext';
 import Icon from '../components/Icon';
+import ConfirmModal from '../components/ConfirmModal';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line
@@ -68,13 +69,60 @@ function buildConfig(form) {
     return JSON.stringify(cfg);
 }
 
-// ─── Widget card skeleton ───────────────────────────────────────────────────
+// ─── Widget Skeleton ───────────────────────────────────────────────────────
 function WidgetSkeleton() {
     return (
-        <div className="glass-card p-4 h-100" style={{ minHeight: '180px', borderRadius: '20px' }}>
-            <div className="placeholder-glow">
-                <span className="placeholder col-5 mb-3 rounded-3" style={{ height: '16px', display: 'block' }}></span>
-                <span className="placeholder col-8 rounded-3" style={{ height: '48px', display: 'block' }}></span>
+        <div className="glass-card h-100 d-flex flex-column position-relative overflow-hidden" style={{ borderRadius: '24px', minHeight: '160px' }}>
+            <div className="px-4 pt-4 pb-2">
+                <div className="skeleton-line" style={{ width: '40%', height: '12px', borderRadius: '6px', background: 'hsla(var(--foreground),0.08)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            </div>
+            <div className="flex-grow-1 px-4 pb-4 d-flex flex-column gap-2 justify-content-center">
+                <div className="skeleton-line" style={{ width: '60%', height: '36px', borderRadius: '8px', background: 'hsla(var(--foreground),0.08)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <div className="skeleton-line" style={{ width: '80%', height: '12px', borderRadius: '6px', background: 'hsla(var(--foreground),0.06)', animation: 'pulse 1.5s ease-in-out infinite 0.2s' }} />
+            </div>
+        </div>
+    );
+}
+
+// ─── Widget Wrapper ────────────────────────────────────────────────────────
+function WidgetWrapper({ title, children, onEdit, onDelete, loading, delay = 0 }) {
+    const { t } = useTranslation();
+    return (
+        <div 
+            className="glass-card h-100 d-flex flex-column position-relative overflow-hidden widget-premium-card" 
+            style={{ 
+                borderRadius: '24px', 
+                animationDelay: `${delay}ms`,
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+        >
+            {/* Background Decoration */}
+            <div className="widget-bg-decoration" />
+            
+            <div className="px-4 pt-4 pb-2 d-flex align-items-center justify-content-between position-relative z-1">
+                <h6 className="text-muted small fw-bold text-uppercase tracking-wider mb-0" style={{ letterSpacing: '0.05em', opacity: 0.8 }}>
+                    {title}
+                </h6>
+                <div className="widget-actions d-flex gap-2">
+                    <button
+                        className="btn-action-mini"
+                        onClick={onEdit}
+                        title={t('edit')}
+                    >
+                        <Icon name="edit" size={14} />
+                    </button>
+                    <button
+                        className="btn-action-mini btn-action-delete"
+                        onClick={onDelete}
+                        title={t('delete')}
+                    >
+                        <Icon name="delete" size={14} />
+                    </button>
+                </div>
+            </div>
+            
+            <div className="flex-grow-1 p-4 pt-2 position-relative z-1">
+                {loading ? <WidgetSkeleton /> : children}
             </div>
         </div>
     );
@@ -82,173 +130,245 @@ function WidgetSkeleton() {
 
 // ─── Individual widget renderers ────────────────────────────────────────────
 function StatCardWidget({ widget, data }) {
-    const accentColors = ['#0dcaf0', '#6610f2', '#198754', '#fd7e14', '#d63384', '#ffc107'];
-    const colorIdx = widget.id % accentColors.length;
+    const accentColors = [
+        { main: '#0dcaf0', bg: 'linear-gradient(135deg, #0dcaf0 0%, #0097b2 100%)' },
+        { main: '#6610f2', bg: 'linear-gradient(135deg, #6610f2 0%, #4b0bb1 100%)' },
+        { main: '#198754', bg: 'linear-gradient(135deg, #198754 0%, #115c39 100%)' },
+        { main: '#fd7e14', bg: 'linear-gradient(135deg, #fd7e14 0%, #c45a08 100%)' },
+        { main: '#d63384', bg: 'linear-gradient(135deg, #d63384 0%, #a32261 100%)' },
+        { main: '#ffc107', bg: 'linear-gradient(135deg, #ffc107 0%, #cc9a06 100%)' }
+    ];
+    const colorIdx = (widget.id || 0) % accentColors.length;
     const accent = accentColors[colorIdx];
 
+    const val = data?.statValue !== null && data?.statValue !== undefined
+        ? Number(data.statValue).toLocaleString('tr-TR', { maximumFractionDigits: 2 })
+        : '—';
+
     return (
-        <div className="glass-card p-4 h-100 position-relative overflow-hidden" style={{ borderRadius: '20px', minHeight: '140px' }}>
-            <div
-                className="position-absolute"
-                style={{ top: '-20px', right: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: `${accent}22` }}
-            />
-            <div className="text-muted small mb-2" style={{ fontSize: '0.8rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+        <div className="d-flex flex-column h-100 justify-content-center">
+            <div className="d-flex align-items-baseline gap-2">
+                <span className="stat-value text-gradient" style={{ 
+                    fontSize: '3rem', 
+                    fontWeight: 800, 
+                    lineHeight: 1,
+                    background: accent.bg,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                }}>
+                    {val}
+                </span>
+                {data?.moduleName && (
+                    <span className="badge-soft-primary px-2 py-1 rounded-pill" style={{ fontSize: '0.65rem' }}>
+                        {data.moduleName}
+                    </span>
+                )}
+            </div>
+            <div className="mt-2 opacity-50 small fw-medium">
                 {widget.title}
             </div>
-            <div className="fw-bold" style={{ fontSize: '2.5rem', color: accent, lineHeight: 1.1 }}>
-                {data?.statValue !== null && data?.statValue !== undefined
-                    ? Number(data.statValue).toLocaleString('tr-TR', { maximumFractionDigits: 2 })
-                    : '—'}
-            </div>
-            {data?.moduleName && (
-                <div className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                    {data.moduleName}
-                </div>
-            )}
         </div>
     );
 }
 
 function BarChartWidget({ widget, data }) {
+    const { t } = useTranslation();
     if (!data?.chartData?.length) {
         return (
-            <div className="glass-card p-4 h-100 d-flex flex-column" style={{ borderRadius: '20px', minHeight: '280px' }}>
-                <div className="text-muted small fw-semibold mb-3">{widget.title}</div>
-                <div className="flex-grow-1 d-flex align-items-center justify-content-center text-muted small">{t('no_data')}</div>
+            <div className="h-100 d-flex align-items-center justify-content-center text-muted small opacity-60">
+                <div className="text-center">
+                    <Icon name="barChart" size={32} className="mb-2 opacity-20" />
+                    <p>{t('no_data')}</p>
+                </div>
             </div>
         );
     }
     return (
-        <div className="glass-card p-4 h-100 d-flex flex-column" style={{ borderRadius: '20px', minHeight: '280px' }}>
-            <div className="text-muted small fw-semibold mb-3">{widget.title}</div>
-            <div style={{ flex: 1, minHeight: '200px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data.chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                        <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="hsla(var(--foreground), 0.4)" />
-                        <YAxis tick={{ fontSize: 11 }} stroke="hsla(var(--foreground), 0.4)" />
-                        <Tooltip contentStyle={TOOLTIP_STYLE} />
-                        <Bar dataKey="value" fill="#0dcaf0" radius={[4, 4, 0, 0]}>
-                            {data.chartData.map((_, i) => (
-                                <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+        <div className="h-100" style={{ minHeight: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsla(var(--foreground), 0.05)" />
+                    <XAxis 
+                        dataKey="label" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'hsla(var(--foreground), 0.5)' }} 
+                    />
+                    <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'hsla(var(--foreground), 0.5)' }} 
+                    />
+                    <Tooltip 
+                        contentStyle={TOOLTIP_STYLE} 
+                        cursor={{ fill: 'hsla(var(--primary), 0.05)' }}
+                    />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                        {data.chartData.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} fillOpacity={0.8} />
+                        ))}
+                    </Bar>
+                </BarChart>
+            </ResponsiveContainer>
         </div>
     );
 }
 
 function PieChartWidget({ widget, data }) {
+    const { t } = useTranslation();
     if (!data?.chartData?.length) {
         return (
-            <div className="glass-card p-4 h-100 d-flex flex-column" style={{ borderRadius: '20px', minHeight: '280px' }}>
-                <div className="text-muted small fw-semibold mb-3">{widget.title}</div>
-                <div className="flex-grow-1 d-flex align-items-center justify-content-center text-muted small">{t('no_data')}</div>
+            <div className="h-100 d-flex align-items-center justify-content-center text-muted small opacity-60">
+                <div className="text-center">
+                    <Icon name="barChart" size={32} className="mb-2 opacity-20" />
+                    <p>{t('no_data')}</p>
+                </div>
             </div>
         );
     }
     return (
-        <div className="glass-card p-4 h-100 d-flex flex-column" style={{ borderRadius: '20px', minHeight: '280px' }}>
-            <div className="text-muted small fw-semibold mb-3">{widget.title}</div>
-            <div style={{ flex: 1, minHeight: '200px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={data.chartData}
-                            cx="50%" cy="50%"
-                            innerRadius="40%"
-                            outerRadius="70%"
-                            dataKey="value"
-                            nameKey="label"
-                            labelLine={false}
-                            label={({ name, percent }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
-                        >
-                            {data.chartData.map((_, i) => (
-                                <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v, n) => [v, n]} />
-                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
+        <div className="h-100" style={{ minHeight: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                        data={data.chartData}
+                        cx="50%" cy="50%"
+                        innerRadius="55%"
+                        outerRadius="85%"
+                        paddingAngle={5}
+                        dataKey="value"
+                        nameKey="label"
+                        labelLine={false}
+                    >
+                        {data.chartData.map((_, i) => (
+                            <Cell key={i} fill={COLORS[i % COLORS.length]} cornerRadius={4} />
+                        ))}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Legend 
+                        iconType="circle" 
+                        iconSize={8} 
+                        wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} 
+                        formatter={(value) => <span className="opacity-70">{value}</span>}
+                    />
+                </PieChart>
+            </ResponsiveContainer>
         </div>
     );
 }
 
 function LineChartWidget({ widget, data }) {
+    const { t } = useTranslation();
     if (!data?.chartData?.length) {
         return (
-            <div className="glass-card p-4 h-100 d-flex flex-column" style={{ borderRadius: '20px', minHeight: '280px' }}>
-                <div className="text-muted small fw-semibold mb-3">{widget.title}</div>
-                <div className="flex-grow-1 d-flex align-items-center justify-content-center text-muted small">{t('no_data')}</div>
+            <div className="h-100 d-flex align-items-center justify-content-center text-muted small opacity-60">
+                <div className="text-center">
+                    <Icon name="barChart" size={32} className="mb-2 opacity-20" />
+                    <p>{t('no_data')}</p>
+                </div>
             </div>
         );
     }
     return (
-        <div className="glass-card p-4 h-100 d-flex flex-column" style={{ borderRadius: '20px', minHeight: '280px' }}>
-            <div className="text-muted small fw-semibold mb-3">{widget.title}</div>
-            <div style={{ flex: 1, minHeight: '200px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                        <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="hsla(var(--foreground), 0.4)" />
-                        <YAxis tick={{ fontSize: 11 }} stroke="hsla(var(--foreground), 0.4)" />
-                        <Tooltip contentStyle={TOOLTIP_STYLE} />
-                        <Line type="monotone" dataKey="value" stroke="#0dcaf0" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
+        <div className="h-100" style={{ minHeight: '220px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsla(var(--foreground), 0.05)" />
+                    <XAxis 
+                        dataKey="label" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'hsla(var(--foreground), 0.5)' }} 
+                    />
+                    <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'hsla(var(--foreground), 0.5)' }} 
+                    />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3} 
+                        dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: '#fff' }} 
+                        activeDot={{ r: 6, strokeWidth: 0 }} 
+                    />
+                </LineChart>
+            </ResponsiveContainer>
         </div>
     );
 }
 
 function RecentRecordsWidget({ widget, data }) {
+    const { t } = useTranslation();
     const rows = data?.rows || [];
     const columns = data?.columns || [];
 
-    return (
-        <div className="glass-card h-100 d-flex flex-column" style={{ borderRadius: '20px', overflow: 'hidden', minHeight: '220px' }}>
-            <div className="px-4 pt-4 pb-2 text-muted small fw-semibold">{widget.title}</div>
-            {rows.length === 0 ? (
-                <div className="flex-grow-1 d-flex align-items-center justify-content-center text-muted small pb-4">{t('no_data')}</div>
-            ) : (
-                <div className="overflow-auto flex-grow-1">
-                    <table className="table table-hover mb-0" style={{ fontSize: '0.82rem' }}>
-                        <thead>
-                            <tr>
-                                {columns.map(col => <th key={col} className="px-4 py-2 border-0 text-muted fw-semibold">{col}</th>)}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rows.map((row, i) => (
-                                <tr key={i}>
-                                    {columns.map(col => (
-                                        <td key={col} className="px-4 py-2 border-0">
-                                            {String(row[col] ?? '—').slice(0, 40)}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+    if (rows.length === 0) {
+        return (
+            <div className="h-100 d-flex align-items-center justify-content-center text-muted small opacity-60">
+                <div className="text-center">
+                    <Icon name="records" size={32} className="mb-2 opacity-20" />
+                    <p>{t('no_data')}</p>
                 </div>
-            )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="overflow-auto h-100 custom-scrollbar" style={{ maxHeight: '280px' }}>
+            <table className="table table-premium-mini mb-0">
+                <thead>
+                    <tr>
+                        {columns.map(col => <th key={col} className="small">{col}</th>)}
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.map((row, i) => (
+                        <tr key={i}>
+                            {columns.map(col => (
+                                <td key={col} className="small text-truncate" style={{ maxWidth: '150px' }}>
+                                    {String(row[col] ?? '—')}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }
 
-function WidgetRenderer({ widget, data }) {
-    switch (widget.widgetType) {
-        case 'stat_card': return <StatCardWidget widget={widget} data={data} />;
-        case 'bar_chart': return <BarChartWidget widget={widget} data={data} />;
-        case 'pie_chart': return <PieChartWidget widget={widget} data={data} />;
-        case 'line_chart': return <LineChartWidget widget={widget} data={data} />;
-        case 'recent_records': return <RecentRecordsWidget widget={widget} data={data} />;
-        default: return null;
-    }
+function WidgetRenderer({ widget, data, onEdit, onDelete, loading, index }) {
+    const content = (() => {
+        switch (widget.widgetType) {
+            case 'stat_card': return <StatCardWidget widget={widget} data={data} />;
+            case 'bar_chart': return <BarChartWidget widget={widget} data={data} />;
+            case 'pie_chart': return <PieChartWidget widget={widget} data={data} />;
+            case 'line_chart': return <LineChartWidget widget={widget} data={data} />;
+            case 'recent_records': return <RecentRecordsWidget widget={widget} data={data} />;
+            default: return null;
+        }
+    })();
+
+    return (
+        <WidgetWrapper 
+            title={widget.title} 
+            onEdit={onEdit} 
+            onDelete={onDelete} 
+            loading={loading}
+            delay={index * 50}
+        >
+            {content}
+        </WidgetWrapper>
+    );
 }
 
 // ─── Widget config modal ────────────────────────────────────────────────────
@@ -499,6 +619,7 @@ function DashboardPage() {
     const [modules, setModules] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editingWidget, setEditingWidget] = useState(null);
+    const [deleteWidgetId, setDeleteWidgetId] = useState(null);
 
     const loadWidgets = useCallback(async () => {
         try {
@@ -542,11 +663,13 @@ function DashboardPage() {
         await loadWidgets();
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm(t('confirm_delete_widget'))) return;
+    const handleDelete = async () => {
+        if (!deleteWidgetId) return;
+        const id = deleteWidgetId;
         await deleteDashboardWidget(id);
         setWidgets(prev => prev.filter(w => w.id !== id));
         setWidgetData(prev => { const n = { ...prev }; delete n[id]; return n; });
+        setDeleteWidgetId(null);
     };
 
     const openAdd = () => { setEditingWidget(null); setShowModal(true); };
@@ -599,39 +722,17 @@ function DashboardPage() {
                     ))}
                 </div>
             ) : (
-                <div className="row g-4 align-items-stretch">
-                    {(Array.isArray(widgets) ? widgets : []).map(widget => (
+                <div className="row g-4 align-items-stretch stagger-in">
+                    {(Array.isArray(widgets) ? widgets : []).map((widget, idx) => (
                         <div key={widget.id} className={colClass(widget.colSpan)}>
-                            <div className="position-relative h-100 widget-wrapper">
-                                {/* Widget actions */}
-                                <div
-                                    className="position-absolute widget-actions d-flex gap-1"
-                                    style={{ top: '10px', right: '10px', zIndex: 10, opacity: 0, transition: 'opacity 0.2s' }}
-                                >
-                                    <button
-                                        className="btn btn-blur btn-sm rounded-circle p-1"
-                                        style={{ width: '28px', height: '28px' }}
-                                        onClick={() => openEdit(widget)}
-                                        title={t('edit')}
-                                    >
-                                        <Icon name="edit" size={13} />
-                                    </button>
-                                    <button
-                                        className="btn btn-blur btn-sm rounded-circle p-1"
-                                        style={{ width: '28px', height: '28px' }}
-                                        onClick={() => handleDelete(widget.id)}
-                                        title={t('delete')}
-                                    >
-                                        <Icon name="delete" size={13} />
-                                    </button>
-                                </div>
-
-                                {loadingData[widget.id] ? (
-                                    <WidgetSkeleton />
-                                ) : (
-                                    <WidgetRenderer widget={widget} data={widgetData[widget.id]} />
-                                )}
-                            </div>
+                            <WidgetRenderer 
+                                widget={widget} 
+                                data={widgetData[widget.id]} 
+                                loading={loadingData[widget.id]}
+                                index={idx}
+                                onEdit={() => openEdit(widget)}
+                                onDelete={() => setDeleteWidgetId(widget.id)}
+                            />
                         </div>
                     ))}
                 </div>
@@ -649,9 +750,112 @@ function DashboardPage() {
                 AGG_TYPES={AGG_TYPES}
             />
 
+            <ConfirmModal
+                show={!!deleteWidgetId}
+                onClose={() => setDeleteWidgetId(null)}
+                onConfirm={handleDelete}
+                title={t('delete_widget')}
+                message={t('confirm_delete_widget')}
+                confirmText={t('delete')}
+                type="danger"
+            />
+
             <style>{`
-                .widget-wrapper:hover .widget-actions {
-                    opacity: 1 !important;
+                .widget-premium-card {
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    border: 1px solid hsla(var(--primary), 0.1) !important;
+                    background: hsla(var(--background), 0.6) !important;
+                }
+                
+                .widget-premium-card:hover {
+                    transform: translateY(-8px) scale(1.01);
+                    border-color: hsla(var(--primary), 0.3) !important;
+                    background: hsla(var(--background), 0.8) !important;
+                    box-shadow: 0 30px 60px -12px hsla(var(--primary), 0.15) !important;
+                }
+
+                .widget-bg-decoration {
+                    position: absolute;
+                    top: -50px;
+                    right: -50px;
+                    width: 150px;
+                    height: 150px;
+                    background: radial-gradient(circle, hsla(var(--primary), 0.05) 0%, transparent 70%);
+                    border-radius: 50%;
+                    z-index: 0;
+                    pointer-events: none;
+                }
+
+                .btn-action-mini {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 10px;
+                    border: 1px solid hsla(var(--foreground), 0.1);
+                    background: hsla(var(--background), 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: hsla(var(--foreground), 0.6);
+                    transition: all 0.2s ease;
+                    padding: 0;
+                }
+
+                .btn-action-mini:hover {
+                    background: hsl(var(--primary));
+                    color: white;
+                    border-color: hsl(var(--primary));
+                    transform: scale(1.1);
+                }
+
+                .btn-action-mini.btn-action-delete:hover {
+                    background: #ff4d4d;
+                    border-color: #ff4d4d;
+                }
+
+                .widget-actions {
+                    opacity: 0;
+                    transform: translateX(10px);
+                    transition: all 0.3s ease;
+                }
+
+                .widget-premium-card:hover .widget-actions {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+
+                .table-premium-mini th {
+                    font-size: 0.65rem !important;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    color: hsla(var(--foreground), 0.5);
+                    border: none;
+                    padding: 8px 12px;
+                    background: hsla(var(--foreground), 0.02);
+                }
+
+                .table-premium-mini td {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid hsla(var(--foreground), 0.03);
+                    color: hsla(var(--foreground), 0.8);
+                }
+
+                .table-premium-mini tr:last-child td {
+                    border-bottom: none;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: hsla(var(--foreground), 0.1);
+                    border-radius: 10px;
+                }
+
+                .stat-value {
+                    transition: all 0.3s ease;
+                }
+                .widget-premium-card:hover .stat-value {
+                    transform: scale(1.05);
                 }
             `}</style>
         </div>

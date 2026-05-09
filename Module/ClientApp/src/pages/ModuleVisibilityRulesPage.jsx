@@ -15,9 +15,12 @@ import {
 } from '../services/api';
 import Icon from '../components/Icon';
 import AiChatModal from '../components/AiChatModal';
+import { useToast } from '../components/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 const ModuleVisibilityRulesPage = () => {
     const { t } = useTranslation();
+    const showToast = useToast();
     const { moduleId } = useParams();
     const navigate = useNavigate();
     
@@ -30,6 +33,7 @@ const ModuleVisibilityRulesPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [showAiModal, setShowAiModal] = useState(false);
     const [editingRule, setEditingRule] = useState(null);
+    const [deleteRuleId, setDeleteRuleId] = useState(null);
     
     const [formData, setFormData] = useState({
         roleId: '',
@@ -107,19 +111,21 @@ const ModuleVisibilityRulesPage = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id, e) => {
-        e.stopPropagation();
-        if (window.confirm(t('delete_rule_confirm'))) {
-            try {
-                await deleteVisibilityRule(moduleId, id);
-                fetchData();
-                return true;
-            } catch (err) {
-                alert(t('delete_failed'));
-                return false;
-            }
+    const handleDelete = async () => {
+        if (!deleteRuleId) return;
+        try {
+            await deleteVisibilityRule(moduleId, deleteRuleId);
+            fetchData();
+            setDeleteRuleId(null);
+            setShowModal(false);
+        } catch (err) {
+            showToast(t('delete_failed'), 'error');
         }
-        return false;
+    };
+    
+    const handleDeleteClick = (id, e) => {
+        if (e) e.stopPropagation();
+        setDeleteRuleId(id);
     };
 
     const handleSubmit = async (e) => {
@@ -142,7 +148,7 @@ const ModuleVisibilityRulesPage = () => {
             setShowModal(false);
             fetchData();
         } catch (err) {
-            alert(t('save_failed') + ': ' + (err.response?.data?.error || err.message));
+            showToast(t('save_failed') + ': ' + (err.response?.data?.error || err.message), 'error');
         }
     };
 
@@ -253,7 +259,7 @@ const ModuleVisibilityRulesPage = () => {
                                                 {rule.isActive ? t('active') : t('inactive')}
                                             </span>
                                             <button
-                                                onClick={(e) => handleDelete(rule.id, e)}
+                                                onClick={(e) => handleDeleteClick(rule.id, e)}
                                                 className="btn btn-sm btn-outline-danger border-0 rounded-circle d-flex align-items-center justify-content-center"
                                                 title={t('delete')}
                                                 style={{ width: '30px', height: '30px' }}
@@ -428,10 +434,7 @@ const ModuleVisibilityRulesPage = () => {
                                         <button
                                             type="button"
                                             className="btn btn-outline-danger px-4 fw-bold d-flex align-items-center gap-2"
-                                            onClick={async (e) => {
-                                                const success = await handleDelete(editingRule.id, e);
-                                                if (success) setShowModal(false);
-                                            }}
+                                            onClick={(e) => handleDeleteClick(editingRule.id, e)}
                                         >
                                             <Icon name="delete" size={18} />
                                             {t('delete')}
@@ -472,13 +475,23 @@ const ModuleVisibilityRulesPage = () => {
                         await applyAiConfig(config);
                         setShowAiModal(false);
                         fetchData();
-                        alert(t('ai_success_msg'));
+                        showToast(t('ai_success_msg'), 'success');
                     } catch (err) {
-                        alert(t('ai_apply_error') + " " + (err.response?.data || err.message));
+                        showToast(t('ai_apply_error') + " " + (err.response?.data || err.message), 'error');
                     }
                 }}
                 title={t('ai_architect_modal_title')}
                 placeholder={t('ai_prompt_placeholder')}
+            />
+
+            <ConfirmModal
+                show={!!deleteRuleId}
+                onClose={() => setDeleteRuleId(null)}
+                onConfirm={handleDelete}
+                title={t('delete_rule')}
+                message={t('delete_rule_confirm')}
+                confirmText={t('delete')}
+                type="danger"
             />
         </div>
     );

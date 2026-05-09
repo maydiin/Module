@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { getUsers, getRoles, assignRole, removeRole, refreshToken, createUser } from '../services/api';
 import { useTenant } from '../components/TenantContext';
 import Icon from '../components/Icon';
+import { useToast } from '../components/ToastContext';
 
 function UsersPage() {
     const { t } = useTranslation();
+    const showToast = useToast();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ function UsersPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || t('error'));
+            showToast(err.response?.data?.error || t('error'), 'error');
         }
     };
 
@@ -68,7 +70,7 @@ function UsersPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || t('error'));
+            showToast(err.response?.data?.error || t('error'), 'error');
         }
     };
 
@@ -80,9 +82,9 @@ function UsersPage() {
             setShowCreateModal(false);
             setNewUser({ username: '', email: '', password: '', roles: [] });
             loadData();
-            alert(t('user_created_success'));
+            showToast(t('user_created_success'), 'success');
         } catch (err) {
-            alert(err.response?.data?.error || t('user_create_error'));
+            showToast(err.response?.data?.error || t('user_create_error'), 'error');
         } finally {
             setCreateLoading(false);
         }

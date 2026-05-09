@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRecordsByName, uploadFile } from '../services/api';
 import AsyncRelationSelect from './AsyncRelationSelect';
+import { useToast } from './ToastContext';
 
 function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
   const { t } = useTranslation();
+  const showToast = useToast();
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [relationsData, setRelationsData] = useState({});
@@ -70,7 +72,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (Object.values(uploading).some(isUp => isUp)) {
-      alert(t('please_wait_upload_finishes') || 'Please wait for file upload to finish.');
+      showToast(t('please_wait_upload_finishes') || 'Please wait for file upload to finish.', 'warning');
       return;
     }
     if (validate()) {

@@ -5,9 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { getScripts, createScript, updateScript, deleteScript, getModule, generateAiScriptConfig } from '../services/api';
 import AiChatModal from '../components/AiChatModal';
 import Icon from '../components/Icon';
+import { useToast } from '../components/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 const ModuleScriptsPage = () => {
     const { t } = useTranslation();
+    const showToast = useToast();
     const { moduleId } = useParams();
     const navigate = useNavigate();
     const [module, setModule] = useState(null);
@@ -24,6 +27,7 @@ const ModuleScriptsPage = () => {
     const [showAiModal, setShowAiModal] = useState(false);
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
+    const [deleteScriptId, setDeleteScriptId] = useState(null);
 
     const triggerTypes = [
         'CustomList',
@@ -73,16 +77,20 @@ const ModuleScriptsPage = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id, e) => {
-        e.stopPropagation();
-        if (window.confirm(t('confirm_delete_script'))) {
-            try {
-                await deleteScript(moduleId, id);
-                fetchData();
-            } catch (err) {
-                alert(t('failed_delete_script'));
-            }
+    const handleDelete = async () => {
+        if (!deleteScriptId) return;
+        try {
+            await deleteScript(moduleId, deleteScriptId);
+            fetchData();
+            setDeleteScriptId(null);
+        } catch (err) {
+            showToast(t('failed_delete_script'), 'error');
         }
+    };
+    
+    const handleDeleteClick = (id, e) => {
+        e.stopPropagation();
+        setDeleteScriptId(id);
     };
 
     const handleSubmit = async (e) => {
@@ -96,7 +104,7 @@ const ModuleScriptsPage = () => {
             setShowModal(false);
             fetchData();
         } catch (err) {
-            alert(t('failed_save_script') + ': ' + (err.response?.data?.error || err.message));
+            showToast(t('failed_save_script') + ': ' + (err.response?.data?.error || err.message), 'error');
         }
     };
 
@@ -117,11 +125,11 @@ const ModuleScriptsPage = () => {
                 setEditingScript(null);
                 setShowModal(true);
             } else {
-                alert(t('ai_script_no_result'));
+                showToast(t('ai_script_no_result'), 'warning');
             }
         } catch (err) {
             console.error(err);
-            alert(t('ai_script_failed') + ': ' + (err.response?.data?.error || err.message));
+            showToast(t('ai_script_failed') + ': ' + (err.response?.data?.error || err.message), 'error');
         } finally {
             setAiLoading(false);
         }
@@ -231,7 +239,7 @@ const ModuleScriptsPage = () => {
                                                 {script.isActive ? t('active') : t('inactive')}
                                             </span>
                                             <button
-                                                onClick={(e) => handleDelete(script.id, e)}
+                                                onClick={(e) => handleDeleteClick(script.id, e)}
                                                 className="btn btn-sm btn-outline-danger border-0 rounded-circle d-flex align-items-center justify-content-center"
                                                 title={t('delete_module')}
                                                 style={{ width: '30px', height: '30px' }}
@@ -283,11 +291,21 @@ const ModuleScriptsPage = () => {
                         setEditingScript(null);
                         setShowModal(true);
                     } else {
-                        alert(t('ai_script_no_result'));
+                        showToast(t('ai_script_no_result'), 'warning');
                     }
                 }}
                 title={t('ai_script_title')}
                 placeholder={t('ai_script_prompt_placeholder')}
+            />
+
+            <ConfirmModal
+                show={!!deleteScriptId}
+                onClose={() => setDeleteScriptId(null)}
+                onConfirm={handleDelete}
+                title={t('delete_script')}
+                message={t('confirm_delete_script')}
+                confirmText={t('delete')}
+                type="danger"
             />
 
             {/* Modal */}

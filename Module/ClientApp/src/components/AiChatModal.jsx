@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import Icon from './Icon';
+import { useToast } from './ToastContext';
 
 function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder }) {
   const { t } = useTranslation();
+  const showToast = useToast();
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPreview, setAiPreview] = useState(null);
@@ -55,7 +57,7 @@ function AiChatModal({ show, onClose, onApply, generateAi, title, placeholder })
         setAiPreview(response.configuration);
       }
     } catch (err) {
-      alert(t('ai_generate_error') + " " + (err.response?.data || err.message));
+      showToast(t('ai_generate_error') + " " + (err.response?.data || err.message), 'error');
       setChatHistory([...newHistory, { role: 'ai', content: t('error_occurred_please_try_again') }]);
     } finally {
       setAiLoading(false);

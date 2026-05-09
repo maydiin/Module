@@ -19,6 +19,7 @@ import AuditLogsPage from './pages/AuditLogsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { TenantProvider } from './components/TenantContext';
 import { ThemeProvider } from './components/ThemeContext';
+import { ToastProvider } from './components/ToastContext';
 import SettingsPage from './pages/SettingsPage';
 import DashboardPage from './pages/DashboardPage';
 
@@ -27,6 +28,7 @@ function App() {
     <AuthProvider>
       <TenantProvider>
         <ThemeProvider>
+          <ToastProvider>
           <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
@@ -60,6 +62,7 @@ function App() {
             />
           </Routes>
           </Router>
+          </ToastProvider>
         </ThemeProvider>
       </TenantProvider>
     </AuthProvider>

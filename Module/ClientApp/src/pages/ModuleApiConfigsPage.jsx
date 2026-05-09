@@ -4,9 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { getModule, getApiConfigs, createApiConfig, updateApiConfig, deleteApiConfig, generateAiApiConfig, executeApiSync } from '../services/api';
 import AiChatModal from '../components/AiChatModal';
 import Icon from '../components/Icon';
+import { useToast } from '../components/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 function ModuleApiConfigsPage() {
     const { t } = useTranslation();
+    const showToast = useToast();
     const { moduleId } = useParams();
     const navigate = useNavigate();
     const [module, setModule] = useState(null);
@@ -19,6 +22,7 @@ function ModuleApiConfigsPage() {
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
     const [executingConfigs, setExecutingConfigs] = useState({});
+    const [deleteConfigId, setDeleteConfigId] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -101,11 +105,12 @@ function ModuleApiConfigsPage() {
         setShowForm(false);
     };
 
-    const handleDelete = async (configId) => {
-        if (!window.confirm(t('confirm_delete_config'))) return;
+    const handleDelete = async () => {
+        if (!deleteConfigId) return;
         try {
-            await deleteApiConfig(moduleId, configId);
+            await deleteApiConfig(moduleId, deleteConfigId);
             loadData();
+            setDeleteConfigId(null);
         } catch (err) {
             setError(t('error'));
             console.error(err);
@@ -116,11 +121,11 @@ function ModuleApiConfigsPage() {
         try {
             setExecutingConfigs(prev => ({ ...prev, [configId]: true }));
             const result = await executeApiSync(configId);
-            alert(t('sync_success', { message: result.message }));
+            showToast(t('sync_success', { message: result.message }), 'success');
         } catch (err) {
             console.error(err);
             const errorMsg = err.response?.data?.error || err.response?.data || err.message;
-            alert(t('sync_failed', { error: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) }));
+            showToast(t('sync_failed', { error: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg) }), 'error');
         } finally {
             setExecutingConfigs(prev => ({ ...prev, [configId]: false }));
         }
@@ -146,11 +151,11 @@ function ModuleApiConfigsPage() {
                 setAiPrompt('');
                 setShowForm(true);
             } else {
-                alert(t('ai_api_config_no_result'));
+                showToast(t('ai_api_config_no_result'), 'warning');
             }
         } catch (err) {
             console.error(err);
-            alert(t('ai_api_config_failed') + ': ' + (err.response?.data?.error || err.message));
+            showToast(t('ai_api_config_failed') + ': ' + (err.response?.data?.error || err.message), 'error');
         } finally {
             setAiLoading(false);
         }
@@ -235,11 +240,21 @@ function ModuleApiConfigsPage() {
                         setShowAiModal(false);
                         setShowForm(true);
                     } else {
-                        alert(t('ai_api_config_no_result'));
+                        showToast(t('ai_api_config_no_result'), 'warning');
                     }
                 }}
                 title={t('ai_api_config_title')}
                 placeholder={t('ai_api_config_prompt_placeholder')}
+            />
+
+            <ConfirmModal
+                show={!!deleteConfigId}
+                onClose={() => setDeleteConfigId(null)}
+                onConfirm={handleDelete}
+                title={t('delete_config')}
+                message={t('confirm_delete_config')}
+                confirmText={t('delete')}
+                type="danger"
             />
 
             {showForm && (
@@ -365,7 +380,7 @@ function ModuleApiConfigsPage() {
                                         <button className="btn btn-outline-primary btn-sm border-0" onClick={() => handleEdit(config)} title={t('edit_api_config')}>
                                             <span>📝 {t('edit_api_config')}</span>
                                         </button>
-                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => handleDelete(config.id)} title={t('delete_api_config')}>
+                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => setDeleteConfigId(config.id)} title={t('delete_api_config')}>
                                             <span>🗑️</span>
                                         </button>
                                     </div>

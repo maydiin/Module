@@ -7,6 +7,7 @@ import LinkedRecordsModal from '../components/LinkedRecordsModal';
 import KanbanView from '../components/KanbanView';
 import { useTenant } from '../components/TenantContext';
 import Icon from '../components/Icon';
+import ConfirmModal from '../components/ConfirmModal';
 
 function ModuleRecordsPage() {
   const { t } = useTranslation();
@@ -34,6 +35,7 @@ function ModuleRecordsPage() {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [viewMode, setViewMode] = useState('table');
   const [kanbanGroupByField, setKanbanGroupByField] = useState('');
+  const [deleteRecordId, setDeleteRecordId] = useState(null);
   const { selectedTenantId } = useTenant();
 
   useEffect(() => {
@@ -115,17 +117,16 @@ function ModuleRecordsPage() {
     setShowForm(true);
   };
 
-  const handleDelete = async (recordId) => {
-    if (!window.confirm(t('confirm_delete_record'))) {
-      return;
-    }
+  const handleDelete = async () => {
+    if (!deleteRecordId) return;
 
     try {
-      await deleteRecord(moduleId, recordId);
+      await deleteRecord(moduleId, deleteRecordId);
       if (records.length === 1 && page > 1) {
         setPage(page - 1);
       }
       loadData();
+      setDeleteRecordId(null);
     } catch (err) {
       setError(err.response?.data?.error || t('error'));
       console.error(err);
@@ -809,7 +810,7 @@ function ModuleRecordsPage() {
                             </button>
                             <button
                               className="btn btn-outline-danger"
-                              onClick={() => handleDelete(record.id)}
+                              onClick={() => setDeleteRecordId(record.id)}
                               disabled={showForm}
                               title={t('delete_record')}
                             >
@@ -861,6 +862,15 @@ function ModuleRecordsPage() {
           }}
         />
       )}
+      <ConfirmModal
+        show={!!deleteRecordId}
+        onClose={() => setDeleteRecordId(null)}
+        onConfirm={handleDelete}
+        title={t('delete_record')}
+        message={t('confirm_delete_record')}
+        confirmText={t('delete')}
+        type="danger"
+      />
     </div>
   );
 }

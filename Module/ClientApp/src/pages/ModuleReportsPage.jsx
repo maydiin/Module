@@ -4,9 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getReports, createReport, updateReport, deleteReport, getModule, generateAiReportConfig } from '../services/api';
 import AiChatModal from '../components/AiChatModal';
+import { useToast } from '../components/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 const ModuleReportsPage = () => {
     const { t } = useTranslation();
+    const showToast = useToast();
     const { moduleId } = useParams();
     const navigate = useNavigate();
     const [module, setModule] = useState(null);
@@ -24,6 +27,7 @@ const ModuleReportsPage = () => {
     const [showAiModal, setShowAiModal] = useState(false);
     const [aiPrompt, setAiPrompt] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
+    const [deleteReportId, setDeleteReportId] = useState(null);
 
     const reportTypes = [
         { id: 'List', label: 'report_type_list' },
@@ -87,16 +91,20 @@ const ModuleReportsPage = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id, e) => {
-        e.stopPropagation();
-        if (window.confirm(t('confirm_delete_report'))) {
-            try {
-                await deleteReport(moduleId, id);
-                fetchData();
-            } catch (err) {
-                alert(t('failed_delete_report'));
-            }
+    const handleDelete = async () => {
+        if (!deleteReportId) return;
+        try {
+            await deleteReport(moduleId, deleteReportId);
+            fetchData();
+            setDeleteReportId(null);
+        } catch (err) {
+            showToast(t('failed_delete_report'), 'error');
         }
+    };
+    
+    const handleDeleteClick = (id, e) => {
+        e.stopPropagation();
+        setDeleteReportId(id);
     };
 
     const handleSubmit = async (e) => {
@@ -110,7 +118,7 @@ const ModuleReportsPage = () => {
             setShowModal(false);
             fetchData();
         } catch (err) {
-            alert(t('failed_save_report') + ': ' + (err.response?.data?.error || err.message));
+            showToast(t('failed_save_report') + ': ' + (err.response?.data?.error || err.message), 'error');
         }
     };
 
@@ -134,11 +142,11 @@ const ModuleReportsPage = () => {
                 setAiPrompt('');
                 setShowModal(true);
             } else {
-                alert(t('ai_generated_no_reports'));
+                showToast(t('ai_generated_no_reports'), 'warning');
             }
         } catch (err) {
             console.error(err);
-            alert(t('ai_generation_failed') + ': ' + (err.response?.data?.error || err.message));
+            showToast(t('ai_generation_failed') + ': ' + (err.response?.data?.error || err.message), 'error');
         } finally {
             setAiLoading(false);
         }
@@ -211,7 +219,7 @@ const ModuleReportsPage = () => {
                         setShowAiModal(false);
                         setShowModal(true);
                     } else {
-                        alert(t('ai_generated_no_reports'));
+                        showToast(t('ai_generated_no_reports'), 'warning');
                     }
                 }}
                 title={`✨ AI ${t('report_architect')}`}
@@ -258,7 +266,7 @@ const ModuleReportsPage = () => {
                                         <div className="d-flex gap-2">
                                             <button
                                                 className="btn btn-sm btn-outline-danger"
-                                                onClick={(e) => handleDelete(report.id, e)}
+                                                onClick={(e) => handleDeleteClick(report.id, e)}
                                                 title={t('delete')}
                                             >
                                                 ✕
@@ -415,6 +423,16 @@ const ModuleReportsPage = () => {
                 </div>,
                 document.body
             )}
+
+            <ConfirmModal
+                show={!!deleteReportId}
+                onClose={() => setDeleteReportId(null)}
+                onConfirm={handleDelete}
+                title={t('delete_report')}
+                message={t('confirm_delete_report')}
+                confirmText={t('delete')}
+                type="danger"
+            />
         </div>
     );
 };

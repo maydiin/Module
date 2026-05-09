@@ -7,9 +7,11 @@ import { useTenant } from '../components/TenantContext';
 import { useAuth } from '../components/AuthContext';
 import AiChatModal from '../components/AiChatModal';
 import Icon from '../components/Icon';
+import { useToast } from '../components/ToastContext';
 
 function ModulesPage() {
   const { t } = useTranslation();
+  const showToast = useToast();
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -450,9 +452,9 @@ function ModulesPage() {
             await applyAiConfig(config);
             setShowAiModal(false);
             loadModules();
-            alert(t('ai_success_msg'));
+            showToast(t('ai_success_msg'), 'success');
           } catch (err) {
-            alert(t('ai_apply_error') + " " + (err.response?.data || err.message));
+            showToast(t('ai_apply_error') + " " + (err.response?.data || err.message), 'error');
           }
         }}
         title={t('ai_architect_modal_title')}
