@@ -107,7 +107,7 @@ public class UsersController : ControllerBase
         {
             Username = dto.Username,
             Email = dto.Email,
-            PasswordHash = dto.Password, // TODO: Hash password
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             IsEmailVerified = true, // Admin created users are verified
             TenantId = tenantId,
             CreatedAt = DateTime.UtcNow

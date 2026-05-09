@@ -112,7 +112,7 @@ public static class SeedData
             { 
                 Username = "admin", 
                 Email = "admin@example.com", 
-                PasswordHash = "admin123",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 TenantId = hostTenant.Id,
                 IsEmailVerified = true // Admin doesn't need email verification
             };

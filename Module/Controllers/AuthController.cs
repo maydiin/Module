@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
                         .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(u => u.Username == dto.Username);
 
-        if (user == null || user.PasswordHash != dto.Password) // Simplified for demo, should use BCrypt/Argon2
+        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
         {
             return Unauthorized(new { error = "Invalid username or password" });
         }
@@ -129,7 +129,7 @@ public class AuthController : ControllerBase
         {
             Username = dto.Username,
             Email = dto.Email,
-            PasswordHash = dto.Password, // Simplified for demo, should use BCrypt/Argon2
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             EmailVerificationCode = verificationCode,
             EmailVerificationCodeExpiry = DateTime.UtcNow.AddMinutes(15),
             IsEmailVerified = false,
