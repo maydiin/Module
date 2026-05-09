@@ -281,7 +281,7 @@ function RecordDetailPage() {
                         </div>
                         {t('record_details')} <span className="text-muted fs-4">#{record.id}</span>
                     </h1>
-                    <p className="text-muted mb-0">{module.name} Module</p>
+                    <p className="text-muted mb-0">{module.name} {t('module')}</p>
                 </div>
             </div>
 
@@ -356,7 +356,7 @@ function RecordDetailPage() {
                                                             {item.module}
                                                         </span>
                                                         <span className={`badge ${expandedModule === item.module ? 'bg-primary' : 'bg-surface bg-opacity-50 text-muted'} rounded-pill`}>
-                                                            {item.count} {t('records_count')}
+                                                            {item.count} {t('entries')}
                                                         </span>
                                                     </div>
                                                 </button>
@@ -413,7 +413,7 @@ function RecordDetailPage() {
                                                     
                                                     {!moduleRecords[item.module]?.loading && !moduleRecords[item.module]?.hasMore && (moduleRecords[item.module]?.records?.length > 0) && (
                                                         <div className="p-2 text-center bg-surface bg-opacity-20 border-top border-theme-accent">
-                                                            <small className="text-muted small fw-bold opacity-70">{t('no_more_records') || 'No more records'}</small>
+                                                            <small className="text-muted small fw-bold opacity-70">{t('no_more_records')}</small>
                                                         </div>
                                                     )}
                                                 </div>

@@ -128,6 +128,40 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                 }}
             >
                 <div className="py-4 px-3" style={{ width: '268px' }}>
+                    {/* Dashboard link */}
+                    <div className="mb-3">
+                        <NavLink
+                            to="/"
+                            end
+                            className={({ isActive }) =>
+                                `text-decoration-none d-flex align-items-center px-3 py-2 fw-bold transition-all ${isActive ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`
+                            }
+                            style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="me-3 icon-theme">
+                                <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
+                            </svg>
+                            <span style={{ fontSize: '0.925rem' }}>Dashboard</span>
+                        </NavLink>
+                    </div>
+
+                    {/* Modules link */}
+                    <div className="mb-3">
+                        <NavLink
+                            to="/modules"
+                            className={({ isActive }) =>
+                                `text-decoration-none d-flex align-items-center px-3 py-2 fw-bold transition-all ${isActive ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`
+                            }
+                            style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
+                        >
+                            <Icon name="box" size={22} className="me-3 icon-theme" />
+                            <span style={{ fontSize: '0.925rem' }}>Modüller</span>
+                        </NavLink>
+                    </div>
+
                     <div className="mb-4 ps-2">
                         <h6 className="text-uppercase text-primary fw-extrabold small tracking-wider" style={{ fontSize: '0.65rem' }}>
                             {t('modules_title')}

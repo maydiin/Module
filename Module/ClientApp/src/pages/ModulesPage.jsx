@@ -195,7 +195,7 @@ function ModulesPage() {
             style={{ backdropFilter: 'blur(10px)' }}
           >
             <Icon name="sparkles" size={16} className="me-1 me-md-2" />
-            <span className="d-none d-sm-inline">{t('ai_architect') || 'AI Architect'}</span>
+            <span className="d-none d-sm-inline">{t('ai_architect')}</span>
             <span className="d-sm-none">AI</span>
           </button>
           <button
@@ -209,7 +209,7 @@ function ModulesPage() {
           >
             <Icon name="plus" size={18} className="me-1 me-md-2" />
             <span className="d-none d-sm-inline">{t('new_module')}</span>
-            <span className="d-sm-none">Yeni</span>
+            <span className="d-sm-none">{t('new')}</span>
           </button>
         </div>
       </div>
@@ -291,7 +291,7 @@ function ModulesPage() {
               {editingModuleId && currentModuleFields.length > 0 && (
                 <div className="mb-4">
                   <label htmlFor="kanbanField" className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">
-                    {t('kanban_group_by') || 'Kanban Gruplandırma (Varsayılan)'}
+                    {t('kanban_group_by')}
                   </label>
                   <select
                     id="kanbanField"
@@ -299,7 +299,7 @@ function ModulesPage() {
                     value={kanbanField}
                     onChange={(e) => setKanbanField(e.target.value)}
                   >
-                    <option value="">{t('none') || 'Yok'}</option>
+                    <option value="">{t('none')}</option>
                     {currentModuleFields
                       .filter(f => f.type === 'select' || f.type === 'checkbox')
                       .map(f => (
@@ -307,7 +307,7 @@ function ModulesPage() {
                       ))}
                   </select>
                   <small className="form-text text-muted">
-                    {t('kanban_field_help') || 'Kanban görünümünde varsayılan olarak hangi alana göre gruplandırma yapılacağını seçin.'}
+                    {t('kanban_field_help')}
                   </small>
                 </div>
               )}
@@ -364,7 +364,7 @@ function ModulesPage() {
                     <div>
                       <h4 className="mb-0 fw-800 fs-5">{summary.moduleName}</h4>
                       <span className="text-muted fw-bold opacity-60" style={{ fontSize: '0.75rem', letterSpacing: '0.02em' }}>
-                        {summary.latestRecords.length} {t('entries') || 'Kayıt'}
+                        {summary.latestRecords.length} {t('entries')}
                       </span>
                     </div>
                   </div>
@@ -377,7 +377,7 @@ function ModulesPage() {
                         navigate(`/modules/${summary.moduleId}/records`);
                       }}
                     >
-                      {t('open_module') || 'Modülü Aç'}
+                      {t('open_module')}
                     </button>
                     <button
                       className="btn btn-outline-warning btn-sm rounded-pill px-3 shadow-sm hover-lift"
@@ -388,7 +388,7 @@ function ModulesPage() {
                       }}
                     >
                       <Icon name="edit" size={14} className="me-1" />
-                      {t('edit') || 'Düzenle'}
+                      {t('edit')}
                     </button>
                     <span className={`transition-all ${isCollapsed ? '' : 'rotate-180'} d-flex text-primary`}>
                       <Icon name="arrowLeft" size={20} className="rotate-270" />
@@ -424,7 +424,7 @@ function ModulesPage() {
                                     </td>
                                   ))}
                                   <td className="px-3 px-md-4 py-3 text-end">
-                                    <span className="text-primary fw-extrabold small tracking-tight">DETAY →</span>
+                                    <span className="text-primary fw-extrabold small tracking-tight">{t('detail').toUpperCase()} →</span>
                                   </td>
                               </tr>
                             ))}

@@ -34,7 +34,7 @@ function UsersPage() {
             setUsers(usersData);
             setRoles(rolesData);
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to load users');
+            setError(err.response?.data?.error || t('error'));
         } finally {
             setLoading(false);
         }
@@ -52,7 +52,7 @@ function UsersPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to assign role');
+            alert(err.response?.data?.error || t('error'));
         }
     };
 
@@ -68,7 +68,7 @@ function UsersPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to remove role');
+            alert(err.response?.data?.error || t('error'));
         }
     };
 

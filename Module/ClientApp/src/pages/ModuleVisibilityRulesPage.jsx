@@ -41,16 +41,16 @@ const ModuleVisibilityRulesPage = () => {
     });
 
     const operators = [
-        { value: 'eq', label: 'Eşittir (==)' },
-        { value: 'neq', label: 'Eşit Değildir (!=)' },
-        { value: 'contains', label: 'İçerir' },
-        { value: 'gt', label: 'Büyüktür (>)' },
-        { value: 'lt', label: 'Küçüktür (<)' }
+        { value: 'eq', label: t('op_eq') },
+        { value: 'neq', label: t('op_neq') },
+        { value: 'contains', label: t('op_contains') },
+        { value: 'gt', label: t('op_gt') },
+        { value: 'lt', label: t('op_lt') }
     ];
 
     const actions = [
-        { value: 'Hide', label: 'Gizle' },
-        { value: 'Show', label: 'Göster' }
+        { value: 'Hide', label: t('hide') },
+        { value: 'Show', label: t('show') }
     ];
 
     useEffect(() => {
@@ -70,11 +70,11 @@ const ModuleVisibilityRulesPage = () => {
             setRules(rulesData);
             setRoles(rolesData);
             setFields([
-                { name: '__createdByUserId', label: 'Oluşturan Kullanıcı ID' },
+                { name: '__createdByUserId', label: t('audit_col_user') || 'Oluşturan Kullanıcı' },
                 ...fieldsData.filter(f => f.isStored !== false)
             ]);
         } catch (err) {
-            setError('Veriler yüklenirken bir hata oluştu.');
+            setError(t('error_occurred_please_try_again'));
             console.error('Error loading visibility rules:', err);
         } finally {
             setLoading(false);
@@ -109,13 +109,13 @@ const ModuleVisibilityRulesPage = () => {
 
     const handleDelete = async (id, e) => {
         e.stopPropagation();
-        if (window.confirm('Bu kuralı silmek istediğinize emin misiniz?')) {
+        if (window.confirm(t('delete_rule_confirm'))) {
             try {
                 await deleteVisibilityRule(moduleId, id);
                 fetchData();
                 return true;
             } catch (err) {
-                alert('Silme işlemi başarısız oldu.');
+                alert(t('delete_failed'));
                 return false;
             }
         }
@@ -142,7 +142,7 @@ const ModuleVisibilityRulesPage = () => {
             setShowModal(false);
             fetchData();
         } catch (err) {
-            alert('Kaydetme işlemi başarısız oldu: ' + (err.response?.data?.error || err.message));
+            alert(t('save_failed') + ': ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -151,7 +151,7 @@ const ModuleVisibilityRulesPage = () => {
             <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">{t('loading')}</span>
             </div>
-            <p className="mt-2 text-muted">Kayıt görünürlük kuralları yükleniyor...</p>
+            <p className="mt-2 text-muted">{t('loading_visibility_rules')}</p>
         </div>
     );
 
@@ -165,7 +165,7 @@ const ModuleVisibilityRulesPage = () => {
                         <p className="mb-0 text-muted">{error}</p>
                     </div>
                     <button onClick={fetchData} className="btn btn-outline-danger btn-sm ms-auto">
-                        Tekrar Dene
+                        {t('retry')}
                     </button>
                 </div>
             </div>
@@ -188,9 +188,9 @@ const ModuleVisibilityRulesPage = () => {
                             <span className="text-gradient">
                                 {module?.name}
                             </span>
-                            <span className="opacity-40 ms-3 fw-400" style={{ fontSize: '0.8em' }}>Görünürlük Kuralları</span>
+                            <span className="opacity-40 ms-3 fw-400" style={{ fontSize: '0.8em' }}>{t('visibility_rules')}</span>
                         </h1>
-                        <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>Rol tabanlı veya dinamik (Sadece Benim Kayıtlarım) veri kısıtlamalarını yönetin.</p>
+                        <p className="text-muted mb-0 lead fw-medium opacity-70" style={{ fontSize: '1rem' }}>{t('visibility_rules_desc')}</p>
                     </div>
                 </div>
                 <div className="d-flex gap-2 flex-wrap align-items-center">
@@ -199,16 +199,16 @@ const ModuleVisibilityRulesPage = () => {
                         onClick={() => setShowAiModal(true)}
                         style={{ backdropFilter: 'blur(10px)' }}
                     >
-                        <Icon name="sparkles" size={16} className="me-2" />
-                        <span className="d-none d-sm-inline">{t('ai_architect') || 'AI Architect'}</span>
-                        <span className="d-sm-none">AI</span>
+                        <Icon name="sparkles" size={16} className="me-1 me-md-2" />
+                        <span className="d-none d-sm-inline">{t('ai_architect')}</span>
+                        <span className="d-sm-none">{t('ai')}</span>
                     </button>
                     <button
                         onClick={handleAddNew}
                         className="btn btn-primary px-4 shadow-premium hover-lift fw-bold"
                     >
                         <Icon name="plus" size={20} className="me-2" />
-                        Yeni Kural
+                        {t('new_rule')}
                     </button>
                 </div>
             </div>
@@ -216,10 +216,10 @@ const ModuleVisibilityRulesPage = () => {
             {rules.length === 0 ? (
                 <div className="text-center py-5 glass-card rounded-4 border-dashed border-2 mt-4 fade-in">
                     <div className="display-1 mb-3 opacity-25">🛡️</div>
-                    <h3 className="h4 fw-bold">Henüz Kural Yok</h3>
-                    <p className="text-muted mx-auto" style={{ maxWidth: '400px' }}>Bu modül için herhangi bir kayıt görünürlük kuralı tanımlanmamış. Herkes yetkisi dahilinde tüm kayıtları görebilir.</p>
+                    <h3 className="h4 fw-bold">{t('no_rules_yet_title')}</h3>
+                    <p className="text-muted mx-auto" style={{ maxWidth: '400px' }}>{t('no_rules_yet_desc')}</p>
                     <button onClick={handleAddNew} className="btn btn-primary px-5 py-2 mt-3 shadow-premium hover-lift">
-                        İlk Kuralı Oluştur
+                        {t('create_first_rule')}
                     </button>
                 </div>
             ) : (
@@ -235,7 +235,7 @@ const ModuleVisibilityRulesPage = () => {
                                     <div className="d-flex align-items-center justify-content-between mb-4">
                                         <div className="d-flex align-items-center gap-2">
                                             <div className={`badge ${rule.action === 'Hide' ? 'bg-danger' : 'bg-success'} bg-opacity-10 ${rule.action === 'Hide' ? 'text-danger' : 'text-success'} px-3 py-2 rounded-3 small fw-bold text-uppercase`}>
-                                                {rule.action === 'Hide' ? 'GİZLE' : 'GÖSTER'}
+                                                {rule.action === 'Hide' ? t('hide') : t('show')}
                                             </div>
                                             {rule.roleName && (
                                                 <div className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-3 small fw-bold">
@@ -244,13 +244,13 @@ const ModuleVisibilityRulesPage = () => {
                                             )}
                                             {!rule.roleName && (
                                                 <div className="badge border border-secondary text-secondary px-3 py-2 rounded-3 small fw-bold">
-                                                    TÜM ROLLER
+                                                    {t('all_roles')}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="d-flex align-items-center gap-2">
                                             <span className={`badge ${rule.isActive ? 'bg-success text-white' : 'bg-secondary text-white'} px-2 py-1 rounded-pill`}>
-                                                {rule.isActive ? 'Aktif' : 'Pasif'}
+                                                {rule.isActive ? t('active') : t('inactive')}
                                             </span>
                                             <button
                                                 onClick={(e) => handleDelete(rule.id, e)}
@@ -266,23 +266,23 @@ const ModuleVisibilityRulesPage = () => {
                                     <div className="p-3 bg-surface bg-opacity-50 rounded-4 mb-4 border border-secondary border-opacity-10">
                                         <div className="d-flex flex-column gap-2 small font-monospace">
                                             <div className="d-flex">
-                                                <span className="text-muted" style={{ width: '70px' }}>Alan:</span>
+                                                <span className="text-muted" style={{ width: '70px' }}>{t('filter_field')}:</span>
                                                 <span className="fw-bold text-foreground">{rule.field}</span>
                                             </div>
                                             <div className="d-flex">
-                                                <span className="text-muted" style={{ width: '70px' }}>Operatör:</span>
+                                                <span className="text-muted" style={{ width: '70px' }}>{t('filter_operator')}:</span>
                                                 <span className="fw-bold text-info">{rule.operator}</span>
                                             </div>
                                             <div className="d-flex">
-                                                <span className="text-muted" style={{ width: '70px' }}>Değer:</span>
-                                                <span className="fw-bold text-success">{rule.value || ' (Boş)'}</span>
+                                                <span className="text-muted" style={{ width: '70px' }}>{t('filter_value')}:</span>
+                                                <span className="fw-bold text-success">{rule.value || ` (${t('filter_is_empty')})`}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="mt-auto d-flex justify-content-between align-items-center text-muted small border-top border-theme-accent pt-3">
                                         <span className="opacity-70 fw-medium d-flex align-items-center gap-2">
-                                            <Icon name="edit" size={12} /> Düzenlemek için tıklayın
+                                            <Icon name="edit" size={12} /> {t('edit_to_modify')}
                                         </span>
                                     </div>
                                 </div>
@@ -302,7 +302,7 @@ const ModuleVisibilityRulesPage = () => {
                                     <div className="p-2 bg-primary bg-opacity-10 rounded-3">
                                         <Icon name={editingRule ? "edit" : "plus"} size={24} />
                                     </div>
-                                    {editingRule ? 'Kuralı Düzenle' : 'Yeni Kural Oluştur'}
+                                    {editingRule ? t('edit_rule_title') : t('create_rule_title')}
                                 </h5>
                                 <button type="button" className="btn-close btn-close-premium" onClick={() => setShowModal(false)}></button>
                             </div>
@@ -310,22 +310,22 @@ const ModuleVisibilityRulesPage = () => {
                                 <form id="ruleForm" onSubmit={handleSubmit}>
                                     <div className="row g-4 mb-3">
                                         <div className="col-md-6">
-                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Rol (Opsiyonel)</label>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('role_optional')}</label>
                                             <select
                                                 value={formData.roleId}
                                                 onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
                                                 className="form-select border-2 shadow-sm"
                                                 style={{ height: '50px' }}
                                             >
-                                                <option value="">-- Tüm Roller Geçerli --</option>
+                                                <option value="">{t('all_roles_applicable')}</option>
                                                 {roles.map(role => (
                                                     <option key={role.id} value={role.id}>{role.name}</option>
                                                 ))}
                                             </select>
-                                            <div className="form-text small opacity-75">Boş bırakılırsa tüm kullanıcılar için geçerli olur.</div>
+                                            <div className="form-text small opacity-75">{t('user_roles_help')}</div>
                                         </div>
                                         <div className="col-md-6">
-                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Aksiyon</label>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('action')}</label>
                                             <select
                                                 value={formData.action}
                                                 onChange={(e) => setFormData({ ...formData, action: e.target.value })}
@@ -341,7 +341,7 @@ const ModuleVisibilityRulesPage = () => {
 
                                     <div className="row g-4 mb-3">
                                         <div className="col-md-4">
-                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Alan (Field)</label>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('filter_field')}</label>
                                             <select
                                                 value={formData.field}
                                                 onChange={(e) => setFormData({ ...formData, field: e.target.value })}
@@ -349,14 +349,14 @@ const ModuleVisibilityRulesPage = () => {
                                                 style={{ height: '50px' }}
                                                 required
                                             >
-                                                <option value="">-- Alan Seçin --</option>
+                                                <option value="">{t('field_placeholder')}</option>
                                                 {fields.map(f => (
                                                     <option key={f.name} value={f.name}>{f.label || f.name}</option>
                                                 ))}
                                             </select>
                                         </div>
                                         <div className="col-md-4">
-                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Operatör</label>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('filter_operator')}</label>
                                             <select
                                                 value={formData.operator}
                                                 onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
@@ -370,7 +370,7 @@ const ModuleVisibilityRulesPage = () => {
                                             </select>
                                         </div>
                                         <div className="col-md-4">
-                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">Değer (Value)</label>
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('value')}</label>
                                             <input
                                                 type="text"
                                                 value={formData.value}
@@ -384,7 +384,7 @@ const ModuleVisibilityRulesPage = () => {
 
                                     <div className="mb-4 d-flex justify-content-end">
                                         <div className="form-check form-switch mt-3 d-flex align-items-center gap-2">
-                                            <label className="form-check-label ms-2 mt-1 fw-bold text-muted small" htmlFor="isActiveSwitch">Kural Aktif</label>
+                                            <label className="form-check-label ms-2 mt-1 fw-bold text-muted small" htmlFor="isActiveSwitch">{t('rule_active')}</label>
                                             <input
                                                 className="form-check-input ms-0 mt-1 shadow-sm"
                                                 type="checkbox"
@@ -400,20 +400,20 @@ const ModuleVisibilityRulesPage = () => {
                                         <div className="d-flex">
                                             <div className="me-3 fs-3">💡</div>
                                             <div>
-                                                <h6 className="alert-heading fw-bold text-primary mb-2">Dinamik İpuçları</h6>
+                                                <h6 className="alert-heading fw-bold text-primary mb-2">{t('dynamic_tips_title')}</h6>
                                                 <div className="small opacity-75">
                                                     <div className="mb-2">
-                                                        <strong>Sadece Kendi Kayıtlarını Görme:</strong>
+                                                        <strong>{t('only_own_records')}:</strong>
                                                         <br />
-                                                        Alan: <code>Oluşturan Kullanıcı ID</code>, Operatör: <code>Eşittir (==)</code>, Değer: <code>{`{{CurrentUser.Id}}`}</code>, Aksiyon: <code>Göster</code>
+                                                        {t('filter_field')}: <code>{t('audit_col_user')}</code>, {t('filter_operator')}: <code>{t('op_eq')}</code>, {t('filter_value')}: <code>{`{{CurrentUser.Id}}`}</code>, {t('action')}: <code>{t('show')}</code>
                                                     </div>
                                                     <div className="mb-2">
-                                                        <strong>Başkalarının Kayıtlarını Gizleme:</strong>
+                                                        <strong>{t('hide_others_records')}:</strong>
                                                         <br />
-                                                        Alan: <code>Oluşturan Kullanıcı ID</code>, Operatör: <code>Eşit Değildir (!=)</code>, Değer: <code>{`{{CurrentUser.Id}}`}</code>, Aksiyon: <code>Gizle</code>
+                                                        {t('filter_field')}: <code>{t('audit_col_user')}</code>, {t('filter_operator')}: <code>{t('op_neq')}</code>, {t('filter_value')}: <code>{`{{CurrentUser.Id}}`}</code>, {t('action')}: <code>{t('hide')}</code>
                                                     </div>
                                                     <div className="mt-2 pt-2 border-top border-primary border-opacity-10">
-                                                        Değer alanında <code>{`{{CurrentUser.Id}}`}</code> değişkenini kullanarak dinamik, giriş yapmış kullanıcıya özel kurallar oluşturabilirsiniz.
+                                                        {t('dynamic_tips_desc')}
                                                     </div>
                                                 </div>
                                             </div>
@@ -452,7 +452,7 @@ const ModuleVisibilityRulesPage = () => {
                                         className="btn btn-primary px-5 py-2 shadow-premium hover-lift fw-extrabold text-uppercase d-flex align-items-center gap-2"
                                     >
                                         <Icon name="check" size={18} />
-                                        Kaydet
+                                        {t('save')}
                                     </button>
                                 </div>
                             </div>

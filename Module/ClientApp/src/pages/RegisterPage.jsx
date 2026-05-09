@@ -20,20 +20,20 @@ function RegisterPage() {
         const newErrors = {};
 
         if (formData.username.length < 3) {
-            newErrors.username = 'Kullanıcı adı en az 3 karakter olmalıdır';
+            newErrors.username = t('username_min_length');
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
-            newErrors.email = 'Geçerli bir e-posta adresi giriniz';
+            newErrors.email = t('email_invalid');
         }
 
         if (formData.password.length < 6) {
-            newErrors.password = 'Şifre en az 6 karakter olmalıdır';
+            newErrors.password = t('password_min_length');
         }
 
         if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Şifreler eşleşmiyor';
+            newErrors.confirmPassword = t('passwords_not_match');
         }
 
         setErrors(newErrors);
@@ -55,7 +55,7 @@ function RegisterPage() {
             navigate('/verify-email', { state: { email: formData.email } });
         } catch (err) {
             setErrors({
-                submit: err.response?.data?.error || 'Kayıt işlemi başarısız oldu'
+                submit: err.response?.data?.error || t('register_failed')
             });
         } finally {
             setLoading(false);
@@ -91,12 +91,12 @@ function RegisterPage() {
                     <h1 className="display-5 fw-800 mb-2">
                         <span className="text-gradient">{t('app_name')}</span>
                     </h1>
-                    <p className="text-muted lead px-4 fw-medium opacity-80">{t('register_subtitle') || 'Yeni bir hesap oluşturun.'}</p>
+                    <p className="text-muted lead px-4 fw-medium opacity-80">{t('register_subtitle')}</p>
                 </div>
 
                 <div className="card shadow-premium border-0 overflow-hidden fade-in" style={{ animationDelay: '0.1s' }}>
                     <div className="card-body p-4 p-lg-5">
-                        <h2 className="fw-extrabold mb-4 fs-3">{t('register_title') || 'Kayıt Ol'}</h2>
+                        <h2 className="fw-extrabold mb-4 fs-3">{t('register_title')}</h2>
 
                         {errors.submit && (
                             <div className="alert alert-danger glass border-danger border-opacity-25 mb-4 py-3 shadow-sm d-flex align-items-center">
@@ -114,7 +114,7 @@ function RegisterPage() {
                                     className={`form-control form-control-lg border-2 ${errors.username ? 'is-invalid' : ''}`}
                                     value={formData.username}
                                     onChange={handleChange}
-                                    placeholder={t('username_placeholder') || 'Kullanıcı adı'}
+                                    placeholder={t('username_placeholder')}
                                     required
                                 />
                                 {errors.username && (
@@ -130,7 +130,7 @@ function RegisterPage() {
                                     className={`form-control form-control-lg border-2 ${errors.email ? 'is-invalid' : ''}`}
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder={t('email_placeholder') || 'E-posta adresi'}
+                                    placeholder={t('email_placeholder')}
                                     required
                                 />
                                 {errors.email && (
@@ -146,7 +146,7 @@ function RegisterPage() {
                                     className={`form-control form-control-lg border-2 ${errors.password ? 'is-invalid' : ''}`}
                                     value={formData.password}
                                     onChange={handleChange}
-                                    placeholder={t('password_placeholder') || 'Şifre'}
+                                    placeholder={t('password_placeholder')}
                                     required
                                 />
                                 {errors.password && (
@@ -155,14 +155,14 @@ function RegisterPage() {
                             </div>
 
                             <div className="mb-4">
-                                <label className="form-label small fw-bold text-primary text-uppercase tracking-wider">{t('confirm_password') || 'Şifre Tekrar'}</label>
+                                <label className="form-label small fw-bold text-primary text-uppercase tracking-wider">{t('confirm_password')}</label>
                                 <input
                                     type="password"
                                     name="confirmPassword"
                                     className={`form-control form-control-lg border-2 ${errors.confirmPassword ? 'is-invalid' : ''}`}
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    placeholder={t('confirm_password_placeholder') || 'Şifrenizi doğrulayın'}
+                                    placeholder={t('confirm_password_placeholder')}
                                     required
                                 />
                                 {errors.confirmPassword && (
@@ -175,12 +175,12 @@ function RegisterPage() {
                                 className="btn btn-primary w-100 py-3 mb-4 shadow-md hover-lift fw-bold"
                                 disabled={loading}
                             >
-                                {loading ? (t('saving') || 'Kaydediliyor...') : (t('register_button') || 'Kayıt Ol')}
+                                {loading ? t('registering') : t('register_button')}
                             </button>
 
                             <div className="text-center pt-2">
-                                <span className="text-nav small">{t('already_have_account') || 'Zaten hesabınız var mı?'} </span>
-                                <a href="/login" className="text-primary fw-bold text-decoration-none small hover-underline">{t('login_now') || 'Giriş Yap'}</a>
+                                <span className="text-nav small">{t('already_have_account')} </span>
+                                <a href="/login" className="text-primary fw-bold text-decoration-none small hover-underline">{t('login_now')}</a>
                             </div>
                         </form>
                     </div>

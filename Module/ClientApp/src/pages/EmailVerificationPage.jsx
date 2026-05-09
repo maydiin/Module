@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { verifyEmail, resendVerificationCode } from '../services/api';
 
 function EmailVerificationPage() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const [email, setEmail] = useState(location.state?.email || '');
@@ -28,12 +29,12 @@ function EmailVerificationPage() {
 
         try {
             await verifyEmail(email, verificationCode);
-            setSuccess('E-posta adresiniz başarıyla doğrulandı! Giriş sayfasına yönlendiriliyorsunuz...');
+            setSuccess(t('verification_success'));
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
         } catch (err) {
-            setError(err.response?.data?.error || 'Doğrulama başarısız oldu');
+            setError(err.response?.data?.error || t('verification_failed'));
         } finally {
             setLoading(false);
         }
@@ -46,10 +47,10 @@ function EmailVerificationPage() {
 
         try {
             await resendVerificationCode(email);
-            setSuccess('Yeni doğrulama kodu e-posta adresinize gönderildi');
+            setSuccess(t('new_code_sent'));
             setResendCooldown(60);
         } catch (err) {
-            setError(err.response?.data?.error || 'Kod gönderilemedi');
+            setError(err.response?.data?.error || t('code_send_failed'));
         } finally {
             setResendLoading(false);
         }
@@ -61,10 +62,10 @@ function EmailVerificationPage() {
                 <div className="col-md-5">
                     <div className="card shadow border-0">
                         <div className="card-body p-5">
-                            <h2 className="text-center mb-4">E-posta Doğrulama</h2>
+                            <h2 className="text-center mb-4">{t('email_verification_title')}</h2>
 
                             <p className="text-muted text-center mb-4">
-                                E-posta adresinize gönderilen 6 haneli doğrulama kodunu giriniz.
+                                {t('email_verification_desc')}
                             </p>
 
                             {error && <div className="alert alert-danger">{error}</div>}
@@ -72,7 +73,7 @@ function EmailVerificationPage() {
 
                             <form onSubmit={handleVerify}>
                                 <div className="mb-3">
-                                    <label className="form-label">E-posta Adresi</label>
+                                    <label className="form-label">{t('email')}</label>
                                     <input
                                         type="email"
                                         className="form-control"
@@ -83,7 +84,7 @@ function EmailVerificationPage() {
                                 </div>
 
                                 <div className="mb-4">
-                                    <label className="form-label">Doğrulama Kodu</label>
+                                    <label className="form-label">{t('verification_code')}</label>
                                     <input
                                         type="text"
                                         className="form-control text-center"
@@ -101,7 +102,7 @@ function EmailVerificationPage() {
                                     className="btn btn-primary w-100 py-2 mb-3"
                                     disabled={loading || verificationCode.length !== 6}
                                 >
-                                    {loading ? 'Doğrulanıyor...' : 'Doğrula'}
+                                    {loading ? t('verifying') : t('verify')}
                                 </button>
                             </form>
 
@@ -112,15 +113,15 @@ function EmailVerificationPage() {
                                     onClick={handleResend}
                                     disabled={resendLoading || resendCooldown > 0}
                                 >
-                                    {resendLoading ? 'Gönderiliyor...' :
-                                        resendCooldown > 0 ? `Kodu Yeniden Gönder (${resendCooldown}s)` :
-                                            'Kodu Yeniden Gönder'}
+                                    {resendLoading ? t('resending') :
+                                        resendCooldown > 0 ? t('resend_code_cooldown', { seconds: resendCooldown }) :
+                                            t('resend_code')}
                                 </button>
                             </div>
 
                             <div className="text-center mt-3">
                                 <a href="/login" className="text-decoration-none text-muted">
-                                    Giriş sayfasına dön
+                                    {t('back_to_login')}
                                 </a>
                             </div>
                         </div>

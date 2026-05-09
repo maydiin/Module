@@ -200,7 +200,7 @@ function ModuleFieldsPage() {
         <div className="card shadow-premium border-0 mb-5 overflow-hidden fade-in">
           <div className="card-header bg-gradient-to-r from-primary to-secondary py-3 border-0">
             <h5 className="card-title mb-0 text-white">
-              {editingFieldId ? t('edit_attribute', { defaultValue: 'Edit Field' }) : t('configure_new_attribute')}
+              {editingFieldId ? t('edit_attribute') : t('configure_new_attribute')}
             </h5>
           </div>
           <div className="card-body p-4">
@@ -217,7 +217,7 @@ function ModuleFieldsPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="e.g. firstName"
+                    placeholder={t('technical_name_placeholder') || 'e.g. firstName'}
                     required
                     autoFocus
                     disabled={!!editingFieldId}
@@ -235,7 +235,7 @@ function ModuleFieldsPage() {
                     name="label"
                     value={formData.label}
                     onChange={handleInputChange}
-                    placeholder="e.g. First Name"
+                    placeholder={t('display_label_placeholder') || 'e.g. First Name'}
                   />
                   <small className="form-text text-muted">{t('display_label_help')}</small>
                 </div>
@@ -266,8 +266,8 @@ function ModuleFieldsPage() {
                       {formData.type === 'relation' ? t('target_module') :
                         ['select', 'multiselect'].includes(formData.type) ? t('options_json') :
                           formData.type === 'file' ? t('allowed_extensions') :
-                            formData.type === 'formula' ? 'Formula' :
-                              ['textarea', 'richtext', 'image'].includes(formData.type) ? t('configuration_json') : 'Options'}
+                            formData.type === 'formula' ? t('formula') :
+                              ['textarea', 'richtext', 'image'].includes(formData.type) ? t('configuration_json') : t('options')}
                       <span className="text-danger">*</span>
                     </label>
                     <input
@@ -347,7 +347,7 @@ function ModuleFieldsPage() {
                         style={{ float: 'none', marginRight: '10px' }}
                       />
                       <label className="form-check-label fw-bold text-muted small text-uppercase" htmlFor="isStored">
-                        Store in DB
+                        {t('store_in_db')}
                       </label>
                     </div>
                   </div>
@@ -356,7 +356,7 @@ function ModuleFieldsPage() {
 
               <div className="d-flex gap-2 mt-5 pt-4 border-top">
                 <button type="submit" className="btn btn-primary px-4">
-                  <span>✓</span> {editingFieldId ? t('save_changes', { defaultValue: 'Save Changes' }) : t('add_to_schema')}
+                  <span>✓</span> {editingFieldId ? t('save_changes') : t('add_to_schema')}
                 </button>
                 <button
                   type="button"
@@ -415,7 +415,7 @@ function ModuleFieldsPage() {
                     <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('field_name')}</th>
                     <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('display_label')}</th>
                     <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('field_type')}</th>
-                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">Options</th>
+                    <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('options')}</th>
                     <th className="text-primary small fw-bold text-uppercase tracking-wider border-0">{t('status')}</th>
                     <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '100px' }}>{t('actions')}</th>
                   </tr>
@@ -456,7 +456,7 @@ function ModuleFieldsPage() {
                         <button
                           className="btn btn-sm btn-outline-primary"
                           onClick={() => handleEdit(field)}
-                          title={t('edit', { defaultValue: 'Edit' })}
+                          title={t('edit')}
                         >
                           ✎
                         </button>

@@ -27,7 +27,7 @@ function RolesPage() {
             setRoles(rolesData);
             setPermissions(permsData);
         } catch (err) {
-            setError('Failed to load roles and permissions');
+            setError(t('error'));
         } finally {
             setLoading(false);
         }
@@ -61,7 +61,7 @@ function RolesPage() {
             handleCloseModal();
             loadData();
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to save role');
+            alert(err.response?.data?.error || t('error'));
         }
     };
 
@@ -71,7 +71,7 @@ function RolesPage() {
             await deleteRole(roleId);
             loadData();
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to delete role');
+            alert(err.response?.data?.error || t('error'));
         }
     };
 
@@ -87,7 +87,7 @@ function RolesPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to add permission');
+            alert(err.response?.data?.error || t('error'));
         }
     };
 
@@ -103,7 +103,7 @@ function RolesPage() {
                 loadData();
             }
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to remove permission');
+            alert(err.response?.data?.error || t('error'));
         }
     };
 

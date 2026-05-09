@@ -20,6 +20,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { TenantProvider } from './components/TenantContext';
 import { ThemeProvider } from './components/ThemeContext';
 import SettingsPage from './pages/SettingsPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
@@ -37,7 +38,8 @@ function App() {
                 <ProtectedRoute>
                   <AppLayout>
                     <Routes>
-                      <Route path="/" element={<ModulesPage />} />
+                      <Route path="/" element={<DashboardPage />} />
+                      <Route path="/modules" element={<ModulesPage />} />
                       <Route path="/modules/:moduleId/fields" element={<ModuleFieldsPage />} />
                       <Route path="/modules/:moduleId/records" element={<ModuleRecordsPage />} />
                       <Route path="/modules/:moduleId/records/:recordId" element={<RecordDetailPage />} />

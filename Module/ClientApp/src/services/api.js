@@ -368,4 +368,33 @@ export const uploadFile = async (file) => {
   return response.data;
 };
 
+// Dashboard API
+export const getDashboardWidgets = async () => {
+  const response = await api.get('/dashboard/widgets');
+  return response.data;
+};
+
+export const createDashboardWidget = async (data) => {
+  const response = await api.post('/dashboard/widgets', data);
+  return response.data;
+};
+
+export const updateDashboardWidget = async (id, data) => {
+  const response = await api.put(`/dashboard/widgets/${id}`, data);
+  return response.data;
+};
+
+export const deleteDashboardWidget = async (id) => {
+  await api.delete(`/dashboard/widgets/${id}`);
+};
+
+export const getDashboardWidgetData = async (id) => {
+  const response = await api.get(`/dashboard/widgets/${id}/data`);
+  return response.data;
+};
+
+export const reorderDashboardWidgets = async (orderedIds) => {
+  await api.put('/dashboard/widgets/reorder', orderedIds);
+};
+
 export default api;

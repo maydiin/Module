@@ -103,6 +103,7 @@ builder.Services.AddScoped<IEmailService, MailtrapEmailService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 // Scripting Services
 builder.Services.AddScoped<Module.Services.Scripting.IScriptDbHelper, Module.Services.Scripting.ScriptDbHelper>();

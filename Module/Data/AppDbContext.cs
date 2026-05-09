@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<ModuleScript> ModuleScripts { get; set; }
     public DbSet<ModuleReport> ModuleReports { get; set; }
     public DbSet<ModuleVisibilityRule> ModuleVisibilityRules { get; set; }
+    public DbSet<DashboardWidget> DashboardWidgets { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -255,6 +256,26 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(e => new { e.TenantId, e.ModuleId });
+        });
+
+        modelBuilder.Entity<DashboardWidget>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.WidgetType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Configuration).IsRequired().HasColumnType("nvarchar(max)");
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.TenantId, e.UserId });
         });
     }
 }

@@ -165,7 +165,7 @@ function ModuleRecordsPage() {
   };
 
   const systemFields = [
-    { name: '__id', label: 'ID', type: 'number' },
+    { name: '__id', label: t('id'), type: 'number' },
     { name: '__createdAt', label: t('created_at'), type: 'datetime' },
     { name: '__linkedCount', label: t('linked_count'), type: 'number' }
   ];
@@ -290,7 +290,7 @@ function ModuleRecordsPage() {
 
   const buildSortOptions = () => [
     { value: 'createdAt', label: t('created_at') },
-    { value: 'id', label: 'ID' },
+    { value: 'id', label: t('id') },
     { value: '__linkedCount', label: t('linked_count') },
     ...fields.map(field => ({ value: field.name, label: field.label }))
   ];
@@ -451,7 +451,7 @@ function ModuleRecordsPage() {
             <div className="d-flex flex-column flex-lg-row gap-3 align-items-lg-end">
               {viewMode === 'kanban' && (
                 <div style={{ minWidth: '200px' }}>
-                  <label className="form-label text-muted mb-1">{t('kanban_group_by') || 'Kanban Group By'}</label>
+                  <label className="form-label text-muted mb-1">{t('kanban_group_by')}</label>
                   <select
                     className="form-select"
                     value={kanbanGroupByField}
@@ -682,7 +682,7 @@ function ModuleRecordsPage() {
                 <table className="table table-hover align-middle">
                   <thead className="bg-surface bg-opacity-50">
                     <tr className="border-bottom border-theme-accent">
-                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '60px' }}>ID</th>
+                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '60px' }}>{t('id')}</th>
                       <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '120px' }}>{t('linked_count')}</th>
                       {fields.map(field => (
                         <th key={field.id} className="text-primary small fw-bold text-uppercase tracking-wider border-0">{field.label}</th>
