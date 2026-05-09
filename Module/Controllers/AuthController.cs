@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Module.Data;
@@ -20,16 +21,19 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
     private readonly IAuditLogService _auditLogService;
+    private readonly IWebHostEnvironment _env;
 
-    public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService, IAuditLogService auditLogService)
+    public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService, IAuditLogService auditLogService, IWebHostEnvironment env)
     {
         _context = context;
         _configuration = configuration;
         _emailService = emailService;
         _auditLogService = auditLogService;
+        _env = env;
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var user = await _context.Users
@@ -51,7 +55,7 @@ public class AuthController : ControllerBase
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtSettings = _configuration.GetSection("Jwt");
-        var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? "super_secret_key_that_is_at_least_32_characters");
+        var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
         var claims = new List<Claim>
         {
@@ -65,7 +69,7 @@ public class AuthController : ControllerBase
         {
             claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
         }
-        
+
         // Add IsSuperAdmin claim
         var isSuperAdmin = user.UserRoles.Any(ur => ur.Role.Name == "Super Admin");
         claims.Add(new Claim("IsSuperAdmin", isSuperAdmin.ToString()));
@@ -73,6 +77,8 @@ public class AuthController : ControllerBase
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
+            Issuer = jwtSettings["Issuer"],
+            Audience = jwtSettings["Audience"],
             Expires = DateTime.UtcNow.AddDays(7),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
@@ -107,6 +113,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         // Check if username already exists
@@ -156,6 +163,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("verify-email")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
@@ -229,6 +237,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("resend-verification")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationDto dto)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
@@ -259,6 +268,9 @@ public class AuthController : ControllerBase
     [HttpPost("seed")]
     public async Task<IActionResult> Seed()
     {
+        if (!_env.IsDevelopment())
+            return NotFound();
+
         await SeedData.SeedAsync(_context);
         return Ok(new { message = "System seeded successfully. Default User: admin / Password: admin123" });
     }
@@ -290,7 +302,7 @@ public class AuthController : ControllerBase
         // Generate new token with updated roles and permissions
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtSettings = _configuration.GetSection("Jwt");
-        var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? "super_secret_key_that_is_at_least_32_characters");
+        var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
         var claims = new List<Claim>
         {
@@ -304,7 +316,7 @@ public class AuthController : ControllerBase
         {
             claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
         }
-        
+
         // Add IsSuperAdmin claim
         var isSuperAdmin = user.UserRoles.Any(ur => ur.Role.Name == "Super Admin");
         claims.Add(new Claim("IsSuperAdmin", isSuperAdmin.ToString()));
@@ -312,6 +324,8 @@ public class AuthController : ControllerBase
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
+            Issuer = jwtSettings["Issuer"],
+            Audience = jwtSettings["Audience"],
             Expires = DateTime.UtcNow.AddDays(7),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };

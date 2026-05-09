@@ -368,7 +368,13 @@ const resources = {
             "save_role": "Save Role",
             "user_roles_help": "Select permissions to assign to the user.",
             "remove_role": "Remove Role",
-            "add_role": "Add Role"
+            "add_role": "Add Role",
+            "kanban_view": "Kanban View",
+            "table_view": "Table View",
+            "kanban_group_by": "Group By",
+            "kanban_select_field_hint": "Please select a grouping field to view the Kanban board.",
+            "other": "Other",
+            "select_field": "Select Field"
         }
     },
     tr: {
@@ -736,7 +742,13 @@ const resources = {
             "save_role": "Rolü Kaydet",
             "user_roles_help": "Kullanıcıya atanacak yetkileri buradan seçebilirsiniz.",
             "remove_role": "Rolü Kaldır",
-            "add_role": "Rol Ekle"
+            "add_role": "Rol Ekle",
+            "kanban_view": "Kanban Görünümü",
+            "table_view": "Tablo Görünümü",
+            "kanban_group_by": "Gruplandır",
+            "kanban_select_field_hint": "Kanban tahtasını görüntülemek için lütfen bir gruplandırma alanı seçin.",
+            "other": "Diğer",
+            "select_field": "Alan Seçin"
         }
     }
 };

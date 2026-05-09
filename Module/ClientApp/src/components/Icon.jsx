@@ -167,6 +167,23 @@ const icons = {
       <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
       <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
     </>
+  ),
+  list: (
+    <>
+      <line x1="8" y1="6" x2="21" y2="6"></line>
+      <line x1="8" y1="12" x2="21" y2="12"></line>
+      <line x1="8" y1="18" x2="21" y2="18"></line>
+      <line x1="3" y1="6" x2="3.01" y2="6"></line>
+      <line x1="3" y1="12" x2="3.01" y2="12"></line>
+      <line x1="3" y1="18" x2="3.01" y2="18"></line>
+    </>
+  ),
+  kanban: (
+    <>
+      <path d="M6 5v11"></path>
+      <path d="M12 5v6"></path>
+      <path d="M18 5v14"></path>
+    </>
   )
 };
 

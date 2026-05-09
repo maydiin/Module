@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord, HOST_URL } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
 import LinkedRecordsModal from '../components/LinkedRecordsModal';
+import KanbanView from '../components/KanbanView';
 import { useTenant } from '../components/TenantContext';
 import Icon from '../components/Icon';
 
@@ -31,6 +32,8 @@ function ModuleRecordsPage() {
   const [filterDrafts, setFilterDrafts] = useState([]);
   const [filters, setFilters] = useState([]);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [viewMode, setViewMode] = useState('table');
+  const [kanbanGroupByField, setKanbanGroupByField] = useState('');
   const { selectedTenantId } = useTenant();
 
   useEffect(() => {
@@ -67,6 +70,9 @@ function ModuleRecordsPage() {
         })
       ]);
       setModule(moduleData);
+      if (moduleData?.kanbanField && !kanbanGroupByField) {
+        setKanbanGroupByField(moduleData.kanbanField);
+      }
       setFields(fieldsData);
       setRecords(recordsData.items || []);
       setTotal(recordsData.total || 0);
@@ -367,6 +373,23 @@ function ModuleRecordsPage() {
           </div>
         </div>
         <div className="d-flex gap-2 flex-wrap align-items-center">
+          <div className="btn-group me-2 shadow-sm rounded-pill overflow-hidden">
+            <button
+              className={`btn btn-sm px-3 ${viewMode === 'table' ? 'btn-primary' : 'btn-blur bg-surface'}`}
+              onClick={() => setViewMode('table')}
+              title={t('table_view')}
+            >
+              <Icon name="list" size={18} />
+            </button>
+            <button
+              className={`btn btn-sm px-3 ${viewMode === 'kanban' ? 'btn-primary' : 'btn-blur bg-surface'}`}
+              onClick={() => setViewMode('kanban')}
+              title={t('kanban_view')}
+            >
+              <Icon name="kanban" size={18} />
+            </button>
+          </div>
+
           <button
             className="btn btn-primary px-4 shadow-premium hover-lift fw-bold"
             onClick={() => {
@@ -426,6 +449,21 @@ function ModuleRecordsPage() {
         {showFilterPanel && (
           <div className="card-body">
             <div className="d-flex flex-column flex-lg-row gap-3 align-items-lg-end">
+              {viewMode === 'kanban' && (
+                <div style={{ minWidth: '200px' }}>
+                  <label className="form-label text-muted mb-1">{t('kanban_group_by') || 'Kanban Group By'}</label>
+                  <select
+                    className="form-select"
+                    value={kanbanGroupByField}
+                    onChange={(e) => setKanbanGroupByField(e.target.value)}
+                  >
+                    <option value="">{t('select_field')}</option>
+                    {fields.filter(f => f.type === 'select' || f.type === 'checkbox').map(f => (
+                      <option key={f.id} value={f.name}>{f.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex-grow-1">
                 <label className="form-label text-muted mb-1">{t('search')}</label>
                 <div className="input-group">
@@ -614,7 +652,24 @@ function ModuleRecordsPage() {
           </h5>
         </div>
         <div className="card-body p-0">
-          {records.length === 0 ? (
+          {viewMode === 'kanban' ? (
+             <div className="p-4 overflow-auto">
+               <KanbanView 
+                 fields={fields} 
+                 records={records} 
+                 groupByField={kanbanGroupByField}
+                 onRecordClick={handleEdit}
+                 onRecordUpdate={async (id, data) => {
+                   try {
+                     await updateRecord(moduleId, id, data);
+                     loadData();
+                   } catch (err) {
+                     setError(err.response?.data?.error || t('error'));
+                   }
+                 }}
+               />
+             </div>
+          ) : records.length === 0 ? (
             <div className="text-center py-5">
               <div className="mb-3 opacity-25 d-flex justify-content-center">
                 <Icon name="folder" size={64} className="icon-theme" strokeWidth={1} />

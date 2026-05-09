@@ -13,6 +13,8 @@ public class Module
     // Multi-tenant support
     public int TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
+
+    public string? KanbanField { get; set; }
     
     public ICollection<ModuleField> Fields { get; set; } = new List<ModuleField>();
     public ICollection<ModuleRecord> Records { get; set; } = new List<ModuleRecord>();

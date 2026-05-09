@@ -1035,3 +1035,60 @@ h1, h2, h3, h4, h5, h6 {
   color: hsl(var(--menu-text-active));
 }
 
+/* KANBAN SYSTEM */
+.kanban-container {
+  padding-bottom: 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: hsla(var(--primary), 0.2) transparent;
+}
+
+.kanban-column {
+  min-height: 500px;
+  transition: background-color 0.3s ease;
+}
+
+.kanban-column:hover {
+  background-color: hsla(var(--primary), 0.05) !important;
+}
+
+.kanban-card {
+  user-select: none;
+}
+
+.kanban-card:active {
+  cursor: grabbing;
+}
+
+.dashed-border {
+  border: 2px dashed hsla(var(--primary), 0.2);
+  transition: all 0.3s ease;
+}
+
+.dashed-border:hover {
+  border-color: hsla(var(--primary), 0.5);
+  background: hsla(var(--primary), 0.03);
+}
+
+.x-small {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.tracking-wider {
+  letter-spacing: 0.1em;
+}
+
+.badge-soft-primary {
+  background-color: hsla(var(--primary), 0.1);
+  color: hsl(var(--primary));
+}
+
+[data-mode="dark"] .kanban-column {
+  background-color: hsla(var(--background), 0.4) !important;
+  border: 1px solid hsla(var(--primary), 0.1) !important;
+}
+
+[data-mode="dark"] .kanban-card {
+  background-color: hsla(var(--background), 0.6) !important;
+}

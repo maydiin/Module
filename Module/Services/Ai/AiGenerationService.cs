@@ -42,6 +42,7 @@ public class AiGenerationService : IAiGenerationService
             Modules = existingModules.Select(m => new
             {
                 m.Name,
+                m.KanbanField,
                 Fields = m.Fields.Select(f => new
                 {
                     f.Name,
@@ -70,13 +71,14 @@ public class AiGenerationService : IAiGenerationService
                                        "AuditCreate": true,
                                        "AuditUpdate": true,
                                        "AuditDelete": true,
+                                       "KanbanField": "fieldName", // Optional. Set to a 'select' or 'checkbox' field name for default Kanban grouping.
                                        "Fields": [
                                          {
                                            "Name": "fieldName",
                                            "Label": "Field Label",
                                            "Type": "text|number|date|datetime|checkbox|select|email|phone|textarea|file|image|currency|percentage|multiselect|richtext|json|relation|formula",
                                            "Required": boolean,
-                                           "Options": "option1,option2" (for select/multiselect) OR "TargetModuleName" (for relation) OR "{{field1}} * {{field2}}" (for formula),
+                                           "Options": "[\"option1\",\"option2\"]" (for select/multiselect - MUST be a JSON array string in square brackets) OR "TargetModuleName" (for relation) OR "{{field1}} * {{field2}}" (for formula),
                                            "OrderNo": integer,
                                            "IsDisplayField": boolean // true if this field should be used to display or identify the record (e.g., Name, Title, Reference Number)
                                          }
@@ -131,7 +133,9 @@ public class AiGenerationService : IAiGenerationService
                                   - Generate appropriate entries if the user asks for dashboards, reporting, or specific analysis.
                                 9. For 'ApiConfigs', 'ResponseMappingsJson' is a dictionary where key is the JS path in the JSON response (e.g. 'result.id' or '__root__' for data origin) and value is the Module field name to update.
                                    Example: {"__root__": "data", "subead": "ŞubeAdı", "subeadres": "Adres", "subetel": "Telefon", "subemail": "Email"}
-                               10. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
+                               10. Kanban View: If the user mentions Kanban, boards, or workflow, set 'KanbanField' in the Module configuration to an appropriate 'select' field name.
+                               11. For 'select' or 'multiselect' fields, 'Options' MUST be a JSON array string in square brackets (e.g. "[\"A\", \"B\"]"). Do NOT use comma-separated strings.
+                               12. IMPORTANT: Review the chat history carefully! If the user's intent is unclear or lacks details, set NeedsMoreInfo to true and ask questions in Message. If sufficient, set to false and provide Configuration. If NeedsMoreInfo is true, Configuration must be null or omitted.
 
                                CURRENT SYSTEM CONFIGURATION:
                                The user already has the following modules and fields configured:
@@ -196,6 +200,7 @@ public class AiGenerationService : IAiGenerationService
             Module = new
             {
                 module.Name,
+                module.KanbanField,
                 Fields = module.Fields.Select(f => new
                 {
                     f.Name,
@@ -331,6 +336,7 @@ IMPORTANT:
             Module = new
             {
                 module.Name,
+                module.KanbanField,
                 Fields = module.Fields.Select(f => new
                 {
                     f.Name,
@@ -447,6 +453,7 @@ IMPORTANT:
             Module = new
             {
                 module.Name,
+                module.KanbanField,
                 Fields = module.Fields.Select(f => new
                 {
                     f.Name,
@@ -571,6 +578,7 @@ IMPORTANT:
             Module = new
             {
                 module.Name,
+                module.KanbanField,
                 Fields = module.Fields.Select(f => new
                 {
                     f.Name,
