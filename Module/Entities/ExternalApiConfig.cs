@@ -28,6 +28,10 @@ public class ExternalApiConfig
 
     public string? ResponseMappingsJson { get; set; } // JSON mapping: "api_path": "module_field_name"
     
+    public bool IsPollingEnabled { get; set; } = false;
+    public int PollingIntervalMinutes { get; set; } = 60; // Default 1 hour
+    public DateTime? LastPolledAt { get; set; }
+
     public int TenantId { get; set; }
 
     [ForeignKey("ModuleId")]
