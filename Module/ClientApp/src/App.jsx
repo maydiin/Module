@@ -20,8 +20,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { TenantProvider } from './components/TenantContext';
 import { ThemeProvider } from './components/ThemeContext';
 import { ToastProvider } from './components/ToastContext';
+import { NotificationProvider } from './components/NotificationContext';
 import SettingsPage from './pages/SettingsPage';
 import DashboardPage from './pages/DashboardPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 function App() {
   return (
@@ -29,39 +31,42 @@ function App() {
       <TenantProvider>
         <ThemeProvider>
           <ToastProvider>
-          <Router>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/verify-email" element={<EmailVerificationPage />} />
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <Routes>
-                      <Route path="/" element={<DashboardPage />} />
-                      <Route path="/modules" element={<ModulesPage />} />
-                      <Route path="/modules/:moduleId/fields" element={<ModuleFieldsPage />} />
-                      <Route path="/modules/:moduleId/records" element={<ModuleRecordsPage />} />
-                      <Route path="/modules/:moduleId/records/:recordId" element={<RecordDetailPage />} />
-                      <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
-                      <Route path="/modules/:moduleId/scripts" element={<ModuleScriptsPage />} />
-                      <Route path="/modules/:moduleId/visibility-rules" element={<ModuleVisibilityRulesPage />} />
-                      <Route path="/modules/:moduleId/reports" element={<ModuleReportsPage />} />
-                      <Route path="/modules/:moduleId/reports/:reportId/view" element={<ReportViewerPage />} />
-                      <Route path="/users" element={<UsersPage />} />
-                      <Route path="/roles" element={<RolesPage />} />
-                      <Route path="/audit-logs" element={<AuditLogsPage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-          </Router>
+            <NotificationProvider>
+              <Router>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/verify-email" element={<EmailVerificationPage />} />
+                  <Route
+                    path="/*"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout>
+                          <Routes>
+                            <Route path="/" element={<DashboardPage />} />
+                            <Route path="/notifications" element={<NotificationsPage />} />
+                            <Route path="/modules" element={<ModulesPage />} />
+                            <Route path="/modules/:moduleId/fields" element={<ModuleFieldsPage />} />
+                            <Route path="/modules/:moduleId/records" element={<ModuleRecordsPage />} />
+                            <Route path="/modules/:moduleId/records/:recordId" element={<RecordDetailPage />} />
+                            <Route path="/modules/:moduleId/api-configs" element={<ModuleApiConfigsPage />} />
+                            <Route path="/modules/:moduleId/scripts" element={<ModuleScriptsPage />} />
+                            <Route path="/modules/:moduleId/visibility-rules" element={<ModuleVisibilityRulesPage />} />
+                            <Route path="/modules/:moduleId/reports" element={<ModuleReportsPage />} />
+                            <Route path="/modules/:moduleId/reports/:reportId/view" element={<ReportViewerPage />} />
+                            <Route path="/users" element={<UsersPage />} />
+                            <Route path="/roles" element={<RolesPage />} />
+                            <Route path="/audit-logs" element={<AuditLogsPage />} />
+                            <Route path="/settings" element={<SettingsPage />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                          </Routes>
+                        </AppLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </Router>
+            </NotificationProvider>
           </ToastProvider>
         </ThemeProvider>
       </TenantProvider>

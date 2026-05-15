@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<ModuleReport> ModuleReports { get; set; }
     public DbSet<ModuleVisibilityRule> ModuleVisibilityRules { get; set; }
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -33,6 +34,30 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Message).IsRequired().HasColumnType("nvarchar(max)");
+            entity.Property(e => e.Type).IsRequired().HasConversion<string>();
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.TenantId);
+            entity.HasIndex(e => e.CreatedAt);
+        });
 
         modelBuilder.Entity<RecordRelation>(entity =>
         {

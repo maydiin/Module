@@ -8,6 +8,7 @@ import Sidebar from './Sidebar';
 import { useAuth } from '../AuthContext';
 import { useTheme } from '../ThemeContext';
 import Icon from '../Icon';
+import NotificationCenter from '../NotificationCenter';
 
 function AppLayout({ children }) {
   const { t, i18n } = useTranslation();
@@ -204,7 +205,13 @@ function AppLayout({ children }) {
                   </li>
                 )}
 
+                {/* Notifications */}
+                <li className="nav-item d-none d-lg-block">
+                  <NotificationCenter />
+                </li>
+
                 {/* Settings Link */}
+
                 <li className="nav-item">
                   <Link
                     to="/settings"
@@ -230,11 +237,12 @@ function AppLayout({ children }) {
             </div>
 
             {/* Mobile right-side actions */}
-            <div className="d-flex align-items-center gap-2" style={{ display: isMobile ? 'flex' : 'none' }}>
+            <div className="d-flex d-lg-none align-items-center gap-2">
+              <NotificationCenter />
               {/* Mobile: Settings icon */}
               <Link
                 to="/settings"
-                className={`d-lg-none nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'menu-active' : 'btn-blur'}`}
+                className={`nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'menu-active' : 'btn-blur'}`}
                 style={{ width: '36px', height: '36px' }}
               >
                 <Icon name="settings" size={18} color="currentColor" />
@@ -242,11 +250,15 @@ function AppLayout({ children }) {
 
               {/* Mobile: Hamburger for nav sheet */}
               <button
-                className="d-lg-none btn border-0 d-flex align-items-center justify-content-center p-0"
+                className="btn border-0 d-flex align-items-center justify-content-center p-0"
                 onClick={() => setIsMobileNavOpen(prev => !prev)}
                 style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'hsla(var(--primary), 0.1)', flexShrink: 0 }}
               >
-                <Icon name="settings" size={18} color="currentColor" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
               </button>
             </div>
           </div>

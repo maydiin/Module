@@ -14,6 +14,8 @@ using Module.Middleware;
 using Module.BackgroundServices;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Module.Hubs;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -106,6 +110,8 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IApiSyncService, ApiSyncService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 
 builder.Services.AddHostedService<PollingBackgroundService>();
 
@@ -179,6 +185,8 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
+
 
 // Fallback to index.html for client-side routing
 app.MapFallbackToFile("index.html");

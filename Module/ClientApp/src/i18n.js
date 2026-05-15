@@ -204,13 +204,20 @@ const resources = {
             "ai_script_failed": "AI script generation failed",
             "formula_field_hint": "This field is calculated automatically.",
             "calculated_automatically": "Calculated Automatically",
-            "notifications": {
+            "notifications": "Notifications",
+            "notification_messages": {
                 "module_created": "Module created successfully",
                 "module_updated": "Module updated successfully",
                 "module_deleted": "Module deleted successfully",
                 "field_added": "Field added successfully",
                 "record_saved": "Record saved successfully"
             },
+            "notifications_desc": "List of all notifications received through the system.",
+            "no_notifications": "No notifications found yet.",
+            "mark_all_read": "Mark All as Read",
+            "view_all": "View All",
+            "all": "All",
+            "unread": "Unread",
             "audit_logs_nav": "Audit Log",
             "audit_logs_title": "Audit Log",
             "audit_logs_subtitle": "Track and monitor all system activities across your workspace.",
@@ -669,13 +676,20 @@ const resources = {
             "no_linked_records": "Bağlantılı kayıt yok",
             "formula_field_hint": "Bu alan otomatik olarak hesaplanır.",
             "calculated_automatically": "Otomatik Hesaplanır",
-            "notifications": {
+            "notifications": "Bildirimler",
+            "notification_messages": {
                 "module_created": "Modül başarıyla oluşturuldu",
                 "module_updated": "Modül başarıyla güncellendi",
                 "module_deleted": "Modül başarıyla silindi",
                 "field_added": "Alan başarıyla eklendi",
                 "record_saved": "Kayıt başarıyla kaydedildi"
             },
+            "notifications_desc": "Sistem üzerinden gelen tüm bildirimlerin listesi.",
+            "no_notifications": "Henüz bildirim bulunamadı.",
+            "mark_all_read": "Tümünü Okundu Say",
+            "view_all": "Tümünü Gör",
+            "all": "Tümü",
+            "unread": "Okunmamış",
             "audit_logs_nav": "İşlem Geçmişi",
             "audit_logs_title": "İşlem Geçmişi",
             "audit_logs_subtitle": "Çalışma alanınızdaki tüm sistem aktivitelerini takip edin ve izleyin.",

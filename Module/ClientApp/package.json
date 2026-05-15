@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.0",
     "axios": "^1.6.2",
     "bootstrap": "^5.3.8",
     "i18next": "^25.8.4",
