@@ -1354,3 +1354,83 @@ h1, h2, h3, h4, h5, h6 {
     max-height: 70vh;
   }
 }
+
+/* AI Analyst Premium Styles */
+.ai-analyst-card {
+  position: relative;
+  background: linear-gradient(135deg, hsla(var(--primary), 0.95), hsla(var(--secondary), 0.95));
+  border: 1px solid hsla(var(--primary-foreground), 0.2);
+  box-shadow: 0 20px 50px -10px hsla(var(--primary), 0.3);
+  color: white;
+  z-index: 1;
+}
+
+.ai-analyst-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("https://www.transparenttextures.com/patterns/cubes.png");
+  opacity: 0.05;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ai-icon-pulse {
+  animation: aiPulse 2s infinite ease-in-out;
+}
+
+@keyframes aiPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0px hsla(var(--primary-foreground), 0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px hsla(var(--primary-foreground), 0.6)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0px hsla(var(--primary-foreground), 0.4)); }
+}
+
+.ai-input-wrapper {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  transition: all 0.3s ease;
+}
+
+.ai-input-wrapper:focus-within {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.ai-chip {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ai-chip:hover {
+  background: white !important;
+  color: hsl(var(--primary)) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ai-message-bubble {
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 4px solid white;
+  border-radius: 12px;
+  padding: 1rem;
+  animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}

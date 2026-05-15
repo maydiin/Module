@@ -664,6 +664,95 @@ IMPORTANT:
         }
     }
 
+    public async Task<AiQueryResponseDto> GenerateQueryFiltersAsync(int moduleId, string userPrompt)
+    {
+        var apiKey = _configuration["Ai:ApiKey"] ?? _configuration["Gemini:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException("AI API Key is not configured.");
+        }
+
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = await _context.Modules
+            .Include(m => m.Fields)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.TenantId == tenantId);
+
+        if (module == null)
+        {
+            throw new KeyNotFoundException($"Module with ID {moduleId} not found.");
+        }
+
+        var currentConfig = new
+        {
+            Module = new
+            {
+                module.Name,
+                Fields = module.Fields.Select(f => new
+                {
+                    f.Name,
+                    f.Label,
+                    f.Type,
+                    f.Options
+                })
+            }
+        };
+
+        var currentConfigJson = JsonSerializer.Serialize(currentConfig, new JsonSerializerOptions { WriteIndented = true });
+        var now = DateTime.Now;
+
+        var systemPrompt = $$$"""
+You are an AI data analyst for a business system. Your goal is to translate a user's natural language question into structured filters and sorting options for a database query.
+The output MUST be a valid JSON object matching the following structure exactly. Do not include markdown code blocks (```json ... ```), just return the raw JSON.
+
+Structure:
+{
+  "Success": true,
+  "Message": "Briefly explain what filters you applied (in the user's language).",
+  "Filters": [
+    {
+      "Field": "fieldName",
+      "Operator": "contains|eq|neq|gt|gte|lt|lte|between|before|after|isempty|isnotempty",
+      "Value": "value",
+      "ValueTo": "value" // Only for 'between'
+    }
+  ],
+  "SortBy": "fieldName", // Optional
+  "SortDir": "asc|desc" // Optional, defaults to 'desc'
+}
+
+Operator Guide:
+- Use 'contains', 'eq' (equals), 'neq' (not equals) for text.
+- Use 'gt' (>), 'gte' (>=), 'lt' (<), 'lte' (<=), 'between', 'eq' for numbers/currency.
+- Use 'before', 'after', 'between', 'eq' for dates.
+- Special Fields: You can use '__id' for Record ID and '__createdAt' for creation date.
+
+Current Date/Time: {{{now:yyyy-MM-dd HH:mm:ss}}} (Use this for relative date queries like 'today', 'last month', 'this year').
+
+Rules:
+1. Use ONLY the field names available in the provided module structure.
+2. If the user's question is unclear or cannot be translated to filters, set Success to false and explain why in Message.
+3. For relative dates (e.g., 'last month'), calculate the date range based on the current date provided.
+4. Try to find the most relevant fields based on their labels and names.
+5. If the user asks for "top" or "highest", set the appropriate SortBy and SortDir (desc).
+
+MODULE STRUCTURE:
+{{{currentConfigJson}}}
+""";
+
+        var generatedText = await CallAiAsync(apiKey, systemPrompt, $"User Request: {userPrompt}");
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        try
+        {
+            return JsonSerializer.Deserialize<AiQueryResponseDto>(generatedText, options) 
+                   ?? new AiQueryResponseDto { Success = false, Message = "Failed to deserialize response" };
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException($"Failed to parse AI response as JSON. Response: {generatedText}", ex);
+        }
+    }
+
     /// <summary>
     /// Routes the request to the configured AI provider.
     /// </summary>

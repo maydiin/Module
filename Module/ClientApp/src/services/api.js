@@ -355,6 +355,12 @@ export const applyAiConfig = async (config) => {
   return response.data;
 };
 
+// AI Query API
+export const generateAiQuery = async (moduleId, prompt) => {
+  const response = await api.post('/ai/query', { moduleId, prompt });
+  return response.data;
+};
+
 // Files API
 export const uploadFile = async (file) => {
   const formData = new FormData();

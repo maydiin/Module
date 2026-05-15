@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord, HOST_URL } from '../services/api';
+import { getModule, getFields, getRecords, createRecord, updateRecord, deleteRecord, generateAiQuery, HOST_URL } from '../services/api';
 import DynamicForm from '../components/DynamicForm';
 import LinkedRecordsModal from '../components/LinkedRecordsModal';
 import KanbanView from '../components/KanbanView';
@@ -36,6 +36,9 @@ function ModuleRecordsPage() {
   const [viewMode, setViewMode] = useState('table');
   const [kanbanGroupByField, setKanbanGroupByField] = useState('');
   const [deleteRecordId, setDeleteRecordId] = useState(null);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState('');
   const { selectedTenantId } = useTenant();
 
   useEffect(() => {
@@ -142,6 +145,7 @@ function ModuleRecordsPage() {
     setSearchQuery(searchInput.trim());
     setFilters(filterDrafts);
     setPage(1);
+    setAiMessage('');
   };
 
   const clearFilters = () => {
@@ -150,6 +154,35 @@ function ModuleRecordsPage() {
     setFilterDrafts([]);
     setFilters([]);
     setPage(1);
+    setAiMessage('');
+  };
+
+  const handleAiQuery = async () => {
+    if (!aiPrompt.trim()) return;
+
+    try {
+      setAiLoading(true);
+      setError('');
+      setAiMessage('');
+      const result = await generateAiQuery(moduleId, aiPrompt);
+      if (result.success) {
+        if (result.sortBy) setSortBy(result.sortBy);
+        if (result.sortDir) setSortDir(result.sortDir);
+        if (result.filters) {
+          setFilters(result.filters);
+          setFilterDrafts(result.filters);
+          setShowFilterPanel(true);
+        }
+        setAiMessage(result.message);
+        setPage(1);
+      } else {
+        setError(result.message || t('ai_query_failed'));
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || t('error'));
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const addFilterRow = () => {
@@ -434,6 +467,59 @@ function ModuleRecordsPage() {
           </div>
         </div>
       )}
+
+      {/* High-Contrast Compact AI Analyst Section */}
+      <div className="card border-0 mb-4 overflow-hidden fade-in shadow-sm" style={{ background: 'var(--bs-primary)', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+        <div className="card-body p-2 px-3">
+          <div className="d-flex align-items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-2 rounded-3 ai-icon-pulse flex-shrink-0">
+              <Icon name="sparkles" size={18} color="white" />
+            </div>
+            
+            <div className="flex-grow-1">
+              <div className="ai-input-wrapper" style={{ background: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+                <div className="input-group input-group-sm">
+                  <input
+                    type="text"
+                    className="form-control bg-transparent border-0 text-white shadow-none py-2 px-3"
+                    placeholder={t('ai_analyst_placeholder')}
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAiQuery()}
+                    disabled={aiLoading}
+                    style={{ fontSize: '0.9rem', color: 'white' }}
+                  />
+                  <button 
+                    className="btn btn-white mx-1 my-1 px-3 fw-bold text-dark shadow-sm"
+                    onClick={handleAiQuery}
+                    disabled={aiLoading}
+                    style={{ borderRadius: '8px', background: 'white', padding: '0.3rem 1rem', fontSize: '0.85rem' }}
+                  >
+                    {aiLoading ? (
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    ) : (
+                      <Icon name="send" size={14} className="me-2" />
+                    )}
+                    {t('analyze')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {aiMessage && (
+            <div className="mt-2 ai-message-bubble py-1 px-3 fade-in" style={{ background: 'rgba(0,0,0,0.3)', borderLeft: '3px solid #10b981', borderRadius: '8px' }}>
+              <div className="d-flex align-items-center gap-2">
+                <Icon name="info" size={14} color="#10b981" />
+                <p className="mb-0 small fw-bold text-white">{aiMessage}</p>
+                <button className="btn btn-link btn-sm text-white p-0 ms-auto opacity-70" onClick={() => setAiMessage('')}>
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="card shadow-sm border-0 mb-4 overflow-hidden bg-surface bg-opacity-40">
         <div className="card-header bg-surface bg-opacity-30 border-bottom border-theme-accent py-3 px-4 d-flex justify-content-between align-items-center">
