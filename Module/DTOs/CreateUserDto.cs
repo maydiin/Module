@@ -17,4 +17,7 @@ public class CreateUserDto
     public string Password { get; set; } = string.Empty;
 
     public List<string> Roles { get; set; } = new();
+    
+    public int? LinkedModuleId { get; set; }
+    public int? LinkedRecordId { get; set; }
 }

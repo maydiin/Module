@@ -18,4 +18,11 @@ public class User
     public Tenant? Tenant { get; set; }
     
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    
+    // Module linking
+    public int? LinkedModuleId { get; set; }
+    public Module? LinkedModule { get; set; }
+    
+    public int? LinkedRecordId { get; set; }
+    public ModuleRecord? LinkedRecord { get; set; }
 }

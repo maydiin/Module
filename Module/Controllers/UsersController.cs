@@ -34,12 +34,16 @@ public class UsersController : ControllerBase
             .Where(u => u.TenantId == tenantId)
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
+            .Include(u => u.LinkedModule)
             .Select(u => new {
                 u.Id,
                 u.Username,
                 u.Email,
                 u.CreatedAt,
-                Roles = u.UserRoles.Select(ur => ur.Role.Name)
+                Roles = u.UserRoles.Select(ur => ur.Role.Name),
+                LinkedModuleId = u.LinkedModuleId,
+                LinkedModuleName = u.LinkedModule != null ? u.LinkedModule.Name : null,
+                LinkedRecordId = u.LinkedRecordId
             })
             .ToListAsync();
         return Ok(users);
@@ -110,7 +114,9 @@ public class UsersController : ControllerBase
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             IsEmailVerified = true, // Admin created users are verified
             TenantId = tenantId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            LinkedModuleId = dto.LinkedModuleId,
+            LinkedRecordId = dto.LinkedRecordId
         };
 
         _context.Users.Add(user);
@@ -133,6 +139,63 @@ public class UsersController : ControllerBase
         await _auditLogService.LogAsync("Create", "User", user.Id.ToString(), user.Username, $"User created by admin");
 
         return Ok(new { message = "User created successfully", userId = user.Id });
+    }
+
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> UpdateUser(int userId, [FromBody] Module.DTOs.UpdateUserDto dto)
+    {
+        var tenantId = _tenantService.GetCurrentTenantId();
+        if (tenantId == 0) return BadRequest(new { error = "Tenant context required" });
+
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+            .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId);
+
+        if (user == null) return NotFound();
+
+        if (!string.IsNullOrEmpty(dto.Username) && dto.Username != user.Username)
+        {
+            if (await _context.Users.AnyAsync(u => u.Username == dto.Username && u.Id != userId))
+                return BadRequest(new { error = "Username already exists" });
+            user.Username = dto.Username;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Email) && dto.Email != user.Email)
+        {
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId))
+                return BadRequest(new { error = "Email already exists" });
+            user.Email = dto.Email;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Password))
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+        }
+
+        user.LinkedModuleId = dto.LinkedModuleId;
+        user.LinkedRecordId = dto.LinkedRecordId;
+
+        if (dto.Roles != null)
+        {
+            _context.UserRoles.RemoveRange(user.UserRoles);
+            
+            if (dto.Roles.Any())
+            {
+                var validRoles = await _context.Roles
+                    .Where(r => r.TenantId == tenantId && dto.Roles.Contains(r.Name))
+                    .ToListAsync();
+
+                foreach (var role in validRoles)
+                {
+                    _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        await _auditLogService.LogAsync("Update", "User", user.Id.ToString(), user.Username, $"User updated by admin");
+
+        return Ok(new { message = "User updated successfully" });
     }
 }
 
