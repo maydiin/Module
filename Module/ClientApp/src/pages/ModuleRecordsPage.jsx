@@ -469,7 +469,7 @@ function ModuleRecordsPage() {
       )}
 
       {/* High-Contrast Compact AI Analyst Section */}
-      <div className="card border-0 mb-4 overflow-hidden fade-in shadow-sm" style={{ background: 'var(--bs-primary)', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+      <div className="card border-0 mb-4 overflow-hidden fade-in shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-hover)) 100%)' }}>
         <div className="card-body p-2 px-3">
           <div className="d-flex align-items-center gap-3">
             <div className="bg-white bg-opacity-20 p-2 rounded-3 ai-icon-pulse flex-shrink-0">
@@ -508,9 +508,9 @@ function ModuleRecordsPage() {
           </div>
 
           {aiMessage && (
-            <div className="mt-2 ai-message-bubble py-1 px-3 fade-in" style={{ background: 'rgba(0,0,0,0.3)', borderLeft: '3px solid #10b981', borderRadius: '8px' }}>
+            <div className="mt-2 ai-message-bubble py-1 px-3 fade-in" style={{ background: 'rgba(0,0,0,0.3)', borderLeft: '3px solid hsl(var(--primary-foreground))', borderRadius: '8px' }}>
               <div className="d-flex align-items-center gap-2">
-                <Icon name="info" size={14} color="#10b981" />
+                <Icon name="info" size={14} color="hsl(var(--primary-foreground))" />
                 <p className="mb-0 small fw-bold text-white">{aiMessage}</p>
                 <button className="btn btn-link btn-sm text-white p-0 ms-auto opacity-70" onClick={() => setAiMessage('')}>
                   <Icon name="x" size={14} />

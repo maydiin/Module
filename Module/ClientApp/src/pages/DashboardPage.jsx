@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,7 +13,24 @@ import {
     PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 
-const COLORS = ['#0dcaf0', '#6610f2', '#6f42c1', '#d63384', '#fd7e14', '#ffc107', '#198754', '#20c997'];
+const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f97316', '#eab308', '#22c55e', '#0ea5e9', '#14b8a6'];
+
+const WIDGET_ICON_MAP = {
+    stat_card: 'barChart',
+    bar_chart: 'barChart',
+    pie_chart: 'barChart',
+    line_chart: 'barChart',
+    recent_records: 'records',
+};
+
+const WIDGET_ACCENT = [
+    { solid: '#6366f1', light: 'rgba(99,102,241,0.12)', glow: 'rgba(99,102,241,0.25)', grad: 'linear-gradient(135deg,#6366f1,#8b5cf6)' },
+    { solid: '#ec4899', light: 'rgba(236,72,153,0.12)', glow: 'rgba(236,72,153,0.25)', grad: 'linear-gradient(135deg,#ec4899,#f43f5e)' },
+    { solid: '#f97316', light: 'rgba(249,115,22,0.12)',  glow: 'rgba(249,115,22,0.25)',  grad: 'linear-gradient(135deg,#f97316,#eab308)' },
+    { solid: '#22c55e', light: 'rgba(34,197,94,0.12)',   glow: 'rgba(34,197,94,0.25)',   grad: 'linear-gradient(135deg,#22c55e,#0ea5e9)' },
+    { solid: '#0ea5e9', light: 'rgba(14,165,233,0.12)',  glow: 'rgba(14,165,233,0.25)',  grad: 'linear-gradient(135deg,#0ea5e9,#6366f1)' },
+    { solid: '#a855f7', light: 'rgba(168,85,247,0.12)',  glow: 'rgba(168,85,247,0.25)',  grad: 'linear-gradient(135deg,#a855f7,#ec4899)' },
+];
 
 const TOOLTIP_STYLE = {
     backgroundColor: 'hsla(var(--background), 0.95)',
@@ -85,43 +102,40 @@ function WidgetSkeleton() {
 }
 
 // ─── Widget Wrapper ────────────────────────────────────────────────────────
-function WidgetWrapper({ title, children, onEdit, onDelete, loading, delay = 0 }) {
+function WidgetWrapper({ title, widgetType = 'stat_card', children, onEdit, onDelete, loading, delay = 0, accentIdx = 0 }) {
     const { t } = useTranslation();
+    const accent = WIDGET_ACCENT[accentIdx % WIDGET_ACCENT.length];
+    const iconName = WIDGET_ICON_MAP[widgetType] || 'barChart';
     return (
-        <div 
-            className="glass-card h-100 d-flex flex-column position-relative overflow-hidden widget-premium-card" 
-            style={{ 
-                borderRadius: '24px', 
-                animationDelay: `${delay}ms`,
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}
+        <div
+            className="widget-premium-card h-100 d-flex flex-column position-relative overflow-hidden"
+            style={{ animationDelay: `${delay}ms` }}
         >
-            {/* Background Decoration */}
-            <div className="widget-bg-decoration" />
-            
-            <div className="px-4 pt-4 pb-2 d-flex align-items-center justify-content-between position-relative z-1">
-                <h6 className="text-muted small fw-bold text-uppercase tracking-wider mb-0" style={{ letterSpacing: '0.05em', opacity: 0.8 }}>
-                    {title}
-                </h6>
-                <div className="widget-actions d-flex gap-2">
-                    <button
-                        className="btn-action-mini"
-                        onClick={onEdit}
-                        title={t('edit')}
-                    >
-                        <Icon name="edit" size={14} />
+            {/* Left accent strip */}
+            <div className="widget-accent-strip" style={{ background: accent.grad }} />
+
+            {/* Glowing orb background */}
+            <div className="widget-glow-orb" style={{ background: accent.glow }} />
+
+            {/* Header */}
+            <div className="widget-header d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center gap-3">
+                    <div className="widget-type-icon" style={{ background: accent.light, color: accent.solid }}>
+                        <Icon name={iconName} size={15} />
+                    </div>
+                    <span className="widget-title">{title}</span>
+                </div>
+                <div className="widget-actions d-flex gap-1">
+                    <button className="btn-action-mini" onClick={onEdit} title={t('edit')}>
+                        <Icon name="edit" size={13} />
                     </button>
-                    <button
-                        className="btn-action-mini btn-action-delete"
-                        onClick={onDelete}
-                        title={t('delete')}
-                    >
-                        <Icon name="delete" size={14} />
+                    <button className="btn-action-mini btn-action-delete" onClick={onDelete} title={t('delete')}>
+                        <Icon name="delete" size={13} />
                     </button>
                 </div>
             </div>
-            
-            <div className="flex-grow-1 p-4 pt-2 position-relative z-1">
+
+            <div className="widget-body flex-grow-1">
                 {loading ? <WidgetSkeleton /> : children}
             </div>
         </div>
@@ -130,42 +144,36 @@ function WidgetWrapper({ title, children, onEdit, onDelete, loading, delay = 0 }
 
 // ─── Individual widget renderers ────────────────────────────────────────────
 function StatCardWidget({ widget, data }) {
-    const accentColors = [
-        { main: '#0dcaf0', bg: 'linear-gradient(135deg, #0dcaf0 0%, #0097b2 100%)' },
-        { main: '#6610f2', bg: 'linear-gradient(135deg, #6610f2 0%, #4b0bb1 100%)' },
-        { main: '#198754', bg: 'linear-gradient(135deg, #198754 0%, #115c39 100%)' },
-        { main: '#fd7e14', bg: 'linear-gradient(135deg, #fd7e14 0%, #c45a08 100%)' },
-        { main: '#d63384', bg: 'linear-gradient(135deg, #d63384 0%, #a32261 100%)' },
-        { main: '#ffc107', bg: 'linear-gradient(135deg, #ffc107 0%, #cc9a06 100%)' }
-    ];
-    const colorIdx = (widget.id || 0) % accentColors.length;
-    const accent = accentColors[colorIdx];
+    const accentIdx = (widget.id || 0) % WIDGET_ACCENT.length;
+    const accent = WIDGET_ACCENT[accentIdx];
 
     const val = data?.statValue !== null && data?.statValue !== undefined
         ? Number(data.statValue).toLocaleString('tr-TR', { maximumFractionDigits: 2 })
         : '—';
 
     return (
-        <div className="d-flex flex-column h-100 justify-content-center">
-            <div className="d-flex align-items-baseline gap-2">
-                <span className="stat-value text-gradient" style={{ 
-                    fontSize: '3rem', 
-                    fontWeight: 800, 
-                    lineHeight: 1,
-                    background: accent.bg,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                }}>
+        <div className="stat-card-inner d-flex align-items-center gap-4 h-100">
+            {/* Big colored number */}
+            <div className="stat-card-value-col">
+                <div
+                    className="stat-value"
+                    style={{
+                        background: accent.grad,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                    }}
+                >
                     {val}
-                </span>
+                </div>
                 {data?.moduleName && (
-                    <span className="badge-soft-primary px-2 py-1 rounded-pill" style={{ fontSize: '0.65rem' }}>
+                    <span
+                        className="stat-module-badge"
+                        style={{ background: accent.light, color: accent.solid, border: `1px solid ${accent.glow}` }}
+                    >
                         {data.moduleName}
                     </span>
                 )}
-            </div>
-            <div className="mt-2 opacity-50 small fw-medium">
-                {widget.title}
             </div>
         </div>
     );
@@ -310,6 +318,41 @@ function RecentRecordsWidget({ widget, data }) {
     const { t } = useTranslation();
     const rows = data?.rows || [];
     const columns = data?.columns || [];
+    const scrollRef = useRef(null);
+    const [scrollState, setScrollState] = useState({ thumbTop: 0, thumbHeight: 0, visible: false });
+    const hideTimer = useRef(null);
+    const MAX_VISIBLE = 5;
+    const hasMore = rows.length > MAX_VISIBLE;
+    const accentIdx = (widget.id || 0) % WIDGET_ACCENT.length;
+    const accent = WIDGET_ACCENT[accentIdx];
+
+    const updateThumb = (el) => {
+        if (!el || el.scrollHeight <= el.clientHeight) {
+            setScrollState(s => ({ ...s, thumbHeight: 0, visible: false }));
+            return;
+        }
+        const ratio = el.clientHeight / el.scrollHeight;
+        const thumbH = Math.max(ratio * el.clientHeight, 28);
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        const thumbTop = (el.scrollTop / maxScroll) * (el.clientHeight - thumbH);
+        setScrollState({ thumbTop, thumbHeight: thumbH, visible: true });
+
+        clearTimeout(hideTimer.current);
+        hideTimer.current = setTimeout(() => {
+            setScrollState(s => ({ ...s, visible: false }));
+        }, 1200);
+    };
+
+    const handleScroll = (e) => updateThumb(e.currentTarget);
+    const handleMouseEnter = () => updateThumb(scrollRef.current);
+    const handleMouseLeave = () => {
+        clearTimeout(hideTimer.current);
+        setScrollState(s => ({ ...s, visible: false }));
+    };
+
+    const atBottom = scrollState.thumbHeight > 0
+        ? scrollState.thumbTop + scrollState.thumbHeight >= (scrollRef.current?.clientHeight ?? 0) - 4
+        : false;
 
     if (rows.length === 0) {
         return (
@@ -323,30 +366,66 @@ function RecentRecordsWidget({ widget, data }) {
     }
 
     return (
-        <div className="overflow-auto h-100 custom-scrollbar" style={{ maxHeight: '280px' }}>
-            <table className="table table-premium-mini mb-0">
-                <thead>
-                    <tr>
-                        {columns.map(col => <th key={col} className="small">{col}</th>)}
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((row, i) => (
-                        <tr key={i}>
-                            {columns.map(col => (
-                                <td key={col} className="small text-truncate" style={{ maxWidth: '150px' }}>
-                                    {String(row[col] ?? '—')}
-                                </td>
-                            ))}
+        <div
+            className="records-scroll-wrapper position-relative"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* Bottom fade hint */}
+            {hasMore && !atBottom && (
+                <div className="records-fade-mask" />
+            )}
+
+            {/* Custom scroll track + thumb */}
+            <div className="records-scrollbar-track">
+                <div
+                    className="records-scrollbar-thumb"
+                    style={{
+                        top: scrollState.thumbTop,
+                        height: scrollState.thumbHeight,
+                        background: accent.grad,
+                        opacity: scrollState.visible ? 1 : 0,
+                    }}
+                />
+            </div>
+
+            <div
+                ref={scrollRef}
+                className="records-table-scroll"
+                onScroll={handleScroll}
+            >
+                <table className="table table-premium-mini mb-0">
+                    <thead className="records-sticky-head">
+                        <tr>
+                            {columns.map(col => <th key={col}>{col}</th>)}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {rows.map((row, i) => (
+                            <tr key={i} className="records-row">
+                                {columns.map(col => (
+                                    <td key={col} className="small text-truncate" style={{ maxWidth: '150px' }}>
+                                        {String(row[col] ?? '—')}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Row count badge */}
+            {hasMore && (
+                <div className="records-count-badge">
+                    {rows.length} kayıt
+                </div>
+            )}
         </div>
     );
 }
 
 function WidgetRenderer({ widget, data, onEdit, onDelete, loading, index }) {
+    const accentIdx = (widget.id || 0) % WIDGET_ACCENT.length;
     const content = (() => {
         switch (widget.widgetType) {
             case 'stat_card': return <StatCardWidget widget={widget} data={data} />;
@@ -359,12 +438,14 @@ function WidgetRenderer({ widget, data, onEdit, onDelete, loading, index }) {
     })();
 
     return (
-        <WidgetWrapper 
-            title={widget.title} 
-            onEdit={onEdit} 
-            onDelete={onDelete} 
+        <WidgetWrapper
+            title={widget.title}
+            widgetType={widget.widgetType}
+            accentIdx={accentIdx}
+            onEdit={onEdit}
+            onDelete={onDelete}
             loading={loading}
-            delay={index * 50}
+            delay={index * 60}
         >
             {content}
         </WidgetWrapper>
@@ -761,101 +842,263 @@ function DashboardPage() {
             />
 
             <style>{`
+                /* ── Widget Card Shell ── */
                 .widget-premium-card {
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                    border: 1px solid hsla(var(--primary), 0.1) !important;
-                    background: hsla(var(--background), 0.6) !important;
+                    border-radius: 20px;
+                    background: hsla(var(--background), 0.65);
+                    backdrop-filter: blur(20px) saturate(180%);
+                    -webkit-backdrop-filter: blur(20px) saturate(180%);
+                    border: 1px solid hsla(var(--foreground), 0.07);
+                    box-shadow: 0 4px 24px -8px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+                    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
+                                box-shadow 0.35s cubic-bezier(0.16,1,0.3,1),
+                                border-color 0.35s ease;
+                    cursor: default;
                 }
-                
                 .widget-premium-card:hover {
-                    transform: translateY(-8px) scale(1.01);
-                    border-color: hsla(var(--primary), 0.3) !important;
-                    background: hsla(var(--background), 0.8) !important;
-                    box-shadow: 0 30px 60px -12px hsla(var(--primary), 0.15) !important;
+                    transform: translateY(-6px) scale(1.008);
+                    box-shadow: 0 24px 60px -12px rgba(0,0,0,0.18), 0 8px 20px -8px rgba(0,0,0,0.1);
+                    border-color: hsla(var(--foreground), 0.14);
+                }
+                [data-mode="dark"] .widget-premium-card {
+                    background: hsla(var(--background), 0.75);
+                    border-color: hsla(var(--foreground), 0.1);
+                    box-shadow: 0 4px 24px -8px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+                }
+                [data-mode="dark"] .widget-premium-card:hover {
+                    box-shadow: 0 24px 60px -12px rgba(0,0,0,0.5), 0 8px 20px -8px rgba(0,0,0,0.3);
                 }
 
-                .widget-bg-decoration {
+                /* ── Left Accent Strip ── */
+                .widget-accent-strip {
                     position: absolute;
-                    top: -50px;
-                    right: -50px;
-                    width: 150px;
-                    height: 150px;
-                    background: radial-gradient(circle, hsla(var(--primary), 0.05) 0%, transparent 70%);
-                    border-radius: 50%;
-                    z-index: 0;
+                    left: 0; top: 16px; bottom: 16px;
+                    width: 4px;
+                    border-radius: 0 4px 4px 0;
+                    opacity: 0.85;
+                    transition: opacity 0.3s ease, top 0.3s ease, bottom 0.3s ease;
                     pointer-events: none;
+                    z-index: 2;
+                }
+                .widget-premium-card:hover .widget-accent-strip {
+                    opacity: 1;
+                    top: 8px;
+                    bottom: 8px;
                 }
 
-                .btn-action-mini {
-                    width: 32px;
-                    height: 32px;
+                /* ── Glow Orb ── */
+                .widget-glow-orb {
+                    position: absolute;
+                    top: -40px; right: -40px;
+                    width: 130px; height: 130px;
+                    border-radius: 50%;
+                    filter: blur(40px);
+                    opacity: 0.35;
+                    pointer-events: none;
+                    z-index: 0;
+                    transition: opacity 0.4s ease, transform 0.4s ease;
+                }
+                .widget-premium-card:hover .widget-glow-orb {
+                    opacity: 0.6;
+                    transform: scale(1.2);
+                }
+
+                /* ── Header ── */
+                .widget-header {
+                    padding: 18px 20px 12px 20px;
+                    position: relative;
+                    z-index: 1;
+                }
+                .widget-type-icon {
+                    width: 34px; height: 34px;
                     border-radius: 10px;
-                    border: 1px solid hsla(var(--foreground), 0.1);
-                    background: hsla(var(--background), 0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: hsla(var(--foreground), 0.6);
-                    transition: all 0.2s ease;
-                    padding: 0;
+                    display: flex; align-items: center; justify-content: center;
+                    flex-shrink: 0;
+                    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+                }
+                .widget-premium-card:hover .widget-type-icon {
+                    transform: scale(1.12) rotate(-4deg);
+                }
+                .widget-title {
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.07em;
+                    color: hsla(var(--foreground), 0.55);
+                    line-height: 1;
                 }
 
+                /* ── Body ── */
+                .widget-body {
+                    padding: 4px 20px 20px 20px;
+                    position: relative;
+                    z-index: 1;
+                }
+
+                /* ── Recent Records scroll container ── */
+                .records-scroll-wrapper {
+                    position: relative;
+                }
+                .records-table-scroll {
+                    overflow-y: auto;
+                    max-height: 260px;
+                    border-radius: 10px;
+                    border: 1px solid hsla(var(--foreground), 0.06);
+                    /* Hide native scrollbar */
+                    scrollbar-width: none;
+                }
+                .records-table-scroll::-webkit-scrollbar {
+                    display: none;
+                }
+                /* Sticky thead */
+                .records-sticky-head th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 2;
+                    background: hsla(var(--background), 0.96) !important;
+                    backdrop-filter: blur(8px);
+                    border-bottom: 1px solid hsla(var(--foreground), 0.08) !important;
+                }
+                /* Custom scrollbar track + thumb */
+                .records-scrollbar-track {
+                    position: absolute;
+                    right: 4px;
+                    top: 6px;
+                    bottom: 6px;
+                    width: 4px;
+                    background: hsla(var(--foreground), 0.05);
+                    border-radius: 99px;
+                    z-index: 10;
+                    pointer-events: none;
+                    overflow: hidden;
+                }
+                .records-scrollbar-thumb {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    border-radius: 99px;
+                    transition: opacity 0.35s ease, height 0.1s ease;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+                }
+                /* Row hover */
+                .records-row {
+                    transition: background 0.15s ease;
+                }
+                .records-row:hover {
+                    background: hsla(var(--foreground), 0.035) !important;
+                }
+                /* Bottom fade mask */
+                .records-fade-mask {
+                    position: absolute;
+                    bottom: 28px;
+                    left: 0; right: 0;
+                    height: 40px;
+                    background: linear-gradient(to bottom, transparent, hsla(var(--background), 0.85));
+                    pointer-events: none;
+                    z-index: 3;
+                    border-radius: 0 0 10px 10px;
+                    transition: opacity 0.25s ease;
+                }
+                /* Row count pill */
+                .records-count-badge {
+                    display: flex;
+                    justify-content: flex-end;
+                    margin-top: 6px;
+                    font-size: 0.62rem;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    color: hsla(var(--foreground), 0.38);
+                }
+
+                /* ── Stat Card ── */
+                .stat-card-inner {
+                    padding-top: 4px;
+                }
+                .stat-value {
+                    font-size: 2.8rem;
+                    font-weight: 900;
+                    line-height: 1;
+                    letter-spacing: -0.04em;
+                    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+                    display: block;
+                    margin-bottom: 8px;
+                }
+                .widget-premium-card:hover .stat-value {
+                    transform: scale(1.04) translateX(2px);
+                }
+                .stat-module-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 3px 10px;
+                    border-radius: 20px;
+                    font-size: 0.62rem;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                }
+
+                /* ── Action Buttons ── */
+                .btn-action-mini {
+                    width: 30px; height: 30px;
+                    border-radius: 9px;
+                    border: 1px solid hsla(var(--foreground), 0.1);
+                    background: hsla(var(--background), 0.6);
+                    display: flex; align-items: center; justify-content: center;
+                    color: hsla(var(--foreground), 0.5);
+                    transition: all 0.2s ease;
+                    padding: 0; cursor: pointer;
+                }
                 .btn-action-mini:hover {
                     background: hsl(var(--primary));
                     color: white;
                     border-color: hsl(var(--primary));
-                    transform: scale(1.1);
+                    transform: scale(1.12);
+                    box-shadow: 0 4px 12px hsla(var(--primary), 0.35);
                 }
-
                 .btn-action-mini.btn-action-delete:hover {
-                    background: #ff4d4d;
-                    border-color: #ff4d4d;
+                    background: #ef4444;
+                    border-color: #ef4444;
+                    box-shadow: 0 4px 12px rgba(239,68,68,0.4);
                 }
-
                 .widget-actions {
                     opacity: 0;
-                    transform: translateX(10px);
-                    transition: all 0.3s ease;
+                    transform: translateX(8px);
+                    transition: opacity 0.25s ease, transform 0.25s ease;
                 }
-
                 .widget-premium-card:hover .widget-actions {
                     opacity: 1;
                     transform: translateX(0);
                 }
 
+                /* ── Table ── */
                 .table-premium-mini th {
-                    font-size: 0.65rem !important;
+                    font-size: 0.63rem !important;
                     text-transform: uppercase;
-                    letter-spacing: 0.05em;
-                    color: hsla(var(--foreground), 0.5);
+                    letter-spacing: 0.06em;
+                    color: hsla(var(--foreground), 0.45);
                     border: none;
-                    padding: 8px 12px;
+                    padding: 6px 10px;
                     background: hsla(var(--foreground), 0.02);
                 }
-
                 .table-premium-mini td {
-                    padding: 10px 12px;
-                    border-bottom: 1px solid hsla(var(--foreground), 0.03);
+                    padding: 9px 10px;
+                    border-bottom: 1px solid hsla(var(--foreground), 0.04);
                     color: hsla(var(--foreground), 0.8);
                 }
-
-                .table-premium-mini tr:last-child td {
-                    border-bottom: none;
+                .table-premium-mini tr:last-child td { border-bottom: none; }
+                .table-premium-mini tbody tr {
+                    transition: background 0.15s ease;
+                }
+                .table-premium-mini tbody tr:hover {
+                    background: hsla(var(--foreground), 0.03);
                 }
 
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
-                }
+                /* ── Scrollbar ── */
+                .custom-scrollbar::-webkit-scrollbar { width: 3px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
                     background: hsla(var(--foreground), 0.1);
                     border-radius: 10px;
-                }
-
-                .stat-value {
-                    transition: all 0.3s ease;
-                }
-                .widget-premium-card:hover .stat-value {
-                    transform: scale(1.05);
                 }
             `}</style>
         </div>
