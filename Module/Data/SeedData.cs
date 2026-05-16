@@ -28,7 +28,8 @@ public static class SeedData
         {
             new Permission { Name = "User.Manage", Description = "Can manage users and roles", TenantId = hostTenant.Id },
             new Permission { Name = "Role.Manage", Description = "Can manage roles and permissions", TenantId = hostTenant.Id },
-            new Permission { Name = "AuditLog.View", Description = "Can view audit logs", TenantId = hostTenant.Id }
+            new Permission { Name = "AuditLog.View", Description = "Can view audit logs", TenantId = hostTenant.Id },
+            new Permission { Name = "Notification.Send", Description = "Can send manual notifications", TenantId = hostTenant.Id }
         };
 
         foreach (var perm in permissionsToSeed)

@@ -5,6 +5,8 @@ namespace Module.Services
     public interface INotificationService
     {
         Task SendToUserAsync(int userId, string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null);
+        Task SendToUsersAsync(List<int> userIds, string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null);
+        Task SendToRolesAsync(List<int> roleIds, string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null);
         Task BroadcastAsync(string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null);
         Task SendToTenantAsync(int tenantId, string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null);
         Task<List<Notification>> GetUserNotificationsAsync(int userId, int limit = 50);

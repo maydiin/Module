@@ -37,7 +37,8 @@ export const NotificationProvider = ({ children }) => {
     }
 
     fetchNotifications();
-
+    
+    let isStopped = false;
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl('/hubs/notifications')
       .withAutomaticReconnect()
@@ -47,22 +48,35 @@ export const NotificationProvider = ({ children }) => {
       setNotifications(prev => [notification, ...prev].slice(0, 50));
       setUnreadCount(prev => prev + 1);
       
-      // Trigger toast
       const type = String(notification.type || 'info').toLowerCase();
       const toastType = type === '1' ? 'success' : type === '2' ? 'warning' : type === '3' ? 'error' : type;
       showToast(notification.message, toastType);
     });
 
-    newConnection.start()
-      .then(() => {
-        console.log('SignalR Connected');
-        setConnection(newConnection);
-      })
-      .catch(err => console.error('SignalR Connection Error: ', err));
+    const start = async () => {
+      try {
+        await newConnection.start();
+        if (isStopped) {
+          await newConnection.stop();
+        } else {
+          console.log('SignalR Connected');
+          setConnection(newConnection);
+        }
+      } catch (err) {
+        if (!isStopped) {
+          console.error('SignalR Connection Error: ', err);
+        }
+      }
+    };
+
+    start();
 
     return () => {
+      isStopped = true;
       if (newConnection) {
-        newConnection.stop();
+        newConnection.stop().catch(() => {
+          // Ignore errors during stop (like already stopped)
+        });
       }
     };
   }, [user, fetchNotifications, showToast]);

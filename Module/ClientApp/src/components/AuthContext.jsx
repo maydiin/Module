@@ -12,8 +12,14 @@ export const AuthProvider = ({ children }) => {
   const refreshSession = useCallback(async () => {
     try {
       const data = await getMe();
-      setUser({ username: data.username, tenantId: data.tenantId });
-      setPermissions(data.permissions || []);
+      setUser(prev => {
+        if (prev?.username === data.username && prev?.tenantId === data.tenantId) return prev;
+        return { username: data.username, tenantId: data.tenantId };
+      });
+      setPermissions(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(data.permissions || [])) return prev;
+        return data.permissions || [];
+      });
       setIsSuperAdmin(data.isSuperAdmin || false);
     } catch (error) {
       setUser(null);
@@ -30,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     const data = await apiLogin(username, password);
-    setUser({ username: data.username });
+    setUser({ username: data.username, tenantId: data.tenantId });
     setPermissions(data.permissions || []);
     setIsSuperAdmin(data.isSuperAdmin || false);
     return data;

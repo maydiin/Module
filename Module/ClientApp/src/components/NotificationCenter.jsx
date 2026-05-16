@@ -3,12 +3,18 @@ import { useNotifications } from './NotificationContext';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import Icon from './Icon';
+import { useAuth } from './AuthContext';
+import SendNotificationModal from './SendNotificationModal';
 
 const NotificationCenter = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { hasPermission } = useAuth();
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+
+  const canSend = hasPermission('Notification.Send');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -57,11 +63,25 @@ const NotificationCenter = () => {
         <div className="notification-dropdown glass-panel fade-in">
           <div className="notification-header">
             <h6 className="m-0 fw-bold">{t('notifications', 'Bildirimler')}</h6>
-            {unreadCount > 0 && (
-              <button className="mark-all-btn" onClick={markAllAsRead}>
-                {t('mark_all_read', 'Hepsini oku')}
-              </button>
-            )}
+            <div className="notification-header-actions">
+              {canSend && (
+                <button 
+                  className="send-notification-trigger-btn"
+                  onClick={() => {
+                    setIsSendModalOpen(true);
+                    setIsOpen(false);
+                  }}
+                  title="Bildirim Gönder"
+                >
+                  <Icon name="api" size={16} />
+                </button>
+              )}
+              {unreadCount > 0 && (
+                <button className="mark-all-btn" onClick={markAllAsRead}>
+                  {t('mark_all_read', 'Hepsini oku')}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="notification-list custom-scrollbar">
@@ -101,6 +121,12 @@ const NotificationCenter = () => {
              </Link>
           </div>
         </div>
+      )}
+      {isSendModalOpen && (
+        <SendNotificationModal 
+          isOpen={isSendModalOpen} 
+          onClose={() => setIsSendModalOpen(false)} 
+        />
       )}
     </div>
   );

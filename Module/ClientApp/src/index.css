@@ -1434,3 +1434,226 @@ h1, h2, h3, h4, h5, h6 {
   from { opacity: 0; transform: translateX(-20px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* Notification Center Enhancements */
+.notification-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.send-notification-trigger-btn {
+  background: hsla(var(--primary), 0.1);
+  color: hsl(var(--primary));
+  border: 1px solid hsla(var(--primary), 0.2);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.send-notification-trigger-btn:hover {
+  background: hsla(var(--primary), 0.2);
+  transform: scale(1.05);
+}
+
+/* Custom Modal Overlay */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.custom-modal-content {
+  width: 100%;
+  max-width: 550px;
+  background: hsl(var(--background));
+  border-radius: 20px;
+  border: 1px solid hsla(var(--foreground), 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 80px);
+  animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid hsla(var(--foreground), 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.custom-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid hsla(var(--foreground), 0.08);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: hsla(var(--foreground), 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  color: hsl(var(--foreground));
+  transform: rotate(90deg);
+}
+
+.custom-input {
+  background: hsla(var(--foreground), 0.03) !important;
+  border: 1px solid hsla(var(--foreground), 0.1) !important;
+  border-radius: 10px !important;
+}
+
+.target-type-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.target-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: hsla(var(--foreground), 0.03);
+  border: 1px solid hsla(var(--foreground), 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: hsla(var(--foreground), 0.6);
+}
+
+.target-chip:hover {
+  background: hsla(var(--foreground), 0.06);
+}
+
+.target-chip.active {
+  background: hsla(var(--primary), 0.1);
+  border-color: hsla(var(--primary), 0.3);
+  color: hsl(var(--primary));
+}
+
+.selection-list-wrapper {
+  background: hsla(var(--foreground), 0.02);
+  border: 1px solid hsla(var(--foreground), 0.05);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.selection-list {
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.selection-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selection-item:hover {
+  background: hsla(var(--foreground), 0.05);
+}
+
+.selection-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.selection-search-input {
+  width: 100% !important;
+  padding: 8px 35px !important;
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  background: hsla(var(--foreground), 0.04) !important;
+  border: 1px solid hsla(var(--foreground), 0.08) !important;
+}
+
+.selection-search-container .search-icon {
+  position: absolute;
+  left: 12px;
+  color: hsla(var(--foreground), 0.4);
+  pointer-events: none;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  background: hsla(var(--foreground), 0.1);
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsla(var(--foreground), 0.6);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.search-clear-btn:hover {
+  background: hsla(var(--foreground), 0.2);
+  color: hsl(var(--foreground));
+}
+
+.selection-item .username {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.selection-item .email {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.95) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
+}

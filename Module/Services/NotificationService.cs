@@ -46,6 +46,25 @@ namespace Module.Services
             });
         }
 
+        public async Task SendToUsersAsync(List<int> userIds, string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null)
+        {
+            foreach (var userId in userIds)
+            {
+                await SendToUserAsync(userId, title, message, type, actionUrl);
+            }
+        }
+
+        public async Task SendToRolesAsync(List<int> roleIds, string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null)
+        {
+            var userIds = await _context.UserRoles
+                .Where(ur => roleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            await SendToUsersAsync(userIds, title, message, type, actionUrl);
+        }
+
         public async Task BroadcastAsync(string title, string message, NotificationType type = NotificationType.Info, string? actionUrl = null)
         {
             var notification = new Notification

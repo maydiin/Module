@@ -17,6 +17,37 @@ namespace Module.Controllers
         {
             _notificationService = notificationService;
         }
+        
+        [HttpPost("send")]
+        [Authorization.HasPermission("Notification.Send")]
+        public async Task<IActionResult> SendNotification([FromBody] SendNotificationDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Message))
+            {
+                return BadRequest(ApiResponse<object>.Fail("Title and Message are required."));
+            }
+
+            switch (dto.TargetType)
+            {
+                case "All":
+                    await _notificationService.BroadcastAsync(dto.Title, dto.Message, dto.Type, dto.ActionUrl);
+                    break;
+                case "Users":
+                    if (dto.UserIds == null || !dto.UserIds.Any())
+                        return BadRequest(ApiResponse<object>.Fail("UserIds are required for TargetType 'Users'."));
+                    await _notificationService.SendToUsersAsync(dto.UserIds, dto.Title, dto.Message, dto.Type, dto.ActionUrl);
+                    break;
+                case "Roles":
+                    if (dto.RoleIds == null || !dto.RoleIds.Any())
+                        return BadRequest(ApiResponse<object>.Fail("RoleIds are required for TargetType 'Roles'."));
+                    await _notificationService.SendToRolesAsync(dto.RoleIds, dto.Title, dto.Message, dto.Type, dto.ActionUrl);
+                    break;
+                default:
+                    return BadRequest(ApiResponse<object>.Fail("Invalid TargetType."));
+            }
+
+            return Ok(ApiResponse<object>.Ok(new { }, "Notification sent successfully."));
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetNotifications([FromQuery] int limit = 50)

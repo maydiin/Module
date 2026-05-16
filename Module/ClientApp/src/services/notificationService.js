@@ -21,6 +21,11 @@ const notificationService = {
   markAllAsRead: async () => {
     const response = await axios.put(`${API_URL}/read-all`);
     return response.data?.data || response.data;
+  },
+  
+  sendNotification: async (data) => {
+    const response = await axios.post(`${API_URL}/send`, data);
+    return response.data?.data || response.data;
   }
 };
 
