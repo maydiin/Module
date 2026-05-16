@@ -71,7 +71,7 @@ const NotificationCenter = () => {
                     setIsSendModalOpen(true);
                     setIsOpen(false);
                   }}
-                  title="Bildirim Gönder"
+                  title={t('send_notification', 'Bildirim Gönder')}
                 >
                   <Icon name="api" size={16} />
                 </button>

@@ -146,7 +146,7 @@ function ModuleFieldsPage() {
         <p className="mb-0">{t('module_not_found_desc')}</p>
         <hr />
         <button className="btn btn-outline-danger" onClick={() => navigate('/')}>
-          ← {t('back_to_modules')}
+          {t('back_to_modules')}
         </button>
       </div>
     );
@@ -217,7 +217,7 @@ function ModuleFieldsPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder={t('technical_name_placeholder') || 'e.g. firstName'}
+                    placeholder={t('technical_name_placeholder')}
                     required
                     autoFocus
                     disabled={!!editingFieldId}
@@ -235,7 +235,7 @@ function ModuleFieldsPage() {
                     name="label"
                     value={formData.label}
                     onChange={handleInputChange}
-                    placeholder={t('display_label_placeholder') || 'e.g. First Name'}
+                    placeholder={t('display_label_placeholder')}
                   />
                   <small className="form-text text-muted">{t('display_label_help')}</small>
                 </div>
@@ -356,7 +356,7 @@ function ModuleFieldsPage() {
 
               <div className="d-flex gap-2 mt-5 pt-4 border-top">
                 <button type="submit" className="btn btn-primary px-4">
-                  <span>✓</span> {editingFieldId ? t('save_changes') : t('add_to_schema')}
+                  {editingFieldId ? t('save_changes') : t('add_to_schema')}
                 </button>
                 <button
                   type="button"
@@ -397,7 +397,7 @@ function ModuleFieldsPage() {
             className="btn btn-outline-primary btn-sm rounded-pill px-3"
             onClick={() => navigate(`/modules/${moduleId}/records`)}
           >
-            📋 {t('manage_data')}
+            {t('manage_data')}
           </button>
         </div>
         <div className="card-body p-0">
@@ -458,7 +458,7 @@ function ModuleFieldsPage() {
                           onClick={() => handleEdit(field)}
                           title={t('edit')}
                         >
-                          ✎
+                          <Icon name="edit" size={14} />
                         </button>
                       </td>
                     </tr>

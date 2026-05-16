@@ -285,7 +285,7 @@ function AuditLogsPage() {
                                                             <button 
                                                                 className="btn btn-sm btn-blur rounded-circle shadow-sm p-1 d-flex align-items-center justify-content-center hover-lift"
                                                                 onClick={() => handleShowModal(log)}
-                                                                title={t('view_details', 'View Details')}
+                                                                title={t('view_details')}
                                                                 style={{ width: '32px', height: '32px' }}
                                                             >
                                                                 <Icon name="eye" size={16} />
@@ -336,21 +336,21 @@ function AuditLogsPage() {
                 <Modal.Header closeButton className="border-bottom-0 bg-transparent p-4">
                     <Modal.Title className="h4 mb-0 text-primary fw-bold d-flex align-items-center gap-2">
                         <Icon name="records" size={24} className="icon-theme" />
-                        {t('audit_log_details', 'Audit Log Details')}
+                        {t('audit_log_details')}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-4 pt-0">
                     {selectedLog && (
                         <div className="d-flex flex-column gap-3">
                             <div>
-                                <h6 className="text-primary mb-1 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_entity_name', 'Entity Name')}</h6>
+                                <h6 className="text-primary mb-1 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_entity_name')}</h6>
                                 <div className="p-3 bg-surface border border-theme-accent rounded text-break fw-medium">
                                     {selectedLog.entityName || '—'}
                                 </div>
                             </div>
                             
                              <div>
-                                <h6 className="text-primary mb-2 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_details', 'Details')}</h6>
+                                <h6 className="text-primary mb-2 text-uppercase small fw-extrabold tracking-wider">{t('audit_col_details')}</h6>
                                 <div className="p-4 bg-glass border-theme-accent rounded-4 overflow-auto shadow-inner" style={{ maxHeight: '400px' }}>
                                     <pre className="mb-0 text-foreground" style={{ whiteSpace: 'pre-wrap', fontFamily: "'Fira Code', 'Courier New', monospace", fontSize: '0.9rem', lineHeight: '1.6' }}>
                                         {(() => {
@@ -370,11 +370,11 @@ function AuditLogsPage() {
                             
                             <div className="row mt-2">
                                 <div className="col-md-4">
-                                    <span className="text-muted small d-block">{t('audit_col_time', 'Time')}</span>
+                                    <span className="text-muted small d-block">{t('audit_col_time')}</span>
                                     <span className="fw-medium">{formatDate(selectedLog.timestamp)}</span>
                                 </div>
                                 <div className="col-md-4">
-                                    <span className="text-muted small d-block">{t('audit_col_user', 'User')}</span>
+                                    <span className="text-muted small d-block">{t('audit_col_user')}</span>
                                     <span className="fw-medium">{selectedLog.username || '—'}</span>
                                 </div>
                                 <div className="col-md-4">
@@ -387,7 +387,7 @@ function AuditLogsPage() {
                 </Modal.Body>
                 <Modal.Footer className="border-top-0 bg-transparent p-4 pt-0">
                     <Button variant="outline-primary" className="rounded-pill px-5 hover-lift fw-bold" onClick={handleCloseModal}>
-                        {t('close', 'Close')}
+                        {t('close')}
                     </Button>
                 </Modal.Footer>
             </Modal>

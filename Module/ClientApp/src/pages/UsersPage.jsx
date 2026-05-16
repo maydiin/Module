@@ -22,33 +22,33 @@ function ModuleLinkSection({ modules, linkedModuleId, linkedRecordId, records, r
     return (
         <div className="mb-4">
             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2 font-heading d-flex align-items-center gap-2">
-                <Icon name="link" size={14} /> Modül Bağlantısı
-                <span className="badge bg-secondary bg-opacity-20 text-secondary fw-normal px-2">isteğe bağlı</span>
+                <Icon name="link" size={14} /> {t('module_link')}
+                <span className="badge bg-secondary bg-opacity-20 text-secondary fw-normal px-2">{t('optional_badge')}</span>
             </label>
             <div className="bg-surface bg-opacity-40 rounded-4 border border-theme-accent p-3">
                 <div className="row g-3">
                     <div className="col-md-6">
-                        <label className="form-label small text-muted mb-1">Modül</label>
+                        <label className="form-label small text-muted mb-1">{t('module')}</label>
                         <select
                             className="form-select border-2 shadow-sm rounded-3"
                             value={linkedModuleId || ''}
                             onChange={e => onModuleChange(e.target.value ? parseInt(e.target.value) : null)}
                         >
-                            <option value="">— Modül seçin —</option>
+                            <option value="">{t('select_module_placeholder')}</option>
                             {modules.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                         </select>
                     </div>
                     <div className="col-md-6">
-                        <label className="form-label small text-muted mb-1">Kayıt</label>
+                        <label className="form-label small text-muted mb-1">{t('record')}</label>
                         <select
                             className="form-select border-2 shadow-sm rounded-3"
                             value={linkedRecordId || ''}
                             onChange={e => onRecordChange(e.target.value ? parseInt(e.target.value) : null)}
                             disabled={!linkedModuleId || recordsLoading}
                         >
-                            <option value="">— Kayıt seçin —</option>
+                            <option value="">{t('select_record_placeholder')}</option>
                             {recordsLoading
-                                ? <option disabled>Yükleniyor...</option>
+                                ? <option disabled>{t('loading_dots')}</option>
                                 : records.map(r => <option key={r.id} value={r.id}>{getRecordLabel(r)}</option>)
                             }
                         </select>
@@ -56,7 +56,7 @@ function ModuleLinkSection({ modules, linkedModuleId, linkedRecordId, records, r
                 </div>
                 {linkedModuleId && (
                     <button type="button" className="btn btn-sm btn-outline-secondary mt-2" onClick={onClear}>
-                        <Icon name="x" size={12} className="me-1" /> Bağlantıyı Kaldır
+                        <Icon name="x" size={12} className="me-1" /> {t('remove_link')}
                     </button>
                 )}
             </div>
@@ -200,7 +200,7 @@ function UsersPage() {
             await updateUser(editingUserId, payload);
             setShowEditModal(false);
             loadData();
-            showToast('Kullanıcı başarıyla güncellendi', 'success');
+            showToast(t('user_updated_success'), 'success');
         } catch (err) {
             showToast(err.response?.data?.error || t('error'), 'error');
         } finally {
@@ -279,7 +279,7 @@ function UsersPage() {
                             <tr className="border-bottom border-theme-accent">
                                 <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('username')}</th>
                                 <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary d-none d-sm-table-cell">{t('email')}</th>
-                                <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary d-none d-md-table-cell">Bağlı Kayıt</th>
+                                <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary d-none d-md-table-cell">{t('linked_record')}</th>
                                 <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('roles')}</th>
                                 <th className="px-3 px-md-4 py-4 small fw-bold text-uppercase tracking-wider border-0 text-primary">{t('actions')}</th>
                             </tr>
@@ -324,7 +324,7 @@ function UsersPage() {
                                                 onClick={() => openEditModal(user)}
                                             >
                                                 <Icon name="edit" size={13} className="me-1" />
-                                                <span className="d-none d-md-inline">Düzenle</span>
+                                                <span className="d-none d-md-inline">{t('edit')}</span>
                                             </button>
                                             <div className="dropdown">
                                                 <button className="btn btn-sm btn-blur rounded-pill px-3 dropdown-toggle" data-bs-toggle="dropdown">
@@ -447,7 +447,7 @@ function UsersPage() {
                         <div className="modal-content border-0 shadow-xl overflow-hidden">
                             <div className="modal-header modal-header-premium border-0">
                                 <h5 className="modal-title fw-extrabold text-gradient d-flex align-items-center gap-2">
-                                    <Icon name="edit" size={24} /> Kullanıcı Düzenle
+                                    <Icon name="edit" size={24} /> {t('edit_user')}
                                 </h5>
                                 <button type="button" className="btn-close btn-close-premium" onClick={() => setShowEditModal(false)}></button>
                             </div>
@@ -480,7 +480,7 @@ function UsersPage() {
                                     <div className="mb-4">
                                         <label className="form-label small fw-bold text-uppercase tracking-wider text-muted font-heading d-flex align-items-center gap-2">
                                             {t('password')}
-                                            <span className="badge bg-secondary bg-opacity-20 text-secondary fw-normal px-2">değiştirmek için doldurun</span>
+                                            <span className="badge bg-secondary bg-opacity-20 text-secondary fw-normal px-2">{t('fill_to_change_password')}</span>
                                         </label>
                                         <input
                                             type="password"
@@ -512,7 +512,7 @@ function UsersPage() {
                                 <div className="modal-footer modal-footer-premium border-0 py-4 px-4">
                                     <button type="button" className="btn btn-blur px-5 h6 mb-0" onClick={() => setShowEditModal(false)}>{t('cancel')}</button>
                                     <button type="submit" className="btn btn-primary px-5 py-3 shadow-premium fw-extrabold text-uppercase h6 mb-0" disabled={editLoading}>
-                                        {editLoading ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('saving')}</> : 'Güncelle'}
+                                        {editLoading ? <><span className="spinner-border spinner-border-sm me-2"></span>{t('saving')}</> : t('update')}
                                     </button>
                                 </div>
                             </form>

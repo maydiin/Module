@@ -445,7 +445,7 @@ function RecentRecordsWidget({ widget, data }) {
             {/* Row count badge */}
             {hasMore && (
                 <div className="records-count-badge">
-                    {rows.length} kayıt
+                    {rows.length} {t('records_count_label')}
                 </div>
             )}
         </div>
@@ -795,7 +795,7 @@ function DashboardPage() {
             {/* Header */}
             <div className="d-flex align-items-center justify-content-between mb-4">
                 <div>
-                    <h2 className="mb-0 fw-bold">Dashboard</h2>
+                    <h2 className="mb-0 fw-bold">{t('dashboard')}</h2>
                     <p className="text-muted mb-0 small">{t('personalized_widgets_desc')}</p>
                 </div>
                 <button className="btn btn-primary rounded-pill px-4 hover-lift" onClick={openAdd}>

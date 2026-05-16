@@ -38,14 +38,14 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
       setRoles(rolesData.data || rolesData);
     } catch (error) {
       console.error('Failed to fetch users/roles:', error);
-      showToast('Veriler alınamadı', 'error');
+      showToast(t('failed_to_fetch_data'), 'error');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !message) {
-      showToast('Başlık ve mesaj gereklidir', 'warning');
+      showToast(t('title_and_message_required'), 'warning');
       return;
     }
 
@@ -62,7 +62,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
       };
 
       await notificationService.sendNotification(payload);
-      showToast('Bildirim başarıyla gönderildi', 'success');
+      showToast(t('notification_sent_success'), 'success');
       onClose();
       // Reset form
       setTitle('');
@@ -72,7 +72,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
       setSelectedRoleIds([]);
     } catch (error) {
       console.error('Failed to send notification:', error);
-      showToast('Bildirim gönderilemedi', 'error');
+      showToast(t('notification_send_failed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
         <div className="custom-modal-header">
           <div className="d-flex align-items-center gap-2">
             <Icon name="bell" size={20} color="#3b82f6" />
-            <h5 className="m-0">{t('send_notification', 'Bildirim Gönder')}</h5>
+            <h5 className="m-0">{t('send_notification')}</h5>
           </div>
           <button className="close-btn" onClick={onClose}>
             <Icon name="x" size={20} />
@@ -95,45 +95,45 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
 
         <form onSubmit={handleSubmit} className="custom-modal-body">
           <div className="form-group mb-3">
-            <label className="form-label">{t('title', 'Başlık')}</label>
+            <label className="form-label">{t('title')}</label>
             <input
               type="text"
               className="form-control custom-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('notification_title_placeholder', 'Bildirim başlığı...')}
+              placeholder={t('notification_title_placeholder')}
               required
             />
           </div>
 
           <div className="form-group mb-3">
-            <label className="form-label">{t('message', 'Mesaj')}</label>
+            <label className="form-label">{t('message')}</label>
             <textarea
               className="form-control custom-input"
               rows="3"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder={t('notification_message_placeholder', 'Bildirim içeriği...')}
+              placeholder={t('notification_message_placeholder')}
               required
             ></textarea>
           </div>
 
           <div className="row mb-3">
             <div className="col-md-6">
-              <label className="form-label">{t('type', 'Tip')}</label>
+              <label className="form-label">{t('type')}</label>
               <select 
                 className="form-select custom-input"
                 value={type}
                 onChange={(e) => setType(e.target.value)}
               >
-                <option value="0">{t('info', 'Bilgi')}</option>
-                <option value="1">{t('success', 'Başarı')}</option>
-                <option value="2">{t('warning', 'Uyarı')}</option>
-                <option value="3">{t('error', 'Hata')}</option>
+                <option value="0">{t('info')}</option>
+                <option value="1">{t('success')}</option>
+                <option value="2">{t('warning')}</option>
+                <option value="3">{t('error')}</option>
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label">{t('action_url', 'Yönlendirme URL')}</label>
+              <label className="form-label">{t('action_url')}</label>
               <input
                 type="text"
                 className="form-control custom-input"
@@ -145,7 +145,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="target-selection mb-3">
-            <label className="form-label d-block mb-2">{t('target', 'Hedef')}</label>
+            <label className="form-label d-block mb-2">{t('target')}</label>
             <div className="target-type-chips">
               <button
                 type="button"
@@ -153,7 +153,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                 onClick={() => setTargetType('All')}
               >
                 <Icon name="globe" size={16} />
-                <span>{t('all_users', 'Herkes')}</span>
+                <span>{t('all_users')}</span>
               </button>
               <button
                 type="button"
@@ -161,7 +161,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                 onClick={() => setTargetType('Users')}
               >
                 <Icon name="users" size={16} />
-                <span>{t('users', 'Kullanıcılar')}</span>
+                <span>{t('users')}</span>
               </button>
               <button
                 type="button"
@@ -169,7 +169,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                 onClick={() => setTargetType('Roles')}
               >
                 <Icon name="fields" size={16} />
-                <span>{t('roles', 'Roller')}</span>
+                <span>{t('roles')}</span>
               </button>
             </div>
           </div>
@@ -177,8 +177,8 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
           {targetType === 'Users' && (
             <div className="selection-list-wrapper mb-3 animate-fade-in">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <label className="form-label small text-muted m-0">{t('select_users', 'Kullanıcı Seçin')}</label>
-                <span className="small text-primary fw-bold">{selectedUserIds.length} {t('selected', 'Seçili')}</span>
+                <label className="form-label small text-muted m-0">{t('select_users')}</label>
+                <span className="small text-primary fw-bold">{selectedUserIds.length} {t('selected')}</span>
               </div>
               
               <div className="selection-search-container mb-2">
@@ -186,7 +186,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                 <input 
                   type="text" 
                   className="selection-search-input" 
-                  placeholder={t('search_users', 'Kullanıcı ara...')}
+                  placeholder={t('search_users')}
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                 />
@@ -222,7 +222,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                   u.email?.toLowerCase().includes(userSearch.toLowerCase())
                 ).length === 0 && (
                   <div className="text-center py-3 text-muted small">
-                    {t('no_results_found', 'Sonuç bulunamadı')}
+                    {t('no_results_found')}
                   </div>
                 )}
               </div>
@@ -232,8 +232,8 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
           {targetType === 'Roles' && (
             <div className="selection-list-wrapper mb-3 animate-fade-in">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <label className="form-label small text-muted m-0">{t('select_roles', 'Rol Seçin')}</label>
-                <span className="small text-primary fw-bold">{selectedRoleIds.length} {t('selected', 'Seçili')}</span>
+                <label className="form-label small text-muted m-0">{t('select_roles')}</label>
+                <span className="small text-primary fw-bold">{selectedRoleIds.length} {t('selected')}</span>
               </div>
 
               <div className="selection-search-container mb-2">
@@ -241,7 +241,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                 <input 
                   type="text" 
                   className="selection-search-input" 
-                  placeholder={t('search_roles', 'Rol ara...')}
+                  placeholder={t('search_roles')}
                   value={roleSearch}
                   onChange={(e) => setRoleSearch(e.target.value)}
                 />
@@ -272,7 +272,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
                   r.name?.toLowerCase().includes(roleSearch.toLowerCase())
                 ).length === 0 && (
                   <div className="text-center py-3 text-muted small">
-                    {t('no_results_found', 'Sonuç bulunamadı')}
+                    {t('no_results_found')}
                   </div>
                 )}
               </div>
@@ -282,7 +282,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
 
         <div className="custom-modal-footer">
           <button className="btn btn-secondary" onClick={onClose} disabled={loading}>
-            {t('cancel', 'İptal')}
+            {t('cancel')}
           </button>
           <button 
             className="btn btn-primary d-flex align-items-center gap-2" 
@@ -294,7 +294,7 @@ const SendNotificationModal = ({ isOpen, onClose }) => {
             ) : (
               <Icon name="check" size={16} />
             )}
-            {t('send', 'Gönder')}
+            {t('send')}
           </button>
         </div>
       </div>

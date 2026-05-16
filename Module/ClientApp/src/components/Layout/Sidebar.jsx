@@ -104,7 +104,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
             {isMobile && (
                 <div className="d-flex justify-content-between align-items-center mb-2 px-1">
                     <span className="fw-bold text-primary small text-uppercase tracking-wider" style={{ fontSize: '0.65rem' }}>
-                        Menü
+                        {t('menu_label')}
                     </span>
                     <button
                         className="btn border-0 p-0 d-flex align-items-center justify-content-center btn-blur"
@@ -144,7 +144,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                 <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
                                 <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
                             </svg>
-                            <span style={{ fontSize: '0.925rem' }}>Dashboard</span>
+                            <span style={{ fontSize: '0.925rem' }}>{t('dashboard')}</span>
                         </NavLink>
                     </div>
 
@@ -158,7 +158,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                             style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
                         >
                             <Icon name="box" size={22} className="me-3 icon-theme" />
-                            <span style={{ fontSize: '0.925rem' }}>Modüller</span>
+                            <span style={{ fontSize: '0.925rem' }}>{t('modules_nav')}</span>
                         </NavLink>
                     </div>
 
@@ -245,7 +245,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <Icon name="api" size={18} className="me-2" />
-                                                                API
+                                                                {t('api_nav')}
                                                             </NavLink>
                                                         </li>
                                                     )}
@@ -256,7 +256,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <Icon name="terminal" size={18} className="me-2" />
-                                                                Scripts
+                                                                {t('scripts_nav')}
                                                             </NavLink>
                                                         </li>
                                                     )}
@@ -267,7 +267,7 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                                 className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
                                                             >
                                                                 <Icon name="users" size={18} className="me-2" />
-                                                                Görünürlük
+                                                                {t('visibility_nav')}
                                                             </NavLink>
                                                         </li>
                                                     )}

@@ -113,7 +113,7 @@ function AppLayout({ children }) {
                 className="btn border-0 me-3 d-flex align-items-center justify-content-center text-primary shadow-sm hover-lift p-0"
                 onClick={toggleSidebar}
                 style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'hsla(var(--primary), 0.15)', flexShrink: 0 }}
-                title="Menüyü Aç/Kapat"
+                title={t('toggle_menu')}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -154,7 +154,7 @@ function AppLayout({ children }) {
                       style={{ fontSize: '0.9rem' }}
                       to="/users"
                     >
-                      {t('users', 'Kullanıcılar')}
+                      {t('users')}
                     </Link>
                   </li>
                 </HasPermission>
@@ -168,7 +168,7 @@ function AppLayout({ children }) {
                       style={{ fontSize: '0.9rem' }}
                       to="/roles"
                     >
-                      {t('roles', 'Roller')}
+                      {t('roles')}
                     </Link>
                   </li>
                 </HasPermission>
@@ -195,7 +195,7 @@ function AppLayout({ children }) {
                       value={selectedTenantId || ''}
                       onChange={handleTenantChange}
                     >
-                      <option value="">🏢 Kendi Tenant'ım</option>
+                      <option value="">🏢 {t('own_tenant')}</option>
                       {tenants.filter(t => !t.isHost).map((tenant) => (
                         <option key={tenant.id} value={tenant.id}>
                           🏢 {tenant.name}
@@ -217,7 +217,7 @@ function AppLayout({ children }) {
                     to="/settings"
                     className={`nav-link p-2 rounded-circle transition-all d-flex align-items-center justify-content-center shadow-sm hover-lift ${location.pathname === '/settings' ? 'menu-active scale-110 shadow-md' : 'btn-blur'}`}
                     style={{ width: '36px', height: '36px' }}
-                    title={t('settings', 'Ayarlar')}
+                    title={t('settings')}
                   >
                     <Icon name="settings" size={20} color="currentColor" />
                   </Link>
@@ -229,7 +229,7 @@ function AppLayout({ children }) {
                       <span className="text-foreground small fw-bold">{username}</span>
                     </div>
                     <button onClick={handleLogout} className="btn-blur small rounded-pill px-3 shadow-sm hover-lift" style={{ height: '36px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                      Çıkış
+                      {t('logout')}
                     </button>
                   </div>
                 </li>
@@ -322,12 +322,12 @@ function AppLayout({ children }) {
           </Link>
           <HasPermission permission="User.Manage">
             <Link to="/users" className={`nav-link ${location.pathname === '/users' ? 'active' : ''}`}>
-              <Icon name="settings" size={20} className="icon-theme" /> {t('users', 'Kullanıcılar')}
+              <Icon name="settings" size={20} className="icon-theme" /> {t('users')}
             </Link>
           </HasPermission>
           <HasPermission permission="Role.Manage">
             <Link to="/roles" className={`nav-link ${location.pathname === '/roles' ? 'active' : ''}`}>
-              <Icon name="fields" size={20} className="icon-theme" /> {t('roles', 'Roller')}
+              <Icon name="fields" size={20} className="icon-theme" /> {t('roles')}
             </Link>
           </HasPermission>
           <HasPermission permission="AuditLog.View">
@@ -344,7 +344,7 @@ function AppLayout({ children }) {
                 value={selectedTenantId || ''}
                 onChange={handleTenantChange}
               >
-                <option value="">🏢 Kendi Tenant'ım</option>
+                <option value="">🏢 {t('own_tenant', 'Kendi Tenant\'ım')}</option>
                 {tenants.filter(t => !t.isHost).map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>🏢 {tenant.name}</option>
                 ))}
@@ -358,7 +358,7 @@ function AppLayout({ children }) {
               className="btn btn-blur w-100 rounded-3 fw-bold"
               style={{ height: '44px' }}
             >
-              Çıkış Yap
+              {t('logout')}
             </button>
           </div>
         </div>

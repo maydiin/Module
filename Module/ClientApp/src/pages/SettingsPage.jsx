@@ -115,7 +115,7 @@ function SettingsPage() {
                 <div>
                   <h6 className="fw-bold mb-1">{t('pro_tip', 'İpucu')}</h6>
                   <p className="small text-muted mb-0 opacity-80">
-                    Seçtiğiniz tema ve mod tercihleri tüm cihazlarınızda yerel olarak saklanır.
+                    {t('pro_tip_desc', 'Seçtiğiniz tema ve mod tercihleri tüm cihazlarınızda yerel olarak saklanır.')}
                   </p>
                 </div>
               </div>

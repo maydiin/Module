@@ -38,15 +38,15 @@ const NotificationsPage = () => {
     <div className="container-fluid py-4">
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h2 className="fw-bold mb-1">{t('notifications', 'Bildirimler')}</h2>
-          <p className="text-muted small mb-0">{t('notifications_desc', 'Sistem üzerinden gelen tüm bildirimlerin listesi.')}</p>
+          <h2 className="fw-bold mb-1">{t('notifications')}</h2>
+          <p className="text-muted small mb-0">{t('notifications_desc')}</p>
         </div>
         <div className="d-flex gap-2">
           <button 
             className="btn btn-blur rounded-pill px-4 fw-bold"
             onClick={markAllAsRead}
           >
-            {t('mark_all_read', 'Tümünü Okundu Say')}
+            {t('mark_all_read')}
           </button>
         </div>
       </div>
@@ -57,13 +57,13 @@ const NotificationsPage = () => {
             className={`btn rounded-pill px-4 transition-all ${filter === 'all' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setFilter('all')}
           >
-            {t('all', 'Tümü')}
+            {t('all')}
           </button>
           <button 
             className={`btn rounded-pill px-4 transition-all ${filter === 'unread' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setFilter('unread')}
           >
-            {t('unread', 'Okunmamış')}
+            {t('unread')}
           </button>
         </div>
 
@@ -71,7 +71,7 @@ const NotificationsPage = () => {
           {filteredNotifications.length === 0 ? (
             <div className="p-5 text-center">
               <Icon name="bell" size={64} className="opacity-10 mb-3" />
-              <h5 className="text-muted">{t('no_notifications', 'Bildirim bulunamadı')}</h5>
+              <h5 className="text-muted">{t('no_notifications')}</h5>
             </div>
           ) : (
             filteredNotifications.map((notification) => (

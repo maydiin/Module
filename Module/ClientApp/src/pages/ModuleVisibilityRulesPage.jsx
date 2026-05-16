@@ -378,11 +378,10 @@ const ModuleVisibilityRulesPage = () => {
                                         <div className="col-md-4">
                                             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('value')}</label>
                                             <input
-                                                type="text"
                                                 value={formData.value}
                                                 onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                                                 className="form-control border-2 shadow-sm"
-                                                placeholder="Örn: {{CurrentUser.Id}} veya Active"
+                                                placeholder={t('visibility_placeholder_hint', 'Örn: {{CurrentUser.Id}} veya Active')}
                                                 style={{ height: '50px' }}
                                             />
                                         </div>
