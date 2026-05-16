@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     getDashboardWidgets, createDashboardWidget, updateDashboardWidget,
@@ -318,6 +319,7 @@ function RecentRecordsWidget({ widget, data }) {
     const { t } = useTranslation();
     const rows = data?.rows || [];
     const columns = data?.columns || [];
+    const columnMeta = data?.columnMeta || [];
     const scrollRef = useRef(null);
     const [scrollState, setScrollState] = useState({ thumbTop: 0, thumbHeight: 0, visible: false });
     const hideTimer = useRef(null);
@@ -397,17 +399,43 @@ function RecentRecordsWidget({ widget, data }) {
                 <table className="table table-premium-mini mb-0">
                     <thead className="records-sticky-head">
                         <tr>
-                            {columns.map(col => <th key={col}>{col}</th>)}
+                            {columns.map(col => {
+                                const meta = columnMeta.find(m => m.name === col);
+                                return <th key={col}>{meta?.label || col}</th>;
+                            })}
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map((row, i) => (
                             <tr key={i} className="records-row">
-                                {columns.map(col => (
-                                    <td key={col} className="small text-truncate" style={{ maxWidth: '150px' }}>
-                                        {String(row[col] ?? '—')}
-                                    </td>
-                                ))}
+                                {columns.map(col => {
+                                    const displayVal = row[`__display_${col}`];
+                                    const linkData = row[`__links_${col}`];
+
+                                    return (
+                                        <td key={col} className="small text-truncate" style={{ maxWidth: '150px' }}>
+                                            {linkData && linkData.length > 0 ? (
+                                                <div className="d-flex flex-wrap gap-1">
+                                                    {linkData.map((link, idx) => (
+                                                        <Link
+                                                            key={idx}
+                                                            to={`/modules/${link.moduleId}/records/${link.recordId}`}
+                                                            className="badge bg-surface bg-opacity-50 text-primary border border-theme-accent text-decoration-none"
+                                                        >
+                                                            <Icon name="link" size={12} className="me-1" /> {link.display}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            ) : displayVal ? (
+                                                displayVal
+                                            ) : Array.isArray(row[col]) ? (
+                                                row[col].join(', ')
+                                            ) : (
+                                                String(row[col] ?? '—')
+                                            )}
+                                        </td>
+                                    );
+                                })}
                             </tr>
                         ))}
                     </tbody>

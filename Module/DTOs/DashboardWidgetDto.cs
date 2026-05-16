@@ -40,6 +40,7 @@ public class WidgetDataDto
     // recent_records
     public List<Dictionary<string, object>>? Rows { get; set; }
     public List<string>? Columns { get; set; }
+    public List<object>? ColumnMeta { get; set; }
     // module context
     public string? ModuleName { get; set; }
 }

@@ -9,11 +9,13 @@ public class DashboardService : IDashboardService
 {
     private readonly AppDbContext _context;
     private readonly IModuleService _moduleService;
+    private readonly IRelationService _relationService;
 
-    public DashboardService(AppDbContext context, IModuleService moduleService)
+    public DashboardService(AppDbContext context, IModuleService moduleService, IRelationService relationService)
     {
         _context = context;
         _moduleService = moduleService;
+        _relationService = relationService;
     }
 
     public async Task<WidgetDataDto> GetWidgetDataAsync(int widgetId, int tenantId, int userId)
@@ -30,11 +32,15 @@ public class DashboardService : IDashboardService
         if (!config.TryGetProperty("moduleId", out var modProp) || !modProp.TryGetInt32(out var moduleId))
             return result;
 
-        var moduleName = await _context.Modules
+        var module = await _context.Modules
+            .Include(m => m.Fields)
             .Where(m => m.Id == moduleId && m.TenantId == tenantId)
-            .Select(m => m.Name)
             .FirstOrDefaultAsync();
-        result.ModuleName = moduleName;
+            
+        if (module != null)
+        {
+            result.ModuleName = module.Name;
+        }
 
         var query = _context.ModuleRecords
             .Where(r => r.ModuleId == moduleId && r.TenantId == tenantId);
@@ -54,7 +60,7 @@ public class DashboardService : IDashboardService
                 await ComputeLineChart(query, config, result);
                 break;
             case "recent_records":
-                await ComputeRecentRecords(query, config, result);
+                await ComputeRecentRecords(query, config, result, module);
                 break;
         }
 
@@ -192,12 +198,17 @@ public class DashboardService : IDashboardService
         };
     }
 
-    private async Task ComputeRecentRecords(IQueryable<Entities.ModuleRecord> query, JsonElement config, WidgetDataDto result)
+    private async Task ComputeRecentRecords(IQueryable<Entities.ModuleRecord> query, JsonElement config, WidgetDataDto result, Entities.Module? module)
     {
         var limit = config.TryGetProperty("limit", out var lp) && lp.TryGetInt32(out var l) ? l : 5;
 
         var records = await query.OrderByDescending(r => r.CreatedAt).Take(limit).ToListAsync();
         var rows = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
+        
+        if (module != null)
+        {
+            await _relationService.EnrichWithDisplayValuesAsync(module, rows);
+        }
 
         result.Rows = rows;
 
@@ -207,11 +218,26 @@ public class DashboardService : IDashboardService
         }
         else if (rows.Count > 0)
         {
-            result.Columns = rows[0].Keys.Take(5).ToList();
+            result.Columns = rows[0].Keys.Where(k => !k.StartsWith("__")).Take(5).ToList();
         }
         else
         {
             result.Columns = new List<string>();
+        }
+        
+        // Populate column meta for labels
+        if (module != null && module.Fields != null)
+        {
+            result.ColumnMeta = result.Columns.Select(col => 
+            {
+                var field = module.Fields.FirstOrDefault(f => f.Name == col);
+                return new 
+                {
+                    Name = col,
+                    Label = field?.Label ?? col,
+                    Type = field?.Type ?? "text"
+                };
+            }).Cast<object>().ToList();
         }
     }
 }
