@@ -24,9 +24,9 @@
   --radius: 1.25rem;
 
   /* Glassmorphism Defaults */
-  --glass-bg: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --glass-shadow: 0 12px 40px -6px rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 12px 40px -6px rgba(0, 0, 0, 0.12);
   
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -145,7 +145,7 @@
   --border: 216 34% 35%; /* Increased contrast for borders */
   --input: 216 34% 30%;
   
-  --glass-bg: rgba(15, 23, 42, 0.85); /* Increased opacity for better text contrast */
+  --glass-bg: rgba(15, 23, 42, 0.95); /* High opacity for clear text contrast */
   --glass-border: rgba(255, 255, 255, 0.15); /* Brighter border */
   --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
 
