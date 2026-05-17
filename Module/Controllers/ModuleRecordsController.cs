@@ -230,7 +230,8 @@ public class ModuleRecordsController : ControllerBase
                 ModuleId = r.ModuleId,
                 Data = data,
                 LinkedCount = counts.GetValueOrDefault(r.Id, 0),
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+                ApprovalStatus = r.ApprovalStatus
             };
         }).ToList();
 
@@ -438,7 +439,8 @@ public class ModuleRecordsController : ControllerBase
             ModuleId = record.ModuleId,
             Data = data,
             LinkedCount = count,
-            CreatedAt = record.CreatedAt
+            CreatedAt = record.CreatedAt,
+            ApprovalStatus = record.ApprovalStatus
         });
     }
 
@@ -490,6 +492,62 @@ public class ModuleRecordsController : ControllerBase
         }
 
         return Ok(result);
+    }
+
+    [HttpPost("{recordId}/approve")]
+    [HasModulePermission("Update")]
+    public async Task<IActionResult> ApproveRecord(int moduleId, int recordId)
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+        var approvalService = HttpContext.RequestServices.GetRequiredService<IApprovalService>();
+        try
+        {
+            await approvalService.ApproveRecordAsync(moduleId, recordId, userId);
+            
+            // Execute AfterApproved hook
+            var record = await _context.ModuleRecords.FindAsync(recordId);
+            if (record != null)
+            {
+                var data = _moduleService.DeserializeData(record.Data);
+                await _scriptService.ExecuteAfterHookAsync("AfterApproved", moduleId, data);
+            }
+
+            return Ok(new { success = true });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{recordId}/reject")]
+    [HasModulePermission("Update")]
+    public async Task<IActionResult> RejectRecord(int moduleId, int recordId, [FromBody] RejectRequestDto dto)
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+        var approvalService = HttpContext.RequestServices.GetRequiredService<IApprovalService>();
+        try
+        {
+            await approvalService.RejectRecordAsync(moduleId, recordId, userId, dto.Reason);
+            
+            // Execute AfterRejected hook
+            var record = await _context.ModuleRecords.FindAsync(recordId);
+            if (record != null)
+            {
+                var data = _moduleService.DeserializeData(record.Data);
+                await _scriptService.ExecuteAfterHookAsync("AfterRejected", moduleId, data);
+            }
+
+            return Ok(new { success = true });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpDelete("{recordId}")]

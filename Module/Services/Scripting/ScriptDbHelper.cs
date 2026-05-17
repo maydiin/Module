@@ -9,11 +9,24 @@ public class ScriptDbHelper : IScriptDbHelper
 {
     private readonly AppDbContext _context;
     private readonly ITenantService _tenantService;
+    private readonly IServiceProvider _serviceProvider;
 
-    public ScriptDbHelper(AppDbContext context, ITenantService tenantService)
+    public ScriptDbHelper(AppDbContext context, ITenantService tenantService, IServiceProvider serviceProvider)
     {
         _context = context;
         _tenantService = tenantService;
+        _serviceProvider = serviceProvider;
+    }
+
+    public void RequestApproval(string moduleName, int recordId, string? roleName, string? message)
+    {
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = _context.Modules.FirstOrDefault(m => m.Name == moduleName && m.TenantId == tenantId);
+        if (module == null) throw new InvalidOperationException($"Module '{moduleName}' not found.");
+
+        var approvalService = _serviceProvider.GetRequiredService<IApprovalService>();
+        // Wait synchronously since Jint is synchronous
+        approvalService.RequestApprovalAsync(module.Id, recordId, roleName, message).GetAwaiter().GetResult();
     }
 
     public IScriptModuleHelper Module(string moduleName)

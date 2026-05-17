@@ -217,6 +217,16 @@ export const deleteRecord = async (moduleId, recordId) => {
   await api.delete(`/modules/${moduleId}/records/${recordId}`);
 };
 
+export const approveRecord = async (moduleId, recordId) => {
+  const response = await api.post(`/modules/${moduleId}/records/${recordId}/approve`);
+  return response.data;
+};
+
+export const rejectRecord = async (moduleId, recordId, reason) => {
+  const response = await api.post(`/modules/${moduleId}/records/${recordId}/reject`, { reason });
+  return response.data;
+};
+
 export const getRecordsByName = async (moduleName, params = {}) => {
   const response = await api.get(`/records/by-name/${moduleName}`, { params });
   return response.data;

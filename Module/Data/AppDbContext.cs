@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<ModuleVisibilityRule> ModuleVisibilityRules { get; set; }
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<ApprovalRequest> ApprovalRequests { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -302,6 +303,48 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => new { e.TenantId, e.UserId });
+        });
+        modelBuilder.Entity<ApprovalRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ModuleRecord)
+                .WithMany()
+                .HasForeignKey(e => e.ModuleRecordId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Module)
+                .WithMany()
+                .HasForeignKey(e => e.ModuleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.RequestedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.RequestedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AssignedToRole)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToRoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ResolvedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ResolvedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.TenantId, e.ModuleRecordId });
+            entity.HasIndex(e => e.Status);
         });
     }
 }

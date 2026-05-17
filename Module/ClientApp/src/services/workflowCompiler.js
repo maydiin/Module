@@ -125,6 +125,30 @@ export const compileWorkflow = (nodes, edges) => {
                 }
                 break;
             }
+            case 'approval': {
+                // The workflow runs within the context of a module, so we assume module is known or passed via DbHelper
+                // For simplicity, we just pass the record ID and let the JS hook logic infer the module from the executing context if possible
+                // Actually, the Script engine in ModuleRecordsController runs specifically for a module.
+                // Since workflowCompiler doesn't know moduleName statically here, we can use a placeholder or rely on `Context.ModuleName` in JS.
+                // Wait, in `ScriptService`, we don't have `Context.ModuleName` explicitly. But `Data.ModuleId` isn't available easily as a name.
+                // But `ModuleRecordsController` executing the hook knows the module.
+                // Let's modify the compilation to use `__MODULE_NAME__` which we can replace or we can just assume `Data.ModuleName` is passed.
+                // To keep it simple, we will assume `Data.ModuleName` is injected by ScriptService or we can pass `Module.Name` string directly.
+                // Let's rely on standard Hook data if possible.
+                
+                const roleName = currentNode.data.roleName || '';
+                const msg = currentNode.data.message || '';
+                const jsMsg = resolveMessageVariables(msg);
+                
+                // We will assume `Context.ModuleName` is available in JS engine.
+                nodeCode += `${indent}Db.RequestApproval(Context.ModuleName, Data.Id, "${roleName}", ${jsMsg});\n`;
+                
+                const nexts = getNextNodes(currentNode.id);
+                if (nexts.length > 0) {
+                    nodeCode += compileNodeList(nexts[0], indent);
+                }
+                break;
+            }
             default:
                 break;
         }

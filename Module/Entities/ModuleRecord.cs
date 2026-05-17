@@ -16,5 +16,8 @@ public class ModuleRecord
     public User? CreatedByUser { get; set; }
     
     public Module Module { get; set; } = null!;
+    
+    // Approval Engine
+    public string? ApprovalStatus { get; set; } // e.g. Draft, Pending, Approved, Rejected
 }
 

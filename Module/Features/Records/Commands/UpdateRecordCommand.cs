@@ -36,6 +36,11 @@ public class UpdateRecordHandler : IRequestHandler<UpdateRecordCommand, ModuleRe
             throw new KeyNotFoundException($"Record with ID {request.RecordId} not found in module {request.ModuleId}.");
         }
 
+        if (record.ApprovalStatus == "Pending")
+        {
+            throw new InvalidOperationException("This record is currently locked because it is pending approval.");
+        }
+
         var module = await _context.Modules
             .Include(m => m.Fields)
             .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken);
@@ -119,7 +124,8 @@ public class UpdateRecordHandler : IRequestHandler<UpdateRecordCommand, ModuleRe
             ModuleId = record.ModuleId,
             Data = resultData,
             LinkedCount = linkedCount,
-            CreatedAt = record.CreatedAt
+            CreatedAt = record.CreatedAt,
+            ApprovalStatus = record.ApprovalStatus
         };
     }
 }

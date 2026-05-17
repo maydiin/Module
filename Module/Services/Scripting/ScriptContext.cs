@@ -29,6 +29,7 @@ public class ScriptValidationException : AppException
 public interface IScriptDbHelper
 {
     IScriptModuleHelper Module(string moduleName);
+    void RequestApproval(string moduleName, int recordId, string? roleName, string? message);
 }
 
 public interface IScriptModuleHelper

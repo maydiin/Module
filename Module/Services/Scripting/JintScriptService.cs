@@ -107,11 +107,14 @@ public class JintScriptService : IScriptService
             User = new CurrentUserDto { Id = 0, Username = "System" } // TODO: Get real user
         };
 
+        var moduleName = _context.Modules.Where(m => m.Id == moduleId).Select(m => m.Name).FirstOrDefault() ?? "Unknown";
+
         engine.SetValue("Db", context.Db);
         engine.SetValue("Data", context.Data);
         engine.SetValue("User", context.User);
         engine.SetValue("Fail", new Action<string>(context.Fail));
         engine.SetValue("Log", new Action<string>(context.Log));
+        engine.SetValue("Context", new { ModuleName = moduleName });
 
         // Inject Api Helper
         Func<string, Dictionary<string, object>, object> executeApi = (configName, parameters) => 

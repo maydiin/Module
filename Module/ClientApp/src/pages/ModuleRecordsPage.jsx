@@ -890,16 +890,16 @@ function ModuleRecordsPage() {
                             <button
                               className="btn btn-outline-primary"
                               onClick={() => handleEdit(record)}
-                              disabled={showForm}
-                              title={t('save_changes')}
+                              disabled={showForm || record.approvalStatus === 'Pending'}
+                              title={record.approvalStatus === 'Pending' ? t('record_locked_pending_approval') || 'Kayıt onay sürecinde, kilitli' : t('save_changes')}
                             >
                                <Icon name="edit" size={16} />
                             </button>
                             <button
                               className="btn btn-outline-danger"
                               onClick={() => setDeleteRecordId(record.id)}
-                              disabled={showForm}
-                              title={t('delete_record')}
+                              disabled={showForm || record.approvalStatus === 'Pending'}
+                              title={record.approvalStatus === 'Pending' ? t('record_locked_pending_approval') || 'Kayıt onay sürecinde, kilitli' : t('delete_record')}
                             >
                                <Icon name="delete" size={16} />
                             </button>

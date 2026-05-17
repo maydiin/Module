@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getModule, getFields, getRecord, getModules, HOST_URL } from '../services/api';
+import { getModule, getFields, getRecord, getModules, HOST_URL, approveRecord, rejectRecord } from '../services/api';
 import axios from 'axios';
 import Icon from '../components/Icon';
+import { useToast } from '../components/ToastContext';
 
 function RecordDetailPage() {
     const { t } = useTranslation();
+    const showToast = useToast();
     const { moduleId, recordId } = useParams();
     const navigate = useNavigate();
     
@@ -22,6 +24,35 @@ function RecordDetailPage() {
     const [loadingSummary, setLoadingSummary] = useState(true);
     const [error, setError] = useState('');
     const [expandedModule, setExpandedModule] = useState(null);
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const handleApprove = async () => {
+        try {
+            setActionLoading(true);
+            await approveRecord(moduleId, recordId);
+            showToast(t('record_approved') || 'Kayıt onaylandı!', 'success');
+            await loadData(); // Reload to get updated status
+        } catch (err) {
+            showToast(err.response?.data?.error || t('error'), 'error');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleReject = async () => {
+        const reason = window.prompt(t('reject_reason') || 'Ret sebebi giriniz:');
+        if (reason === null) return; // cancelled
+        try {
+            setActionLoading(true);
+            await rejectRecord(moduleId, recordId, reason || '-');
+            showToast(t('record_rejected') || 'Kayıt reddedildi!', 'success');
+            await loadData();
+        } catch (err) {
+            showToast(err.response?.data?.error || t('error'), 'error');
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -280,10 +311,55 @@ function RecordDetailPage() {
                             <Icon name="records" size={32} className="icon-theme" />
                         </div>
                         {t('record_details')} <span className="text-muted fs-4">#{record.id}</span>
+                        {record.approvalStatus === 'Pending' && (
+                            <span className="badge bg-warning text-dark fs-6 ms-2 d-flex align-items-center gap-2">
+                                <Icon name="clock" size={16} /> Onay Bekliyor
+                            </span>
+                        )}
+                        {record.approvalStatus === 'Approved' && (
+                            <span className="badge bg-success fs-6 ms-2 d-flex align-items-center gap-2">
+                                <Icon name="check" size={16} /> Onaylandı
+                            </span>
+                        )}
+                        {record.approvalStatus === 'Rejected' && (
+                            <span className="badge bg-danger fs-6 ms-2 d-flex align-items-center gap-2">
+                                <Icon name="x" size={16} /> Reddedildi
+                            </span>
+                        )}
                     </h1>
                     <p className="text-muted mb-0">{module.name} {t('module')}</p>
                 </div>
             </div>
+
+            {record.approvalStatus === 'Pending' && (
+                <div className="alert alert-warning shadow-premium border-0 d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3 p-4 rounded-4 bg-opacity-10 glass">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="bg-warning bg-opacity-25 p-3 rounded-circle text-warning d-flex align-items-center justify-content-center" style={{ width: '56px', height: '56px' }}>
+                            <Icon name="check" size={24} />
+                        </div>
+                        <div>
+                            <h5 className="mb-1 fw-bold text-warning">Onay İşlemi Gerekiyor</h5>
+                            <p className="mb-0 text-muted small">Bu kayıt şu anda onay sürecinde. Lütfen kaydı inceleyip onaylayın veya reddedin.</p>
+                        </div>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <button 
+                            className="btn btn-danger hover-lift d-flex align-items-center gap-2" 
+                            onClick={handleReject}
+                            disabled={actionLoading}
+                        >
+                            <Icon name="x" size={18} /> Reddet
+                        </button>
+                        <button 
+                            className="btn btn-success hover-lift d-flex align-items-center gap-2 shadow-sm" 
+                            onClick={handleApprove}
+                            disabled={actionLoading}
+                        >
+                            <Icon name="check" size={18} /> Onayla
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="row g-4 mb-4">
                 <div className="col-lg-6">

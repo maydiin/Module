@@ -7,5 +7,6 @@ public class ModuleRecordDto
     public Dictionary<string, object> Data { get; set; } = new();
     public int LinkedCount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? ApprovalStatus { get; set; }
 }
 

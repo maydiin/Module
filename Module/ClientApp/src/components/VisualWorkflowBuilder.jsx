@@ -270,6 +270,41 @@ const CodeBlockNode = ({ data, id }) => {
     );
 };
 
+// Custom Approval Node
+const ApprovalNode = ({ data, id }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="glass shadow-premium p-3 rounded-4 border border-warning border-opacity-50" style={{ minWidth: '260px' }}>
+            <Handle type="target" position={Position.Top} style={{ background: 'hsl(var(--warning))' }} />
+            <div className="d-flex align-items-center justify-content-between mb-2">
+                <div className="badge bg-warning bg-opacity-20 text-warning px-2 py-1 rounded-pill fw-bold text-uppercase small" style={{ fontSize: '0.65rem' }}>
+                    {t('node_approval') || 'ONAY İSTASYONU'}
+                </div>
+                <Icon name="check" size={14} className="text-warning" />
+            </div>
+            <div className="d-flex flex-column gap-2 mt-2">
+                <input 
+                    type="text" 
+                    className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
+                    value={data.roleName || ''} 
+                    onChange={(e) => data.onChange(id, 'roleName', e.target.value)}
+                    placeholder="Onaylayacak Rol (örn: Admin)"
+                    style={{ fontSize: '0.8rem', borderRadius: '8px' }}
+                />
+                <textarea 
+                    className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
+                    value={data.message || ''} 
+                    onChange={(e) => data.onChange(id, 'message', e.target.value)}
+                    placeholder="Onay Mesajı (örn: İzin talebi)"
+                    rows={2}
+                    style={{ fontSize: '0.8rem', borderRadius: '8px', resize: 'none' }}
+                />
+            </div>
+            <Handle type="source" position={Position.Bottom} style={{ background: 'hsl(var(--warning))' }} />
+        </div>
+    );
+};
+
 const nodeTypes = {
     trigger: TriggerNode,
     log: LogNode,
@@ -278,7 +313,8 @@ const nodeTypes = {
     dbFind: DbFindNode,
     dbUpdate: DbUpdateNode,
     api: ApiNode,
-    codeBlock: CodeBlockNode
+    codeBlock: CodeBlockNode,
+    approval: ApprovalNode
 };
 
 const VisualWorkflowBuilder = ({ triggerType, value, onChange }) => {
@@ -455,6 +491,17 @@ const VisualWorkflowBuilder = ({ triggerType, value, onChange }) => {
                 >
                     <Icon name="check" size={16} />
                     <span className="small">{t('node_db_update') || 'Kayıt Güncelle'}</span>
+                </button>
+
+                <div className="border-top border-secondary border-opacity-10 my-1"></div>
+
+                <button 
+                    type="button"
+                    onClick={() => addNode('approval')} 
+                    className="btn btn-blur bg-warning bg-opacity-10 text-warning border-warning border-opacity-20 d-flex align-items-center gap-2 justify-content-start w-100 py-2.5 rounded-3 hover-lift shadow-sm"
+                >
+                    <Icon name="check" size={16} />
+                    <span className="small">{t('node_approval') || 'Onay İstasyonu'}</span>
                 </button>
 
                 <div className="border-top border-secondary border-opacity-10 my-1"></div>

@@ -30,6 +30,11 @@ public class DeleteRecordHandler : IRequestHandler<DeleteRecordCommand>
             throw new KeyNotFoundException($"Record with ID {request.RecordId} not found in module {request.ModuleId}.");
         }
 
+        if (record.ApprovalStatus == "Pending")
+        {
+            throw new InvalidOperationException("This record is currently locked because it is pending approval.");
+        }
+
         // Check for incoming relations (Referential Integrity)
         var hasIncomingRelations = await _context.RecordRelations
             .AnyAsync(r => r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id, cancellationToken);

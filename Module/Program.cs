@@ -111,6 +111,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IApiSyncService, ApiSyncService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IApprovalService, ApprovalService>();
 
 
 builder.Services.AddHostedService<PollingBackgroundService>();

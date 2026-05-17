@@ -114,7 +114,8 @@ public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRe
             Id = record.Id,
             ModuleId = record.ModuleId,
             Data = resultData,
-            CreatedAt = record.CreatedAt
+            CreatedAt = record.CreatedAt,
+            ApprovalStatus = record.ApprovalStatus
         };
     }
 }
