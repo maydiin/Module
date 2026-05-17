@@ -21,6 +21,8 @@ public class ModuleScript
     [Required]
     public string ScriptContent { get; set; } = string.Empty;
 
+    public string? FlowConfig { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     // Navigation property

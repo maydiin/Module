@@ -7,6 +7,8 @@ import AiChatModal from '../components/AiChatModal';
 import Icon from '../components/Icon';
 import { useToast } from '../components/ToastContext';
 import ConfirmModal from '../components/ConfirmModal';
+import VisualWorkflowBuilder from '../components/VisualWorkflowBuilder';
+import { compileWorkflow } from '../services/workflowCompiler';
 
 const ModuleScriptsPage = () => {
     const { t } = useTranslation();
@@ -19,9 +21,11 @@ const ModuleScriptsPage = () => {
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [editingScript, setEditingScript] = useState(null);
+    const [editMode, setEditMode] = useState('flow'); // 'flow' or 'code'
     const [formData, setFormData] = useState({
         triggerType: 'CustomList',
         scriptContent: '',
+        flowConfig: '',
         isActive: true
     });
     const [showAiModal, setShowAiModal] = useState(false);
@@ -62,8 +66,10 @@ const ModuleScriptsPage = () => {
         setFormData({
             triggerType: script.triggerType,
             scriptContent: script.scriptContent,
+            flowConfig: script.flowConfig || '',
             isActive: script.isActive
         });
+        setEditMode(script.flowConfig ? 'flow' : 'code');
         setShowModal(true);
     };
 
@@ -72,8 +78,10 @@ const ModuleScriptsPage = () => {
         setFormData({
             triggerType: 'CustomList',
             scriptContent: '// Write your JS code here\n// Available objects: Db, Data, User, Fail(msg), Log(msg)\n',
+            flowConfig: '',
             isActive: true
         });
+        setEditMode('flow');
         setShowModal(true);
     };
 
@@ -285,8 +293,10 @@ const ModuleScriptsPage = () => {
                         setFormData({
                             triggerType: generated.TriggerType || generated.triggerType || 'BeforeCreate',
                             scriptContent: generated.ScriptContent || generated.scriptContent || '',
+                            flowConfig: '',
                             isActive: generated.IsActive !== undefined ? generated.IsActive : (generated.isActive !== undefined ? generated.isActive : true)
                         });
+                        setEditMode('code');
                         setShowAiModal(false);
                         setEditingScript(null);
                         setShowModal(true);
@@ -322,10 +332,10 @@ const ModuleScriptsPage = () => {
                                 </h5>
                                 <button type="button" className="btn-close btn-close-premium" onClick={() => setShowModal(false)}></button>
                             </div>
-                            <div className="modal-body modal-body-premium p-4" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+                            <div className="modal-body modal-body-premium p-4" style={{ maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
                                 <form id="scriptForm" onSubmit={handleSubmit}>
                                     <div className="row g-4 mb-4">
-                                        <div className="col-md-7">
+                                        <div className="col-md-5">
                                             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('trigger_event')}</label>
                                             <div className="input-group">
                                                 <span className="input-group-text bg-surface border-2 border-end-0">
@@ -335,7 +345,6 @@ const ModuleScriptsPage = () => {
                                                     value={formData.triggerType}
                                                     onChange={(e) => setFormData({ ...formData, triggerType: e.target.value })}
                                                     className="form-select border-2 shadow-sm"
-                                                    disabled={!!editingScript}
                                                     style={{ height: '50px' }}
                                                 >
                                                     {triggerTypes.map(type => (
@@ -347,11 +356,33 @@ const ModuleScriptsPage = () => {
                                             </div>
                                         </div>
 
-                                        <div className="col-md-5">
+                                        <div className="col-md-4">
+                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('edit_mode') || 'Düzenleme Modu'}</label>
+                                            <div className="btn-group w-100 shadow-sm border border-secondary border-opacity-10 rounded-3 overflow-hidden" style={{ height: '50px' }}>
+                                                <button
+                                                    type="button"
+                                                    className={`btn btn-sm ${editMode === 'flow' ? 'btn-primary' : 'btn-blur bg-surface'}`}
+                                                    onClick={() => setEditMode('flow')}
+                                                    style={{ border: 'none', borderRadius: 0 }}
+                                                >
+                                                    🎨 {t('flow_mode') || 'Görsel Akış'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`btn btn-sm ${editMode === 'code' ? 'btn-primary' : 'btn-blur bg-surface'}`}
+                                                    onClick={() => setEditMode('code')}
+                                                    style={{ border: 'none', borderRadius: 0 }}
+                                                >
+                                                    💻 {t('code_mode') || 'Kod Yaz'}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="col-md-3">
                                             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2">{t('status')}</label>
                                             <div className="p-2 px-3 bg-surface bg-opacity-50 rounded-3 border-2 border shadow-sm d-flex align-items-center justify-content-between" style={{ height: '50px' }}>
                                                 <span className="small fw-bold text-foreground opacity-80 d-flex align-items-center gap-2">
-                                                    <div className={`rounded-circle ${formData.isActive ? 'bg-success' : 'bg-secondary'}`} style={{ width: '8px', height: '8px shadow-sm' }}></div>
+                                                    <div className={`rounded-circle ${formData.isActive ? 'bg-success' : 'bg-secondary'}`} style={{ width: '8px', height: '8px' }}></div>
                                                     {formData.isActive ? t('active') : t('inactive')}
                                                 </span>
                                                 <div className="form-check form-switch p-0 m-0">
@@ -368,47 +399,69 @@ const ModuleScriptsPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Code Editor */}
-                                    <div className="mb-0">
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                            <label className="form-label small fw-bold text-uppercase tracking-wider text-muted m-0 d-flex align-items-center gap-2">
-                                                <Icon name="terminal" size={14} /> {t('script_code')}
-                                            </label>
-                                            <span className="badge badge-outline-theme px-3 py-2 rounded-pill fw-bold">JavaScript (Jint/V8)</span>
-                                        </div>
-                                        <div className="card border-0 bg-dark text-white rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-10">
-                                            <div className="card-header bg-secondary bg-opacity-10 border-bottom border-secondary border-opacity-10 py-3 d-flex align-items-center justify-content-between">
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <div className="d-flex gap-2">
-                                                        <div className="rounded-circle bg-danger opacity-75 shadow-sm" style={{ width: '12px', height: '12px' }}></div>
-                                                        <div className="rounded-circle bg-warning opacity-75 shadow-sm" style={{ width: '12px', height: '12px' }}></div>
-                                                        <div className="rounded-circle bg-success opacity-75 shadow-sm" style={{ width: '12px', height: '12px' }}></div>
-                                                    </div>
-                                                    <span className="font-monospace small opacity-50 tracking-widest text-uppercase">MODULE_HANDLER.JS</span>
-                                                </div>
-                                                <div className="opacity-50 small font-monospace">UTF-8</div>
+                                    {editMode === 'flow' ? (
+                                        <div className="mb-0">
+                                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted m-0 d-flex align-items-center gap-2">
+                                                    <Icon name="settings" size={14} /> {t('visual_flow') || 'Görsel Akış Tasarımı'}
+                                                </label>
+                                                <span className="badge badge-outline-theme px-3 py-2 rounded-pill fw-bold">Drag & Drop (React Flow)</span>
                                             </div>
-                                            <textarea
-                                                value={formData.scriptContent}
-                                                onChange={(e) => setFormData({ ...formData, scriptContent: e.target.value })}
-                                                className="form-control bg-dark text-light border-0 font-monospace p-4 shadow-inner custom-scrollbar"
-                                                style={{ height: '400px', resize: 'none', borderRadius: 0, fontSize: '0.95rem', lineHeight: '1.6', letterSpacing: '0.02em' }}
-                                                spellCheck="false"
-                                                placeholder={t('script_placeholder') || "// Write your automation logic here..."}
+                                            <VisualWorkflowBuilder 
+                                                triggerType={formData.triggerType}
+                                                value={formData.flowConfig}
+                                                onChange={(flowConfig, nodes, edges) => {
+                                                    const compiledCode = compileWorkflow(nodes, edges);
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        flowConfig,
+                                                        scriptContent: compiledCode
+                                                    }));
+                                                }}
                                             />
-                                            <div className="card-footer bg-secondary bg-opacity-10 border-top border-secondary border-opacity-10 py-3 d-flex justify-content-between align-items-center">
-                                                <div className="font-monospace small d-flex gap-3">
-                                                    <span className="text-info opacity-80 px-2 py-1 bg-info bg-opacity-10 rounded">Db</span>
-                                                    <span className="text-primary opacity-80 px-2 py-1 bg-primary bg-opacity-10 rounded">Data</span>
-                                                    <span className="text-success opacity-80 px-2 py-1 bg-success bg-opacity-10 rounded">User</span>
-                                                    <span className="text-danger opacity-80 px-2 py-1 bg-danger bg-opacity-10 rounded">Fail()</span>
+                                        </div>
+                                    ) : (
+                                        <div className="mb-0">
+                                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                                <label className="form-label small fw-bold text-uppercase tracking-wider text-muted m-0 d-flex align-items-center gap-2">
+                                                    <Icon name="terminal" size={14} /> {t('script_code')}
+                                                </label>
+                                                <span className="badge badge-outline-theme px-3 py-2 rounded-pill fw-bold">JavaScript (Jint/V8)</span>
+                                            </div>
+                                            <div className="card border-0 bg-dark text-white rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-10">
+                                                <div className="card-header bg-secondary bg-opacity-10 border-bottom border-secondary border-opacity-10 py-3 d-flex align-items-center justify-content-between">
+                                                    <div className="d-flex align-items-center gap-3">
+                                                        <div className="d-flex gap-2">
+                                                            <div className="rounded-circle bg-danger opacity-75 shadow-sm" style={{ width: '12px', height: '12px' }}></div>
+                                                            <div className="rounded-circle bg-warning opacity-75 shadow-sm" style={{ width: '12px', height: '12px' }}></div>
+                                                            <div className="rounded-circle bg-success opacity-75 shadow-sm" style={{ width: '12px', height: '12px' }}></div>
+                                                        </div>
+                                                        <span className="font-monospace small opacity-50 tracking-widest text-uppercase">MODULE_HANDLER.JS</span>
+                                                    </div>
+                                                    <div className="opacity-50 small font-monospace">UTF-8</div>
                                                 </div>
-                                                <span className="small text-muted opacity-60 d-flex align-items-center gap-2">
-                                                    <Icon name="lightbulb" size={14} /> {t('readonly_context')}
-                                                </span>
+                                                <textarea
+                                                    value={formData.scriptContent}
+                                                    onChange={(e) => setFormData({ ...formData, scriptContent: e.target.value })}
+                                                    className="form-control bg-dark text-light border-0 font-monospace p-4 shadow-inner custom-scrollbar"
+                                                    style={{ height: '400px', resize: 'none', borderRadius: 0, fontSize: '0.95rem', lineHeight: '1.6', letterSpacing: '0.02em' }}
+                                                    spellCheck="false"
+                                                    placeholder={t('script_placeholder') || "// Write your automation logic here..."}
+                                                />
+                                                <div className="card-footer bg-secondary bg-opacity-10 border-top border-secondary border-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                                                    <div className="font-monospace small d-flex gap-3">
+                                                        <span className="text-info opacity-80 px-2 py-1 bg-info bg-opacity-10 rounded">Db</span>
+                                                        <span className="text-primary opacity-80 px-2 py-1 bg-primary bg-opacity-10 rounded">Data</span>
+                                                        <span className="text-success opacity-80 px-2 py-1 bg-success bg-opacity-10 rounded">User</span>
+                                                        <span className="text-danger opacity-80 px-2 py-1 bg-danger bg-opacity-10 rounded">Fail()</span>
+                                                    </div>
+                                                    <span className="small text-muted opacity-60 d-flex align-items-center gap-2">
+                                                        <Icon name="lightbulb" size={14} /> {t('readonly_context')}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </form>
                             </div>
                             <div className="modal-footer modal-footer-premium border-0 py-4 px-4 bg-surface bg-opacity-50">

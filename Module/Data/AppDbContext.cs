@@ -254,6 +254,7 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.TriggerType).IsRequired().HasMaxLength(50);
             entity.Property(e => e.ScriptContent).IsRequired().HasColumnType("nvarchar(max)");
+            entity.Property(e => e.FlowConfig).HasColumnType("nvarchar(max)");
             
             entity.HasOne(e => e.Module)
                 .WithMany() // No navigation back from Module needed for now

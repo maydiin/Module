@@ -63,6 +63,7 @@ public class ModuleScriptsController : ControllerBase
             ModuleId = moduleId,
             TriggerType = dto.TriggerType,
             ScriptContent = dto.ScriptContent,
+            FlowConfig = dto.FlowConfig,
             IsActive = dto.IsActive
         };
 
@@ -87,6 +88,7 @@ public class ModuleScriptsController : ControllerBase
 
         script.TriggerType = dto.TriggerType;
         script.ScriptContent = dto.ScriptContent;
+        script.FlowConfig = dto.FlowConfig;
         script.IsActive = dto.IsActive;
 
         await _context.SaveChangesAsync();
@@ -116,5 +118,6 @@ public class ModuleScriptDTO
 {
     public string TriggerType { get; set; } = string.Empty;
     public string ScriptContent { get; set; } = string.Empty;
+    public string? FlowConfig { get; set; }
     public bool IsActive { get; set; }
 }
