@@ -21,7 +21,7 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 250 84% 54%;
-  --radius: 1.25rem;
+  --radius: 0.6rem;
 
   /* Glassmorphism Defaults */
   --glass-bg: rgba(255, 255, 255, 0.92);
@@ -257,8 +257,8 @@ select,
   color: hsl(var(--foreground)) !important;
   border: 2px solid hsla(var(--foreground), 0.2) !important; /* Solid visible grey border */
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-radius: 12px !important;
-  padding: 0.75rem 1.25rem !important;
+  border-radius: 6px !important;
+  padding: 0.4rem 0.65rem !important;
 }
 
 input:not([type="checkbox"]):not([type="radio"]):hover, 
@@ -287,10 +287,10 @@ input[type="radio"],
 .form-check-input {
   appearance: none !important;
   -webkit-appearance: none !important;
-  width: 1.5rem !important; /* Larger size */
-  height: 1.5rem !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
   border: 2px solid hsla(var(--foreground), 0.25) !important; /* Visible border */
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   background-color: hsla(var(--background), 0.5) !important;
   cursor: pointer !important;
   display: inline-flex !important;
@@ -305,10 +305,10 @@ input[type="radio"],
 .form-check {
   display: flex !important;
   align-items: center !important;
-  gap: 0.75rem !important;
+  gap: 0.45rem !important;
   padding-left: 0 !important;
-  margin-bottom: 0.75rem !important;
-  min-height: 1.5rem !important;
+  margin-bottom: 0.35rem !important;
+  min-height: 1.15rem !important;
 }
 
 .form-check-label {
@@ -342,9 +342,9 @@ input[type="radio"]:checked,
 input[type="checkbox"]:checked::after, 
 .form-check-input[type="checkbox"]:checked::after {
   content: '';
-  width: 0.65rem;
-  height: 0.35rem;
-  border: 2.5px solid white;
+  width: 0.45rem;
+  height: 0.25rem;
+  border: 2px solid white;
   border-top: none;
   border-right: none;
   transform: rotate(-45deg) translateY(-2px) translateX(1px);
@@ -353,8 +353,8 @@ input[type="checkbox"]:checked::after,
 input[type="radio"]:checked::after, 
 .form-check-input[type="radio"]:checked::after {
   content: '';
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.45rem;
+  height: 0.45rem;
   background-color: white;
   border-radius: 50%;
 }
@@ -366,6 +366,10 @@ input[type="radio"]:focus,
   box-shadow: 0 0 0 4px hsla(var(--primary), 0.2) !important;
 }
 
+html {
+  font-size: 14px;
+}
+
 body {
   margin: 0;
   font-family: 'Outfit', sans-serif;
@@ -373,9 +377,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: hsl(var(--foreground));
   overflow-x: hidden;
-  line-height: 1.6;
+  line-height: 1.45;
   letter-spacing: -0.015em;
   background-color: hsl(var(--background));
+  font-size: 0.875rem;
   /* Dynamic Mesh Background using Variables */
   background-image: 
     radial-gradient(at 0% 0%, hsla(var(--primary), 0.05) 0, transparent 50%),
@@ -536,15 +541,15 @@ body {
 
 /* iOS Vibrant Text/Button */
 .btn {
-  border-radius: calc(var(--radius) * 0.8);
+  border-radius: calc(var(--radius) * 0.7);
   font-weight: 700;
-  padding: 0.8rem 1.75rem;
+  padding: 0.4rem 0.85rem;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
+  gap: 0.35rem;
+  font-size: 0.825rem;
   border: none;
   letter-spacing: -0.02em;
 }
@@ -576,10 +581,15 @@ body {
 /* Typography Enhancements */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   color: hsl(var(--foreground));
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.65rem;
 }
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.15rem; }
+h4 { font-size: 1.0rem; }
 
 .text-gradient {
   background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
@@ -618,17 +628,17 @@ h1, h2, h3, h4, h5, h6 {
   color: hsl(var(--foreground));
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.725rem;
+  font-size: 0.675rem;
   letter-spacing: 0.08em;
-  padding: 1.25rem 1.5rem;
+  padding: 0.45rem 0.6rem;
   border-bottom: 2px solid hsla(var(--foreground), 0.05);
 }
 
 .table td {
-  padding: 1.25rem 1.5rem;
+  padding: 0.45rem 0.6rem;
   vertical-align: middle;
   border-bottom: 1px solid hsla(var(--foreground), 0.03);
-  font-size: 0.95rem;
+  font-size: 0.825rem;
   color: hsla(var(--foreground), 0.85);
 }
 
@@ -757,20 +767,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-header-premium {
-  padding: 1.75rem 2rem !important;
+  padding: 0.75rem 1rem !important;
   border-bottom: 1px solid hsla(var(--primary), 0.1) !important;
   background: hsla(var(--primary), 0.03);
 }
 
 .modal-footer-premium {
-  padding: 1.5rem 2rem !important;
+  padding: 0.6rem 1rem !important;
   border-top: 1px solid hsla(var(--primary), 0.08) !important;
   background: hsla(var(--primary), 0.02);
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .modal-body-premium {
-  padding: 2rem !important;
+  padding: 1.1rem !important;
+}
+
+.card-body {
+  padding: 1rem !important;
+}
+
+.glass-card, .card {
+  margin-bottom: 0.75rem !important;
 }
 
 .btn-close-premium {

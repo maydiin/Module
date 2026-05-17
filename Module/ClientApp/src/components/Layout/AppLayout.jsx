@@ -105,24 +105,24 @@ function AppLayout({ children }) {
       }}></div>
 
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg sticky-top py-4 transition-all" style={{ zIndex: 1020 }}>
-        <div className="container-fluid px-lg-5">
-          <div className="glass-pill px-4 py-2 d-flex align-items-center w-100 shadow-premium">
+      <nav className="navbar navbar-expand-lg sticky-top py-2 transition-all" style={{ zIndex: 1020 }}>
+        <div className="container-fluid px-lg-4">
+          <div className="glass-pill px-3 py-1.5 d-flex align-items-center w-100 shadow-premium">
             <div className="d-flex align-items-center me-auto">
               <button
                 className="btn border-0 me-3 d-flex align-items-center justify-content-center text-primary shadow-sm hover-lift p-0"
                 onClick={toggleSidebar}
-                style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'hsla(var(--primary), 0.15)', flexShrink: 0 }}
+                style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'hsla(var(--primary), 0.15)', flexShrink: 0 }}
                 title={t('toggle_menu')}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12"></line>
                   <line x1="3" y1="6" x2="21" y2="6"></line>
                   <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
               </button>
-              <Link className="navbar-brand fw-bold fs-4 d-flex align-items-center m-0" to="/">
-                <Icon name="box" size={32} className="me-2 icon-theme" />
+              <Link className="navbar-brand fw-bold fs-5 d-flex align-items-center m-0" to="/">
+                <Icon name="box" size={24} className="me-2 icon-theme" />
                 <span className="text-gradient">
                   {t('app_name')}
                 </span>
@@ -134,11 +134,11 @@ function AppLayout({ children }) {
               <ul className="navbar-nav gap-2 align-items-center">
                 <li className="nav-item">
                   <Link
-                    className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/'
+                    className={`nav-link px-3 py-1 rounded-pill transition-all fw-bold ${location.pathname === '/'
                       ? 'menu-active scale-105'
                       : 'text-nav hover-bg-theme'
                       }`}
-                    style={{ fontSize: '0.9rem' }}
+                    style={{ fontSize: '0.825rem' }}
                     to="/"
                   >
                     {t('dashboard')}
@@ -147,11 +147,11 @@ function AppLayout({ children }) {
                 <HasPermission permission="User.Manage">
                   <li className="nav-item">
                     <Link
-                      className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/users'
+                      className={`nav-link px-3 py-1 rounded-pill transition-all fw-bold ${location.pathname === '/users'
                         ? 'menu-active scale-105'
                         : 'text-nav hover-bg-theme'
                         }`}
-                      style={{ fontSize: '0.9rem' }}
+                      style={{ fontSize: '0.825rem' }}
                       to="/users"
                     >
                       {t('users')}
@@ -161,11 +161,11 @@ function AppLayout({ children }) {
                 <HasPermission permission="Role.Manage">
                   <li className="nav-item">
                     <Link
-                      className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/roles'
+                      className={`nav-link px-3 py-1 rounded-pill transition-all fw-bold ${location.pathname === '/roles'
                         ? 'menu-active scale-105'
                         : 'text-nav hover-bg-theme'
                         }`}
-                      style={{ fontSize: '0.9rem' }}
+                      style={{ fontSize: '0.825rem' }}
                       to="/roles"
                     >
                       {t('roles')}
@@ -175,11 +175,11 @@ function AppLayout({ children }) {
                 <HasPermission permission="AuditLog.View">
                   <li className="nav-item">
                     <Link
-                      className={`nav-link px-4 py-2 rounded-pill transition-all fw-bold ${location.pathname === '/audit-logs'
+                      className={`nav-link px-3 py-1 rounded-pill transition-all fw-bold ${location.pathname === '/audit-logs'
                         ? 'menu-active scale-105'
                         : 'text-nav hover-bg-theme'
                         }`}
-                      style={{ fontSize: '0.9rem' }}
+                      style={{ fontSize: '0.825rem' }}
                       to="/audit-logs"
                     >
                       {t('audit_logs_nav')}

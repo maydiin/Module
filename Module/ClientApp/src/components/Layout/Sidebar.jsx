@@ -127,42 +127,42 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                     ...(isMobile ? { height: 'auto', minHeight: 'calc(100vh - 4rem)' } : {})
                 }}
             >
-                <div className="py-4 px-3" style={{ width: '268px' }}>
+                <div className="py-2 px-2" style={{ width: '268px' }}>
                     {/* Dashboard link */}
-                    <div className="mb-3">
+                    <div className="mb-1.5">
                         <NavLink
                             to="/"
                             end
                             className={({ isActive }) =>
-                                `text-decoration-none d-flex align-items-center px-3 py-2 fw-bold transition-all ${isActive ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`
+                                `text-decoration-none d-flex align-items-center px-3 py-1.5 fw-bold transition-all ${isActive ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`
                             }
-                            style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
+                            style={{ height: '38px', borderRadius: '8px', backdropFilter: 'blur(5px)' }}
                         >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="me-3 icon-theme">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="me-3 icon-theme">
                                 <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
                                 <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
                                 <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
                                 <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
                             </svg>
-                            <span style={{ fontSize: '0.925rem' }}>{t('dashboard')}</span>
+                            <span style={{ fontSize: '0.825rem' }}>{t('dashboard')}</span>
                         </NavLink>
                     </div>
 
                     {/* Modules link */}
-                    <div className="mb-3">
+                    <div className="mb-1.5">
                         <NavLink
                             to="/modules"
                             className={({ isActive }) =>
-                                `text-decoration-none d-flex align-items-center px-3 py-2 fw-bold transition-all ${isActive ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`
+                                `text-decoration-none d-flex align-items-center px-3 py-1.5 fw-bold transition-all ${isActive ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`
                             }
-                            style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
+                            style={{ height: '38px', borderRadius: '8px', backdropFilter: 'blur(5px)' }}
                         >
-                            <Icon name="box" size={22} className="me-3 icon-theme" />
-                            <span style={{ fontSize: '0.925rem' }}>{t('modules_nav')}</span>
+                            <Icon name="box" size={18} className="me-3 icon-theme" />
+                            <span style={{ fontSize: '0.825rem' }}>{t('modules_nav')}</span>
                         </NavLink>
                     </div>
 
-                    <div className="mb-4 ps-2">
+                    <div className="mb-2 ps-2">
                         <h6 className="text-uppercase text-primary fw-extrabold small tracking-wider" style={{ fontSize: '0.65rem' }}>
                             {t('modules_title')}
                         </h6>
@@ -180,22 +180,22 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                 const canScript = isSuperAdmin || userPermissions.includes(`Module.${module.name}.Script`);
 
                                 return (
-                                    <li key={module.id} className="mb-2">
+                                    <li key={module.id} className="mb-1">
                                         <button
-                                            className={`btn border-0 w-100 text-start px-3 py-2 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`}
+                                            className={`btn border-0 w-100 text-start px-3 py-1.5 fw-bold transition-all d-flex align-items-center ${isExpanded ? 'menu-active' : 'text-nav bg-surface bg-opacity-50 hover-bg-theme'}`}
                                             onClick={() => toggleModule(module.id)}
                                             aria-expanded={isExpanded}
-                                            style={{ height: '52px', borderRadius: '16px', backdropFilter: 'blur(5px)' }}
+                                            style={{ height: '38px', borderRadius: '8px', backdropFilter: 'blur(5px)' }}
                                         >
                                             <div className="d-flex align-items-center flex-grow-1 overflow-hidden">
                                                 <div className={`me-3 transition-all ${isExpanded ? 'scale-110' : 'opacity-70'}`}>
                                                     <Icon
                                                         name={isExpanded ? "folderOpen" : "folder"}
-                                                        size={22}
+                                                        size={18}
                                                         className="icon-theme"
                                                     />
                                                 </div>
-                                                <span className="text-truncate" style={{ fontSize: '0.925rem' }}>{module.name}</span>
+                                                <span className="text-truncate" style={{ fontSize: '0.825rem' }}>{module.name}</span>
                                             </div>
                                             <span className={`ms-auto transition-all ${isExpanded ? 'rotate-90' : ''}`} style={{ fontSize: '0.6rem', opacity: isExpanded ? 0.8 : 0.3 }}>
                                                 {isExpanded ? '▼' : '▶'}
@@ -203,15 +203,16 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                         </button>
 
                                         {isExpanded && (
-                                            <div className="mt-2 ms-2 ps-3 border-start border-primary border-opacity-10 fade-in" style={{ borderColor: 'hsla(var(--primary), 0.2) !important' }}>
-                                                <ul className="list-unstyled fw-normal pb-1 small mt-1">
+                                            <div className="mt-1 ms-1 ps-2 border-start border-primary border-opacity-10 fade-in" style={{ borderColor: 'hsla(var(--primary), 0.2) !important' }}>
+                                                <ul className="list-unstyled fw-normal pb-0.5 small mt-1">
                                                     {canView && (
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/records`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-1 px-2.5 rounded-3 transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                <Icon name="records" size={18} className="me-2" />
+                                                                <Icon name="records" size={14} className="me-2" />
                                                                 {t('records')}
                                                             </NavLink>
                                                         </li>
@@ -220,9 +221,10 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/reports`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-1 px-2.5 rounded-3 transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                <Icon name="barChart" size={18} className="me-2" />
+                                                                <Icon name="barChart" size={14} className="me-2" />
                                                                 {t('reports')}
                                                             </NavLink>
                                                         </li>
@@ -231,9 +233,10 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/fields`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-1 px-2.5 rounded-3 transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                <Icon name="fields" size={18} className="me-2" />
+                                                                <Icon name="fields" size={14} className="me-2" />
                                                                 {t('fields')}
                                                             </NavLink>
                                                         </li>
@@ -242,9 +245,10 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/api-configs`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-1 px-2.5 rounded-3 transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                <Icon name="api" size={18} className="me-2" />
+                                                                <Icon name="api" size={14} className="me-2" />
                                                                 {t('api_nav')}
                                                             </NavLink>
                                                         </li>
@@ -253,9 +257,10 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/scripts`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-1 px-2.5 rounded-3 transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                <Icon name="terminal" size={18} className="me-2" />
+                                                                <Icon name="terminal" size={14} className="me-2" />
                                                                 {t('scripts_nav')}
                                                             </NavLink>
                                                         </li>
@@ -264,9 +269,10 @@ function Sidebar({ isOpen = true, isMobile = false, onClose, className = '' }) {
                                                         <li>
                                                             <NavLink
                                                                 to={`/modules/${module.id}/visibility-rules`}
-                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-2 px-3 rounded-pill transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                className={({ isActive }) => `text-decoration-none d-flex align-items-center py-1 px-2.5 rounded-3 transition-all mb-1 ${isActive ? 'menu-active scale-105' : 'text-nav hover-bg-theme fw-medium'}`}
+                                                                style={{ fontSize: '0.8rem' }}
                                                             >
-                                                                <Icon name="users" size={18} className="me-2" />
+                                                                <Icon name="users" size={14} className="me-2" />
                                                                 {t('visibility_nav')}
                                                             </NavLink>
                                                         </li>
