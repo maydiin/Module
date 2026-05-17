@@ -1,19 +1,40 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getRecordsByName, uploadFile } from '../services/api';
+import { uploadFile } from '../services/api';
 import AsyncRelationSelect from './AsyncRelationSelect';
 import { useToast } from './ToastContext';
+import Icon from './Icon';
 
-function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
+function DynamicForm({ fields, layoutConfig, initialData = {}, onSubmit, submitLabel }) {
   const { t } = useTranslation();
   const showToast = useToast();
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
-  const [relationsData, setRelationsData] = useState({});
   const [uploading, setUploading] = useState({});
+  const [activeTabId, setActiveTabId] = useState('');
+  const [visibleFields, setVisibleFields] = useState({});
 
+  // Parse layout config safely
+  let config = null;
+  if (layoutConfig) {
+    try {
+      config = typeof layoutConfig === 'string' ? JSON.parse(layoutConfig) : layoutConfig;
+    } catch (e) {
+      console.error("Failed to parse layoutConfig", e);
+    }
+  }
+
+  // Set active tab initially
   useEffect(() => {
-    // Initialize form data with initial values or empty values
+    if (config && config.tabs && config.tabs.length > 0) {
+      setActiveTabId(config.tabs[0].id);
+    } else {
+      setActiveTabId('');
+    }
+  }, [layoutConfig]);
+
+  // Initialize form data with initial values or empty values
+  useEffect(() => {
     const initialFormData = {};
     fields.forEach(field => {
       if (field.type.toLowerCase() === 'checkbox') {
@@ -25,9 +46,52 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       }
     });
     setFormData(initialFormData);
-
-    // Old fetchRelations logic removed for performance
   }, [fields, initialData]);
+
+  // Reactive evaluation of client-side visibility rules
+  useEffect(() => {
+    const map = {};
+    fields.forEach(f => {
+      map[f.name] = true;
+    });
+
+    if (config && config.visibilityRules && config.visibilityRules.length > 0) {
+      config.visibilityRules.forEach(rule => {
+        const { sourceField, operator, value: triggerValue, targetField, action } = rule;
+        if (!sourceField || !targetField) return;
+
+        const sourceVal = formData[sourceField];
+        let conditionMet = false;
+
+        switch (operator) {
+          case 'eq':
+            conditionMet = String(sourceVal ?? '') === String(triggerValue ?? '');
+            break;
+          case 'neq':
+            conditionMet = String(sourceVal ?? '') !== String(triggerValue ?? '');
+            break;
+          case 'contains':
+            conditionMet = String(sourceVal ?? '').toLowerCase().includes(String(triggerValue ?? '').toLowerCase());
+            break;
+          case 'gt':
+            conditionMet = Number(sourceVal) > Number(triggerValue);
+            break;
+          case 'lt':
+            conditionMet = Number(sourceVal) < Number(triggerValue);
+            break;
+          default:
+            conditionMet = false;
+        }
+
+        if (action === 'show') {
+          map[targetField] = conditionMet;
+        } else if (action === 'hide') {
+          map[targetField] = !conditionMet;
+        }
+      });
+    }
+    setVisibleFields(map);
+  }, [formData, fields, layoutConfig]);
 
   const handleChange = (fieldName, value) => {
     setFormData(prev => ({
@@ -47,6 +111,11 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
   const validate = () => {
     const newErrors = {};
     fields.forEach(field => {
+      // Skip validation if the field is not currently visible
+      if (visibleFields[field.name] === false) {
+        return;
+      }
+
       if (field.required) {
         const value = formData[field.name];
         if (field.type.toLowerCase() === 'checkbox') {
@@ -95,7 +164,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'text':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -113,7 +182,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'number':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -131,7 +200,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'date':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -149,7 +218,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'datetime':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -166,19 +235,20 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
 
       case 'checkbox':
         return (
-          <div key={field.id} className="mb-3 form-check">
+          <div key={field.id} className="mb-3 form-check form-switch p-3 ps-5 rounded bg-surface bg-opacity-30 border border-theme-accent shadow-sm">
             <input
               type="checkbox"
-              className={`form-check-input ${hasError ? 'is-invalid' : ''}`}
+              className={`form-check-input ms-0 ${hasError ? 'is-invalid' : ''}`}
               id={field.name}
               checked={value === true || value === 'true'}
               onChange={(e) => handleChange(field.name, e.target.checked)}
+              style={{ float: 'none', marginRight: '15px' }}
             />
-            <label htmlFor={field.name} className="form-check-label">
+            <label htmlFor={field.name} className="form-check-label small fw-bold text-foreground text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
-            {hasError && <div className="invalid-feedback">{errors[field.name]}</div>}
+            {hasError && <div className="invalid-feedback d-block">{errors[field.name]}</div>}
           </div>
         );
 
@@ -194,7 +264,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
 
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -214,7 +284,6 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
         );
 
       case 'relation':
-        // Normalize module name
         const targetModule = field.options ? field.options.replace(/['"]+/g, '') : '';
 
         return (
@@ -223,7 +292,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
             moduleName={targetModule}
             label={field.label}
             required={field.required}
-            multiple={true} // Relations are usually multi-select in this system based on usage
+            multiple={true}
             value={value}
             onChange={(val) => handleChange(field.name, val)}
             error={errors[field.name]}
@@ -234,7 +303,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'richtext':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -252,7 +321,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'email':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -270,7 +339,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'phone':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -289,7 +358,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'percentage':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -309,7 +378,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'image':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -352,7 +421,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       case 'json':
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -377,7 +446,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
 
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
             </label>
             <input
@@ -395,7 +464,7 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
       default:
         return (
           <div key={field.id} className="mb-3">
-            <label htmlFor={field.name} className="form-label">
+            <label htmlFor={field.name} className="form-label small fw-bold text-muted text-uppercase tracking-wide">
               {field.label}
               {field.required && <span className="text-danger"> *</span>}
             </label>
@@ -412,14 +481,117 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
     }
   };
 
-  // Sort fields by OrderNo
+  const getGridColsClass = (gridCols) => {
+    switch (parseInt(gridCols)) {
+      case 2:
+        return 'col-md-6 col-12';
+      case 3:
+        return 'col-md-4 col-12';
+      case 4:
+        return 'col-md-3 col-12';
+      default:
+        return 'col-12';
+    }
+  };
+
+  // Sort fields by OrderNo for sequential fallback
   const sortedFields = [...fields].sort((a, b) => a.orderNo - b.orderNo);
 
+  // Compute placed vs unplaced fields
+  const placedFieldNames = new Set();
+  if (config && config.tabs) {
+    config.tabs.forEach(tab => {
+      if (tab.sections) {
+        tab.sections.forEach(sec => {
+          if (sec.fields) {
+            sec.fields.forEach(fName => placedFieldNames.add(fName));
+          }
+        });
+      }
+    });
+  }
+
+  const unplacedFields = fields.filter(f => !placedFieldNames.has(f.name));
+
   return (
-    <form onSubmit={handleSubmit}>
-      {sortedFields.map(field => renderField(field))}
-      <div className="d-flex gap-2">
-        <button type="submit" className="btn btn-primary">
+    <form onSubmit={handleSubmit} className="needs-validation">
+      {/* Tabs Menu */}
+      {config && config.tabs && config.tabs.length > 0 && (
+        <div className="mb-4">
+          <ul className="nav nav-pills gap-2 p-2 bg-surface bg-opacity-50 border border-theme-accent rounded-premium stagger-in" style={{ borderRadius: '16px' }}>
+            {config.tabs.map(tab => (
+              <li className="nav-item" key={tab.id}>
+                <button
+                  type="button"
+                  className={`nav-link px-4 py-2 border-0 fw-bold transition-all hover-lift ${activeTabId === tab.id ? 'active bg-primary text-white shadow-premium' : 'text-foreground opacity-70'}`}
+                  onClick={() => setActiveTabId(tab.id)}
+                  style={{ borderRadius: '12px' }}
+                >
+                  {tab.title}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Tabs Content */}
+      {config && config.tabs && config.tabs.length > 0 ? (
+        <div className="tab-content stagger-in">
+          {config.tabs.map(tab => {
+            if (tab.id !== activeTabId) return null;
+            return (
+              <div key={tab.id} className="fade-in">
+                {tab.sections && tab.sections.map(section => (
+                  <div key={section.id} className="glass-card p-4 border-0 mb-4 stagger-in" style={{ borderRadius: '18px' }}>
+                    {section.title && (
+                      <h5 className="fw-800 text-uppercase tracking-wider text-muted small border-bottom pb-2 mb-3">
+                        {section.title}
+                      </h5>
+                    )}
+                    <div className="row g-3">
+                      {section.fields && section.fields.map(fieldName => {
+                        const field = fields.find(f => f.name === fieldName);
+                        if (!field || visibleFields[field.name] === false) return null;
+                        return (
+                          <div className={getGridColsClass(section.gridCols || 1)} key={field.id}>
+                            {renderField(field)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {/* Unplaced fields / Default sequential rendering */}
+      {(!config || unplacedFields.length > 0) && (
+        <div className="glass-card p-4 border-0 mb-4 stagger-in fade-in" style={{ borderRadius: '18px' }}>
+          {config && unplacedFields.length > 0 && (
+            <h5 className="fw-800 text-uppercase tracking-wider text-muted small border-bottom pb-2 mb-3">
+              {t('additional_details') || 'Additional Details'}
+            </h5>
+          )}
+          <div className="row g-3">
+            {(config ? unplacedFields : sortedFields).map(field => {
+              if (visibleFields[field.name] === false) return null;
+              return (
+                <div className="col-12" key={field.id}>
+                  {renderField(field)}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Submit Button */}
+      <div className="d-flex gap-2 mt-4 pt-3 border-top border-theme-accent">
+        <button type="submit" className="btn btn-primary px-4 py-2 fw-bold shadow-premium hover-lift d-flex align-items-center gap-2">
           <span>✓</span> {submitLabel || t('submit')}
         </button>
       </div>
@@ -428,4 +600,3 @@ function DynamicForm({ fields, initialData = {}, onSubmit, submitLabel }) {
 }
 
 export default DynamicForm;
-

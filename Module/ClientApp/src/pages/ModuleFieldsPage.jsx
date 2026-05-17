@@ -175,6 +175,12 @@ function ModuleFieldsPage() {
         </div>
         <div className="d-flex gap-2 flex-wrap align-items-center">
           <button
+            className="btn btn-blur bg-surface bg-opacity-50 border-0 shadow-sm hover-lift fw-bold px-4 text-primary"
+            onClick={() => navigate(`/modules/${moduleId}/layout`)}
+          >
+            <Icon name="dashboard" size={20} className="me-2 text-primary" /> {t('form_layout')}
+          </button>
+          <button
             className={`btn ${showForm ? 'btn-danger' : 'btn-primary'} px-4 shadow-premium hover-lift fw-bold`}
             onClick={() => {
               setShowForm(!showForm);

@@ -7,4 +7,5 @@ public class UpdateModuleDto
     public bool AuditUpdate { get; set; }
     public bool AuditDelete { get; set; }
     public string? KanbanField { get; set; }
+    public string? LayoutConfig { get; set; }
 }

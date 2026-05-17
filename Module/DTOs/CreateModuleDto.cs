@@ -8,5 +8,6 @@ public class CreateModuleDto
     public bool AuditUpdate { get; set; } = true;
     public bool AuditDelete { get; set; } = true;
     public string? KanbanField { get; set; }
+    public string? LayoutConfig { get; set; }
 }
 

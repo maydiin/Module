@@ -454,6 +454,7 @@ function ModuleRecordsPage() {
           <div className="card-body p-4">
             <DynamicForm
               fields={fields}
+              layoutConfig={module?.layoutConfig}
               initialData={editingRecord?.data || {}}
               onSubmit={handleFormSubmit}
               submitLabel={editingRecord ? t('save_changes') : t('initialize_record')}

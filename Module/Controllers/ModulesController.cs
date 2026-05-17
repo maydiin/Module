@@ -48,7 +48,8 @@ public class ModulesController : ControllerBase
             AuditCreate = dto.AuditCreate,
             AuditUpdate = dto.AuditUpdate,
             AuditDelete = dto.AuditDelete,
-            KanbanField = dto.KanbanField
+            KanbanField = dto.KanbanField,
+            LayoutConfig = dto.LayoutConfig
         };
 
         _context.Modules.Add(module);
@@ -127,7 +128,8 @@ public class ModulesController : ControllerBase
                 AuditCreate = m.AuditCreate,
                 AuditUpdate = m.AuditUpdate,
                 AuditDelete = m.AuditDelete,
-                KanbanField = m.KanbanField
+                KanbanField = m.KanbanField,
+                LayoutConfig = m.LayoutConfig
             })
             .ToListAsync();
 
@@ -151,7 +153,8 @@ public class ModulesController : ControllerBase
             AuditCreate = module.AuditCreate,
             AuditUpdate = module.AuditUpdate,
             AuditDelete = module.AuditDelete,
-            KanbanField = module.KanbanField
+            KanbanField = module.KanbanField,
+            LayoutConfig = module.LayoutConfig
         }));
     }
 
@@ -235,6 +238,7 @@ public class ModulesController : ControllerBase
         module.AuditUpdate = dto.AuditUpdate;
         module.AuditDelete = dto.AuditDelete;
         module.KanbanField = dto.KanbanField;
+        module.LayoutConfig = dto.LayoutConfig;
 
         await _context.SaveChangesAsync();
 
@@ -247,7 +251,8 @@ public class ModulesController : ControllerBase
             AuditCreate = module.AuditCreate,
             AuditUpdate = module.AuditUpdate,
             AuditDelete = module.AuditDelete,
-            KanbanField = module.KanbanField
+            KanbanField = module.KanbanField,
+            LayoutConfig = module.LayoutConfig
         }));
     }
 
@@ -316,6 +321,7 @@ public class ModulesController : ControllerBase
                 ModuleId = module.Id,
                 ModuleName = module.Name,
                 KanbanField = module.KanbanField,
+                LayoutConfig = module.LayoutConfig,
                 AuditCreate = module.AuditCreate,
                 AuditUpdate = module.AuditUpdate,
                 AuditDelete = module.AuditDelete,
