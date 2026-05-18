@@ -43,7 +43,7 @@ const LogNode = ({ data, id }) => {
                 className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1 mt-1" 
                 value={data.message || ''} 
                 onChange={(e) => data.onChange(id, 'message', e.target.value)}
-                placeholder="Log mesajı (örn: {{Data.Name}})"
+                placeholder={t('node_log_placeholder') || "Log mesajı (örn: {{Data.Name}})"}
                 style={{ fontSize: '0.8rem', borderRadius: '8px' }}
             />
             <Handle type="source" position={Position.Bottom} style={{ background: 'hsl(var(--primary))' }} />
@@ -68,7 +68,7 @@ const FailNode = ({ data, id }) => {
                 className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1 mt-1" 
                 value={data.message || ''} 
                 onChange={(e) => data.onChange(id, 'message', e.target.value)}
-                placeholder="Hata mesajı (örn: Fiyat geçersiz)"
+                placeholder={t('node_fail_placeholder') || "Hata mesajı (örn: Fiyat geçersiz)"}
                 style={{ fontSize: '0.8rem', borderRadius: '8px' }}
             />
             {/* Fail halts script, no source handle needed */}
@@ -93,12 +93,12 @@ const ConditionNode = ({ data, id }) => {
                 className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1 mt-1" 
                 value={data.expression || ''} 
                 onChange={(e) => data.onChange(id, 'expression', e.target.value)}
-                placeholder="Koşul ifadesi (örn: Data.Fiyat < 0)"
+                placeholder={t('node_condition_placeholder') || "Koşul ifadesi (örn: Data.Fiyat < 0)"}
                 style={{ fontSize: '0.8rem', borderRadius: '8px' }}
             />
             <div className="d-flex justify-content-between mt-3 text-muted small px-1">
-                <span>DOĞRU (True)</span>
-                <span>YANLIŞ (False)</span>
+                <span>{t('true_label') || 'DOĞRU (True)'}</span>
+                <span>{t('false_label') || 'YANLIŞ (False)'}</span>
             </div>
             <Handle 
                 type="source" 
@@ -134,7 +134,7 @@ const DbFindNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
                     value={data.moduleName || ''} 
                     onChange={(e) => data.onChange(id, 'moduleName', e.target.value)}
-                    placeholder="Modül Adı (örn: Personel)"
+                    placeholder={t('node_db_module_placeholder') || "Modül Adı (örn: Personel)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
                 <input 
@@ -142,7 +142,7 @@ const DbFindNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.recordIdExpression || ''} 
                     onChange={(e) => data.onChange(id, 'recordIdExpression', e.target.value)}
-                    placeholder="Kayıt ID ifadesi (örn: Data.Id)"
+                    placeholder={t('node_db_id_placeholder') || "Kayıt ID ifadesi (örn: Data.Id)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
                 <input 
@@ -150,7 +150,7 @@ const DbFindNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.outputVar || ''} 
                     onChange={(e) => data.onChange(id, 'outputVar', e.target.value)}
-                    placeholder="Değişken Adı (örn: kayit)"
+                    placeholder={t('node_db_var_placeholder') || "Değişken Adı (örn: kayit)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
             </div>
@@ -177,7 +177,7 @@ const DbUpdateNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
                     value={data.moduleName || ''} 
                     onChange={(e) => data.onChange(id, 'moduleName', e.target.value)}
-                    placeholder="Modül Adı (örn: Personel)"
+                    placeholder={t('node_db_module_placeholder') || "Modül Adı (örn: Personel)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
                 <input 
@@ -185,14 +185,14 @@ const DbUpdateNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.recordIdExpression || ''} 
                     onChange={(e) => data.onChange(id, 'recordIdExpression', e.target.value)}
-                    placeholder="Kayıt ID ifadesi (örn: Data.Id)"
+                    placeholder={t('node_db_id_placeholder') || "Kayıt ID ifadesi (örn: Data.Id)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
                 <textarea 
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.updateDataExpression || ''} 
                     onChange={(e) => data.onChange(id, 'updateDataExpression', e.target.value)}
-                    placeholder="Güncellenecek JSON (örn: { Aktif: false })"
+                    placeholder={t('node_db_update_placeholder') || "Güncellenecek JSON (örn: { Aktif: false })"}
                     rows={2}
                     style={{ fontSize: '0.8rem', borderRadius: '8px', resize: 'none' }}
                 />
@@ -220,14 +220,14 @@ const ApiNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
                     value={data.apiConfigName || ''} 
                     onChange={(e) => data.onChange(id, 'apiConfigName', e.target.value)}
-                    placeholder="API Config Adı (örn: SmsGonder)"
+                    placeholder={t('node_api_config_placeholder') || "API Config Adı (örn: SmsGonder)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
                 <textarea 
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.parametersExpression || ''} 
                     onChange={(e) => data.onChange(id, 'parametersExpression', e.target.value)}
-                    placeholder="Parametre JSON (örn: { Telefon: Data.Tel })"
+                    placeholder={t('node_api_param_placeholder') || "Parametre JSON (örn: { Telefon: Data.Tel })"}
                     rows={2}
                     style={{ fontSize: '0.8rem', borderRadius: '8px', resize: 'none' }}
                 />
@@ -236,7 +236,7 @@ const ApiNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.outputVar || ''} 
                     onChange={(e) => data.onChange(id, 'outputVar', e.target.value)}
-                    placeholder="Çıktı Değişkeni (örn: apiResult)"
+                    placeholder={t('node_api_out_placeholder') || "Çıktı Değişkeni (örn: apiResult)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
             </div>
@@ -261,7 +261,7 @@ const CodeBlockNode = ({ data, id }) => {
                 className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small p-2 mt-1" 
                 value={data.code || ''} 
                 onChange={(e) => data.onChange(id, 'code', e.target.value)}
-                placeholder="// JavaScript kodunuz..."
+                placeholder={t('js_code_placeholder') || "// JavaScript kodunuz..."}
                 rows={4}
                 style={{ fontSize: '0.75rem', borderRadius: '8px', resize: 'vertical' }}
             />
@@ -288,14 +288,14 @@ const ApprovalNode = ({ data, id }) => {
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
                     value={data.roleName || ''} 
                     onChange={(e) => data.onChange(id, 'roleName', e.target.value)}
-                    placeholder="Onaylayacak Rol (örn: Admin)"
+                    placeholder={t('node_approval_role_placeholder') || "Onaylayacak Rol (örn: Admin)"}
                     style={{ fontSize: '0.8rem', borderRadius: '8px' }}
                 />
                 <textarea 
                     className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
                     value={data.message || ''} 
                     onChange={(e) => data.onChange(id, 'message', e.target.value)}
-                    placeholder="Onay Mesajı (örn: İzin talebi)"
+                    placeholder={t('node_approval_msg_placeholder') || "Onay Mesajı (örn: İzin talebi)"}
                     rows={2}
                     style={{ fontSize: '0.8rem', borderRadius: '8px', resize: 'none' }}
                 />
@@ -525,7 +525,7 @@ const VisualWorkflowBuilder = ({ triggerType, value, onChange }) => {
                 </button>
 
                 <div className="mt-auto border-top border-secondary border-opacity-10 pt-3 text-center">
-                    <span className="text-muted small opacity-50 d-block mb-1">Düğüm Silmek İçin:</span>
+                    <span className="text-muted small opacity-50 d-block mb-1">{t('node_delete_hint') || "Düğüm Silmek İçin:"}</span>
                     <div className="d-flex flex-wrap gap-1 justify-content-center">
                         {nodes.filter(n => n.id !== 'trigger-1').map(n => (
                             <button 

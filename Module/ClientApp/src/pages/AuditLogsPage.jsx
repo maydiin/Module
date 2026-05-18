@@ -231,7 +231,7 @@ function AuditLogsPage() {
                                         <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_entity_type')}</th>
                                         <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_entity_name')}</th>
                                         <th className="py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('audit_col_details')}</th>
-                                        <th className="pe-4 py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">IP</th>
+                                        <th className="pe-4 py-4 text-primary small fw-bold text-uppercase tracking-wider border-0">{t('ip_address') || 'IP'}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -378,7 +378,7 @@ function AuditLogsPage() {
                                     <span className="fw-medium">{selectedLog.username || '—'}</span>
                                 </div>
                                 <div className="col-md-4">
-                                    <span className="text-muted small d-block">IP</span>
+                                    <span className="text-muted small d-block">{t('ip_address') || 'IP'}</span>
                                     <span className="fw-medium">{selectedLog.ipAddress || '—'}</span>
                                 </div>
                             </div>

@@ -313,17 +313,17 @@ function RecordDetailPage() {
                         {t('record_details')} <span className="text-muted fs-4">#{record.id}</span>
                         {record.approvalStatus === 'Pending' && (
                             <span className="badge bg-warning text-dark fs-6 ms-2 d-flex align-items-center gap-2">
-                                <Icon name="clock" size={16} /> Onay Bekliyor
+                                <Icon name="clock" size={16} /> {t('approval_pending') || 'Onay Bekliyor'}
                             </span>
                         )}
                         {record.approvalStatus === 'Approved' && (
                             <span className="badge bg-success fs-6 ms-2 d-flex align-items-center gap-2">
-                                <Icon name="check" size={16} /> Onaylandı
+                                <Icon name="check" size={16} /> {t('approved') || 'Onaylandı'}
                             </span>
                         )}
                         {record.approvalStatus === 'Rejected' && (
                             <span className="badge bg-danger fs-6 ms-2 d-flex align-items-center gap-2">
-                                <Icon name="x" size={16} /> Reddedildi
+                                <Icon name="x" size={16} /> {t('rejected') || 'Reddedildi'}
                             </span>
                         )}
                     </h1>
@@ -338,8 +338,8 @@ function RecordDetailPage() {
                             <Icon name="check" size={24} />
                         </div>
                         <div>
-                            <h5 className="mb-1 fw-bold text-warning">Onay İşlemi Gerekiyor</h5>
-                            <p className="mb-0 text-muted small">Bu kayıt şu anda onay sürecinde. Lütfen kaydı inceleyip onaylayın veya reddedin.</p>
+                            <h5 className="mb-1 fw-bold text-warning">{t('approval_action_required') || 'Onay İşlemi Gerekiyor'}</h5>
+                            <p className="mb-0 text-muted small">{t('approval_action_desc') || 'Bu kayıt şu anda onay sürecinde. Lütfen kaydı inceleyip onaylayın veya reddedin.'}</p>
                         </div>
                     </div>
                     <div className="d-flex gap-2">
@@ -348,14 +348,14 @@ function RecordDetailPage() {
                             onClick={handleReject}
                             disabled={actionLoading}
                         >
-                            <Icon name="x" size={18} /> Reddet
+                            <Icon name="x" size={18} /> {t('reject') || 'Reddet'}
                         </button>
                         <button 
                             className="btn btn-success hover-lift d-flex align-items-center gap-2 shadow-sm" 
                             onClick={handleApprove}
                             disabled={actionLoading}
                         >
-                            <Icon name="check" size={18} /> Onayla
+                            <Icon name="check" size={18} /> {t('approve') || 'Onayla'}
                         </button>
                     </div>
                 </div>

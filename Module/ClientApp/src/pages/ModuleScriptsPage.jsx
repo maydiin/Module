@@ -450,9 +450,9 @@ const ModuleScriptsPage = () => {
                                                 />
                                                 <div className="card-footer bg-secondary bg-opacity-10 border-top border-secondary border-opacity-10 py-3 d-flex justify-content-between align-items-center">
                                                     <div className="font-monospace small d-flex gap-3">
-                                                        <span className="text-info opacity-80 px-2 py-1 bg-info bg-opacity-10 rounded">Db</span>
-                                                        <span className="text-primary opacity-80 px-2 py-1 bg-primary bg-opacity-10 rounded">Data</span>
-                                                        <span className="text-success opacity-80 px-2 py-1 bg-success bg-opacity-10 rounded">User</span>
+                                                        <span className="text-info opacity-80 px-2 py-1 bg-info bg-opacity-10 rounded">{t('module_scripts_db') || 'Db'}</span>
+                                                        <span className="text-primary opacity-80 px-2 py-1 bg-primary bg-opacity-10 rounded">{t('module_scripts_data') || 'Data'}</span>
+                                                        <span className="text-success opacity-80 px-2 py-1 bg-success bg-opacity-10 rounded">{t('module_scripts_user') || 'User'}</span>
                                                         <span className="text-danger opacity-80 px-2 py-1 bg-danger bg-opacity-10 rounded">Fail()</span>
                                                     </div>
                                                     <span className="small text-muted opacity-60 d-flex align-items-center gap-2">

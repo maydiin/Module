@@ -199,7 +199,7 @@ function ModuleApiConfigsPage() {
                         title={t('ai_api_config_btn')}
                         style={{ backdropFilter: 'blur(10px)' }}
                     >
-                        <span className="me-2">✨</span> AI Config
+                        <span className="me-2">✨</span> {t('ai_config') || 'AI Config'}
                     </button>
                     <button
                         className={`btn ${showForm ? 'btn-danger' : 'btn-primary'} px-4 shadow-premium hover-lift fw-bold`}
