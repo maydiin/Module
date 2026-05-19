@@ -109,7 +109,7 @@ const RelationsSubGrid = ({
         return (
           <input
             type="number"
-            className="form-control form-control-sm border-0 bg-transparent text-white px-2 py-1 focus-ring"
+            className="form-control form-control-sm px-2 py-1"
             value={cellVal}
             onChange={(e) => {
               const val = e.target.value;
@@ -124,7 +124,7 @@ const RelationsSubGrid = ({
         return (
           <input
             type="date"
-            className="form-control form-control-sm border-0 bg-transparent text-white px-2 py-1 focus-ring"
+            className="form-control form-control-sm px-2 py-1"
             value={cellVal ? cellVal.split('T')[0] : ''}
             onChange={(e) => handleCellChange(rowIndex, field.name, e.target.value)}
             style={{ minWidth: '120px' }}
@@ -135,7 +135,7 @@ const RelationsSubGrid = ({
         return (
           <input
             type="datetime-local"
-            className="form-control form-control-sm border-0 bg-transparent text-white px-2 py-1 focus-ring"
+            className="form-control form-control-sm px-2 py-1"
             value={cellVal ? cellVal.replace('Z', '') : ''}
             onChange={(e) => handleCellChange(rowIndex, field.name, e.target.value)}
             style={{ minWidth: '160px' }}
@@ -149,14 +149,14 @@ const RelationsSubGrid = ({
           : [];
         return (
           <select
-            className="form-select form-select-sm border-0 bg-transparent text-white px-2 py-1 focus-ring"
+            className="form-select form-select-sm px-2 py-1"
             value={cellVal}
             onChange={(e) => handleCellChange(rowIndex, field.name, e.target.value)}
             style={{ minWidth: '100px', cursor: 'pointer' }}
           >
-            <option value="" className="bg-dark text-white">--</option>
+            <option value="">--</option>
             {selectOptions.map((opt) => (
-              <option key={opt} value={opt} className="bg-dark text-white">
+              <option key={opt} value={opt}>
                 {opt}
               </option>
             ))}
@@ -167,7 +167,7 @@ const RelationsSubGrid = ({
         return (
           <input
             type="text"
-            className="form-control form-control-sm border-0 bg-transparent text-white px-2 py-1 focus-ring"
+            className="form-control form-control-sm px-2 py-1"
             value={cellVal}
             onChange={(e) => handleCellChange(rowIndex, field.name, e.target.value)}
             placeholder="..."

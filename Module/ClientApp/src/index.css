@@ -218,18 +218,36 @@
   color: hsl(var(--primary)) !important;
 }
 
+[data-mode="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-mode="dark"] textarea,
+[data-mode="dark"] select,
 [data-mode="dark"] .form-control,
 [data-mode="dark"] .form-select {
-  background-color: hsla(var(--background), 0.6) !important;
-  border-color: hsla(var(--foreground), 0.1) !important;
+  background-color: hsl(var(--muted)) !important;
+  border-color: hsla(var(--foreground), 0.42) !important;
   color: hsl(var(--foreground)) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45) !important;
 }
 
+[data-mode="dark"] input:not([type="checkbox"]):not([type="radio"]):hover, 
+[data-mode="dark"] textarea:hover, 
+[data-mode="dark"] select:hover,
+[data-mode="dark"] .form-control:hover,
+[data-mode="dark"] .form-select:hover {
+  border-color: hsla(var(--foreground), 0.65) !important;
+  background-color: hsla(var(--foreground), 0.1) !important;
+}
+
+[data-mode="dark"] input:focus, 
+[data-mode="dark"] textarea:focus, 
+[data-mode="dark"] select:focus,
 [data-mode="dark"] .form-control:focus,
 [data-mode="dark"] .form-select:focus {
-  background-color: hsla(var(--background), 0.8) !important;
+  background-color: hsl(var(--background)) !important;
   border-color: hsl(var(--primary)) !important;
-  box-shadow: 0 0 0 0.25rem hsla(var(--primary), 0.15) !important;
+  box-shadow: 
+    0 0 0 4px hsla(var(--primary), 0.3), 
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-mode="dark"] .table-striped tbody tr:nth-of-type(odd) {
@@ -237,7 +255,7 @@
 }
 
 [data-mode="dark"] ::placeholder {
-  color: hsla(var(--foreground), 0.5) !important;
+  color: hsla(var(--foreground), 0.55) !important;
 }
 
 ::placeholder {
@@ -253,12 +271,13 @@ textarea,
 select,
 .form-control,
 .form-select {
-  background-color: hsla(var(--background), 1) !important;
+  background-color: #ffffff !important;
   color: hsl(var(--foreground)) !important;
-  border: 2px solid hsla(var(--foreground), 0.2) !important; /* Solid visible grey border */
+  border: 1.5px solid hsla(var(--foreground), 0.28) !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.08) !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-radius: 6px !important;
-  padding: 0.4rem 0.65rem !important;
+  border-radius: 8px !important;
+  padding: 0.45rem 0.75rem !important;
 }
 
 input:not([type="checkbox"]):not([type="radio"]):hover, 
@@ -266,8 +285,8 @@ textarea:hover,
 select:hover,
 .form-control:hover,
 .form-select:hover {
-  border-color: hsl(var(--primary)) !important;
-  background-color: hsla(var(--background), 1) !important;
+  border-color: hsla(var(--foreground), 0.5) !important;
+  background-color: #ffffff !important;
 }
 
 input:focus, 
@@ -275,9 +294,11 @@ textarea:focus,
 select:focus,
 .form-control:focus,
 .form-select:focus {
-  background-color: hsl(var(--background)) !important;
+  background-color: #ffffff !important;
   border-color: hsl(var(--primary)) !important;
-  box-shadow: 0 0 0 4px hsla(var(--primary), 0.15) !important;
+  box-shadow: 
+    0 0 0 4px hsla(var(--primary), 0.22), 
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.05) !important;
   outline: none !important;
 }
 
@@ -289,9 +310,9 @@ input[type="radio"],
   -webkit-appearance: none !important;
   width: 1.15rem !important;
   height: 1.15rem !important;
-  border: 2px solid hsla(var(--foreground), 0.25) !important; /* Visible border */
-  border-radius: 4px !important;
-  background-color: hsla(var(--background), 0.5) !important;
+  border: 2px solid hsla(var(--foreground), 0.38) !important; /* Extremely sharp visible border */
+  border-radius: 5px !important;
+  background-color: #ffffff !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -300,6 +321,15 @@ input[type="radio"],
   position: relative !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   margin-top: 0 !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-mode="dark"] input[type="checkbox"], 
+[data-mode="dark"] input[type="radio"], 
+[data-mode="dark"] .form-check-input {
+  background-color: hsl(var(--muted)) !important;
+  border-color: hsla(var(--foreground), 0.48) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35) !important;
 }
 
 .form-check {
