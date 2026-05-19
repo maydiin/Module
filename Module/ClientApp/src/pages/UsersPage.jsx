@@ -19,6 +19,7 @@ function getRecordLabel(record) {
 const emptyUser = { username: '', email: '', password: '', roles: [], linkedModuleId: null, linkedRecordId: null };
 
 function ModuleLinkSection({ modules, linkedModuleId, linkedRecordId, records, recordsLoading, onModuleChange, onRecordChange, onClear }) {
+    const { t } = useTranslation();
     return (
         <div className="mb-4">
             <label className="form-label small fw-bold text-uppercase tracking-wider text-muted mb-2 font-heading d-flex align-items-center gap-2">
