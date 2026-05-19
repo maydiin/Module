@@ -144,6 +144,7 @@ builder.Services.AddScoped<IFieldType, RichTextFieldType>();
 builder.Services.AddScoped<IFieldType, JsonFieldType>();
 builder.Services.AddScoped<IFieldType, RelationFieldType>();
 builder.Services.AddScoped<IFieldType, FormulaFieldType>();
+builder.Services.AddScoped<IFieldType, Module.FieldTypes.Advanced.RelationsFieldType>();
 
 builder.Services.AddScoped<FieldTypeFactory>();
 

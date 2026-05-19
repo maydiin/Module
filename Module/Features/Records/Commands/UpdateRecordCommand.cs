@@ -110,7 +110,7 @@ public class UpdateRecordHandler : IRequestHandler<UpdateRecordCommand, ModuleRe
             await _relationService.SaveRelations(module.Name, record.Id, record);
             
             linkedCount = await _context.RecordRelations
-                .CountAsync(r => r.TargetModule == module.Name && r.TargetRecordId == record.Id, cancellationToken);
+                .CountAsync(r => (r.TargetModule == module.Name && r.TargetRecordId == record.Id) || (r.SourceModule == module.Name && r.SourceRecordId == record.Id), cancellationToken);
         }
 
         // 4. Return DTO with runtime-computed fields

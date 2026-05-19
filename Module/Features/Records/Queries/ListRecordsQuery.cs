@@ -108,11 +108,18 @@ public class ListRecordsHandler : IRequestHandler<ListRecordsQuery, PagedResult<
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        // 6. Linked Counts & Virtual Formulas
+        // 6. Linked Counts & Virtual Formulas (Both Target and Source relations)
         var recordIds = records.Select(r => r.Id).ToList();
-        var counts = await _context.RecordRelations
+        
+        var targetCounts = await _context.RecordRelations
             .Where(r => r.TargetModule == module.Name && recordIds.Contains(r.TargetRecordId))
             .GroupBy(r => r.TargetRecordId)
+            .Select(g => new { RecordId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RecordId, x => x.Count, cancellationToken);
+
+        var sourceCounts = await _context.RecordRelations
+            .Where(r => r.SourceModule == module.Name && recordIds.Contains(r.SourceRecordId))
+            .GroupBy(r => r.SourceRecordId)
             .Select(g => new { RecordId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.RecordId, x => x.Count, cancellationToken);
 
@@ -139,7 +146,7 @@ public class ListRecordsHandler : IRequestHandler<ListRecordsQuery, PagedResult<
                 Id = r.Id,
                 ModuleId = r.ModuleId,
                 Data = data,
-                LinkedCount = counts.GetValueOrDefault(r.Id, 0),
+                LinkedCount = targetCounts.GetValueOrDefault(r.Id, 0) + sourceCounts.GetValueOrDefault(r.Id, 0),
                 CreatedAt = r.CreatedAt
             };
         }).ToList();

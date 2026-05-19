@@ -771,8 +771,8 @@ function ModuleRecordsPage() {
                   <thead className="bg-surface bg-opacity-50">
                     <tr className="border-bottom border-theme-accent">
                       <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '60px' }}>{t('id')}</th>
-                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '120px' }}>{t('linked_count')}</th>
-                      {fields.map(field => (
+                      <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '150px' }}>{t('linked_count')}</th>
+                      {fields.filter(field => field.type !== 'relations').map(field => (
                         <th key={field.id} className="text-primary small fw-bold text-uppercase tracking-wider border-0">{field.label}</th>
                       ))}
                       <th className="text-primary small fw-bold text-uppercase tracking-wider border-0" style={{ width: '180px' }}>{t('created_at')}</th>
@@ -800,7 +800,7 @@ function ModuleRecordsPage() {
                             <Icon name="link" size={14} className="me-1" /> {record.linkedCount || 0}
                           </button>
                         </td>
-                        {fields.map(field => {
+                        {fields.filter(field => field.type !== 'relations').map(field => {
                           if (field.type === 'checkbox') {
                             return (
                               <td key={field.id}>

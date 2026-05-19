@@ -33,7 +33,7 @@ public class GetRecordHandler : IRequestHandler<GetRecordQuery, ModuleRecordDto>
         }
 
         var count = await _context.RecordRelations
-            .CountAsync(r => r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id, cancellationToken);
+            .CountAsync(r => (r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id) || (r.SourceModule == record.Module.Name && r.SourceRecordId == record.Id), cancellationToken);
 
         return new ModuleRecordDto
         {

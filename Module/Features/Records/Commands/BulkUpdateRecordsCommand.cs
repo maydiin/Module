@@ -87,7 +87,7 @@ public class BulkUpdateRecordsHandler : IRequestHandler<BulkUpdateRecordsCommand
                 // 4. Relations
                 await _relationService.SaveRelations(module.Name, record.Id, record);
                 var linkedCount = await _context.RecordRelations
-                    .CountAsync(r => r.TargetModule == module.Name && r.TargetRecordId == record.Id, cancellationToken);
+                    .CountAsync(r => (r.TargetModule == module.Name && r.TargetRecordId == record.Id) || (r.SourceModule == module.Name && r.SourceRecordId == record.Id), cancellationToken);
 
                 // 5. Result DTO
                 var resultData = _moduleService.DeserializeData(record.Data);

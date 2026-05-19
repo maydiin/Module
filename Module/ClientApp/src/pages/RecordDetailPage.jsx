@@ -75,7 +75,7 @@ function RecordDetailPage() {
             setAllModules(moduleslistData || []);
             
             if (moduleData && moduleData.name) {
-                fetchSummary(moduleData.name, recordData.id);
+                fetchSummary(moduleData.name, recordData.id, fieldsData, recordData);
             }
 
             try {
@@ -92,16 +92,20 @@ function RecordDetailPage() {
         }
     };
 
-    const fetchSummary = async (moduleName, rId) => {
+    const fetchSummary = async (moduleName, rId, fieldsList = fields, recData = record) => {
         try {
             setLoadingSummary(true);
             const response = await axios.get(`/api/relations/summary?module=${encodeURIComponent(moduleName)}&id=${rId}`);
             const summaryData = response.data || [];
             setSummary(summaryData);
             
-            // Auto expand the first module containing linked records to show at least something initially
             if (summaryData.length > 0) {
                handleExpand(summaryData[0].module, moduleName, rId);
+            } else if (fieldsList && recData) {
+               const firstSubgrid = fieldsList.find(f => f.type === 'relations');
+               if (firstSubgrid) {
+                   setExpandedModule(firstSubgrid.name);
+               }
             }
         } catch (err) {
             console.error(err);
@@ -157,6 +161,35 @@ function RecordDetailPage() {
                     loading: false
                 }
             }));
+        }
+    };
+
+    const getChildDisplayValue = (childRec, childModule) => {
+        if (!childRec) return '-';
+        if (childRec.__displayValue) return childRec.__displayValue;
+        if (childModule && childModule.fields) {
+            const displayFields = childModule.fields
+                .filter(f => f.isDisplayField)
+                .sort((a, b) => a.orderNo - b.orderNo);
+            if (displayFields.length > 0) {
+                return displayFields
+                    .map(f => childRec[`__display_${f.name}`] || childRec[f.name])
+                    .filter(val => val !== undefined && val !== null && val !== '')
+                    .join(' - ') || `Record #${childRec.id || childRec.Id}`;
+            }
+        }
+        return childRec.name || childRec.title || childRec.label ||
+            Object.keys(childRec)
+                .filter(k => !k.startsWith('__') && typeof childRec[k] === 'string')
+                .map(k => childRec[k])[0] ||
+            `Record #${childRec.id || childRec.Id || ''}`;
+    };
+
+    const handleExpandRelationField = (fieldName) => {
+        if (expandedModule === fieldName) {
+            setExpandedModule(null);
+        } else {
+            setExpandedModule(fieldName);
         }
     };
 
@@ -515,13 +548,13 @@ function RecordDetailPage() {
                             </h5>
                         </div>
                         <div className="card-body p-0">
-                            {fields.length === 0 ? (
+                            {fields.filter(field => field.type !== 'relations').length === 0 ? (
                                 <div className="p-4 text-center text-muted">
                                     {t('no_primary_fields')}
                                 </div>
                             ) : (
                                 <ul className="list-group list-group-flush">
-                                    {fields.map(field => (
+                                    {fields.filter(field => field.type !== 'relations').map(field => (
                                         <li key={field.id} className="list-group-item d-flex justify-content-between align-items-start py-3">
                                             <div className="ms-2 me-auto">
                                                 <div className="fw-bold text-muted small text-uppercase mb-1">{field.label}</div>
@@ -553,16 +586,92 @@ function RecordDetailPage() {
                                 <div className="text-center py-4">
                                      <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
                                 </div>
-                            ) : summary.length === 0 ? (
+                            ) : (summary.length === 0 && fields.filter(f => f.type === 'relations').length === 0) ? (
                                 <div className="text-center py-5 text-muted">
                                     <div className="text-primary me-3 d-flex align-items-center justify-content-center">
                                         <Icon name="settings" size={24} className="icon-theme" strokeWidth={2} />
                                     </div>
-                                    <p className="mb-0 mt-2">{t('no_references_found')}</p>
+                                    <p className="mb-0 mt-2">{t('no_references_found') || 'İlişkili veri bulunamadı.'}</p>
                                 </div>
                             ) : (
                                 <div className="accordion rounded shadow-sm" id="relationsAccordion">
-                                    {summary.map((item, index) => (
+                                    {/* 1. Sub-grids (Relations fields on the parent) */}
+                                    {fields.filter(f => f.type === 'relations').map((field) => {
+                                        const targetModuleName = field.options ? field.options.replace(/['"]+/g, '') : '';
+                                        const targetModule = allModules.find(m => m.name.toLowerCase() === targetModuleName.toLowerCase());
+                                        const childRecords = record.data?.[field.name] || [];
+
+                                        return (
+                                            <div className="accordion-item border-0 mb-2 rounded overflow-hidden" key={field.name}>
+                                                <h2 className="accordion-header">
+                                                    <button
+                                                        className={`accordion-button bg-surface bg-opacity-30 border-theme-accent ${expandedModule === field.name ? 'text-primary fw-bold' : 'text-foreground collapsed'}`}
+                                                        type="button"
+                                                        onClick={() => handleExpandRelationField(field.name)}
+                                                        style={{ boxShadow: 'none' }}
+                                                    >
+                                                        <div className="d-flex w-100 justify-content-between align-items-center pe-3">
+                                                            <span>
+                                                                <Icon name="list" size={18} className="me-2 opacity-100 icon-theme text-primary" />
+                                                                {field.label}
+                                                            </span>
+                                                            <span className={`badge ${expandedModule === field.name ? 'bg-primary' : 'bg-surface bg-opacity-50 text-muted'} rounded-pill`}>
+                                                                {childRecords.length} {t('entries') || 'Kayıt'}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                </h2>
+                                                <div className={`accordion-collapse collapse ${expandedModule === field.name ? 'show' : ''}`}>
+                                                    <div className="accordion-body p-0 border-top">
+                                                        <div className="list-group list-group-flush">
+                                                            {childRecords.length === 0 ? (
+                                                                <div className="p-4 text-center text-muted small">
+                                                                    {t('no_records_found') || 'Kayıt bulunamadı.'}
+                                                                </div>
+                                                            ) : (
+                                                                childRecords.map((child) => {
+                                                                    const childId = child.id || child.Id;
+                                                                    const displayVal = getChildDisplayValue(child, targetModule);
+                                                                    return (
+                                                                        <div key={childId} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                                                                            <div>
+                                                                                <span className="text-muted small me-3">#{childId}</span>
+                                                                                {targetModule ? (
+                                                                                    <Link 
+                                                                                        to={`/modules/${targetModule.id}/records/${childId}`}
+                                                                                        className="fw-bold text-primary text-decoration-none"
+                                                                                    >
+                                                                                        {displayVal}
+                                                                                    </Link>
+                                                                                ) : (
+                                                                                    <span className="fw-bold text-foreground">{displayVal}</span>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="d-flex align-items-center gap-2">
+                                                                                <span className="badge bg-primary-transparent text-primary px-2 py-1 d-flex align-items-center gap-1" style={{ fontSize: '0.75rem' }}>
+                                                                                    <Icon name="list" size={12} /> <small>{t('sub_grid_record') || 'Alt Tablo Kaydı'}</small>
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* 2. Standard incoming relations (filtered to exclude modules already shown as subgrids) */}
+                                    {summary.filter(item => {
+                                        const isAlreadySubgrid = fields.some(f => {
+                                            if (f.type !== 'relations') return false;
+                                            const targetModuleName = f.options ? f.options.replace(/['"]+/g, '') : '';
+                                            return targetModuleName.toLowerCase() === item.module.toLowerCase();
+                                        });
+                                        return !isAlreadySubgrid;
+                                    }).map((item, index) => (
                                         <div className="accordion-item border-0 mb-2 rounded overflow-hidden" key={item.module}>
                                             <h2 className="accordion-header">
                                                 <button

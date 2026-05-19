@@ -207,15 +207,28 @@ public class ModuleRecordsController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
-        // 6. Linked Counts & Virtual Formulas (only for the paginated results)
+        // 6. Linked Counts & Virtual Formulas (only for the paginated results - target and source)
         var recordIds = records.Select(r => r.Id).ToList();
-        var counts = await _context.RecordRelations
+        
+        var targetCounts = await _context.RecordRelations
             .Where(r => r.TargetModule == module.Name && recordIds.Contains(r.TargetRecordId))
             .GroupBy(r => r.TargetRecordId)
             .Select(g => new { RecordId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.RecordId, x => x.Count);
 
-        var recordsData = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
+        var sourceCounts = await _context.RecordRelations
+            .Where(r => r.SourceModule == module.Name && recordIds.Contains(r.SourceRecordId))
+            .GroupBy(r => r.SourceRecordId)
+            .Select(g => new { RecordId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RecordId, x => x.Count);
+
+        var recordsData = records.Select(r =>
+        {
+            var d = _moduleService.DeserializeData(r.Data);
+            d["id"] = r.Id;
+            d["Id"] = r.Id;
+            return d;
+        }).ToList();
         await _relationService.EnrichWithDisplayValuesAsync(module, recordsData);
 
         var pageItems = records.Select((r, i) =>
@@ -229,7 +242,7 @@ public class ModuleRecordsController : ControllerBase
                 Id = r.Id,
                 ModuleId = r.ModuleId,
                 Data = data,
-                LinkedCount = counts.GetValueOrDefault(r.Id, 0),
+                LinkedCount = targetCounts.GetValueOrDefault(r.Id, 0) + sourceCounts.GetValueOrDefault(r.Id, 0),
                 CreatedAt = r.CreatedAt,
                 ApprovalStatus = r.ApprovalStatus
             };
@@ -426,9 +439,11 @@ public class ModuleRecordsController : ControllerBase
         }
 
         var count = await _context.RecordRelations
-            .CountAsync(r => r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id);
+            .CountAsync(r => (r.TargetModule == record.Module.Name && r.TargetRecordId == record.Id) || (r.SourceModule == record.Module.Name && r.SourceRecordId == record.Id));
 
         var data = _moduleService.DeserializeData(record.Data);
+        data["id"] = record.Id;
+        data["Id"] = record.Id;
         var recordsData = new List<Dictionary<string, object>> { data };
         await _relationService.EnrichWithDisplayValuesAsync(record.Module, recordsData);
         _moduleService.ComputeFormulas(record.Module, data);
@@ -511,6 +526,8 @@ public class ModuleRecordsController : ControllerBase
             if (record != null)
             {
                 var data = _moduleService.DeserializeData(record.Data);
+                data["id"] = record.Id;
+                data["Id"] = record.Id;
                 await _scriptService.ExecuteAfterHookAsync("AfterApproved", moduleId, data);
             }
 
@@ -539,6 +556,8 @@ public class ModuleRecordsController : ControllerBase
             if (record != null)
             {
                 var data = _moduleService.DeserializeData(record.Data);
+                data["id"] = record.Id;
+                data["Id"] = record.Id;
                 await _scriptService.ExecuteAfterHookAsync("AfterRejected", moduleId, data);
             }
 
@@ -693,13 +712,26 @@ public class ModuleRecordsController : ControllerBase
             .ToListAsync();
 
         var recordIds = records.Select(r => r.Id).ToList();
-        var counts = await _context.RecordRelations
+        
+        var targetCounts = await _context.RecordRelations
             .Where(r => r.TargetModule == moduleName && recordIds.Contains(r.TargetRecordId))
             .GroupBy(r => r.TargetRecordId)
             .Select(g => new { RecordId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.RecordId, x => x.Count);
 
-        var recordsData = records.Select(r => _moduleService.DeserializeData(r.Data)).ToList();
+        var sourceCounts = await _context.RecordRelations
+            .Where(r => r.SourceModule == moduleName && recordIds.Contains(r.SourceRecordId))
+            .GroupBy(r => r.SourceRecordId)
+            .Select(g => new { RecordId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RecordId, x => x.Count);
+
+        var recordsData = records.Select(r =>
+        {
+            var d = _moduleService.DeserializeData(r.Data);
+            d["id"] = r.Id;
+            d["Id"] = r.Id;
+            return d;
+        }).ToList();
         await _relationService.EnrichWithDisplayValuesAsync(module, recordsData);
 
         var recordDtos = records.Select((r, i) =>
@@ -712,7 +744,7 @@ public class ModuleRecordsController : ControllerBase
                 Id = r.Id,
                 ModuleId = r.ModuleId,
                 Data = data,
-                LinkedCount = counts.GetValueOrDefault(r.Id, 0),
+                LinkedCount = targetCounts.GetValueOrDefault(r.Id, 0) + sourceCounts.GetValueOrDefault(r.Id, 0),
                 CreatedAt = r.CreatedAt
             };
         }).ToList();

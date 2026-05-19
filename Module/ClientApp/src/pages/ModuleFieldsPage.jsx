@@ -266,10 +266,10 @@ function ModuleFieldsPage() {
                     ))}
                   </select>
                 </div>
-                {['select', 'multiselect', 'relation', 'file', 'textarea', 'richtext', 'image', 'formula'].includes(formData.type) && (
+                {['select', 'multiselect', 'relation', 'relations', 'file', 'textarea', 'richtext', 'image', 'formula'].includes(formData.type) && (
                   <div className="col-md-8">
                     <label htmlFor="options" className="form-label small fw-bold text-uppercase tracking-wider text-muted">
-                      {formData.type === 'relation' ? t('target_module') :
+                      {['relation', 'relations'].includes(formData.type) ? t('target_module') :
                         ['select', 'multiselect'].includes(formData.type) ? t('options_json') :
                           formData.type === 'file' ? t('allowed_extensions') :
                             formData.type === 'formula' ? t('formula') :
@@ -284,7 +284,7 @@ function ModuleFieldsPage() {
                       value={formData.options}
                       onChange={handleInputChange}
                       placeholder={
-                        formData.type === 'relation' ? 'e.g., "Categories"' :
+                        ['relation', 'relations'].includes(formData.type) ? 'e.g., "Categories"' :
                           ['select', 'multiselect'].includes(formData.type) ? 'e.g., ["Red", "Blue"]' :
                             formData.type === 'file' ? 'e.g., [".pdf", ".docx"]' :
                               formData.type === 'formula' ? 'e.g., {Fiyat} * {Adet}' :

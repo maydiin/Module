@@ -38,9 +38,16 @@ public class ListRecordsByNameHandler : IRequestHandler<ListRecordsByNameQuery, 
             .ToListAsync(cancellationToken);
 
         var recordIds = records.Select(r => r.Id).ToList();
-        var counts = await _context.RecordRelations
+        
+        var targetCounts = await _context.RecordRelations
             .Where(r => r.TargetModule == request.ModuleName && recordIds.Contains(r.TargetRecordId))
             .GroupBy(r => r.TargetRecordId)
+            .Select(g => new { RecordId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RecordId, x => x.Count, cancellationToken);
+
+        var sourceCounts = await _context.RecordRelations
+            .Where(r => r.SourceModule == request.ModuleName && recordIds.Contains(r.SourceRecordId))
+            .GroupBy(r => r.SourceRecordId)
             .Select(g => new { RecordId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.RecordId, x => x.Count, cancellationToken);
 
@@ -49,7 +56,7 @@ public class ListRecordsByNameHandler : IRequestHandler<ListRecordsByNameQuery, 
             Id = r.Id,
             ModuleId = r.ModuleId,
             Data = _moduleService.DeserializeData(r.Data),
-            LinkedCount = counts.GetValueOrDefault(r.Id, 0),
+            LinkedCount = targetCounts.GetValueOrDefault(r.Id, 0) + sourceCounts.GetValueOrDefault(r.Id, 0),
             CreatedAt = r.CreatedAt
         }).ToList();
     }

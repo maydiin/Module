@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { uploadFile } from '../services/api';
 import AsyncRelationSelect from './AsyncRelationSelect';
+import RelationsSubGrid from './RelationsSubGrid';
 import { useToast } from './ToastContext';
 import Icon from './Icon';
 
@@ -295,6 +296,22 @@ function DynamicForm({ fields, layoutConfig, initialData = {}, onSubmit, submitL
             multiple={true}
             value={value}
             onChange={(val) => handleChange(field.name, val)}
+            error={errors[field.name]}
+          />
+        );
+
+      case 'relations':
+        const relationsTargetModule = field.options ? field.options.replace(/['"]+/g, '') : '';
+
+        return (
+          <RelationsSubGrid
+            key={field.id}
+            fieldName={field.name}
+            label={field.label}
+            targetModule={relationsTargetModule}
+            value={value || []}
+            onChange={(val) => handleChange(field.name, val)}
+            required={field.required}
             error={errors[field.name]}
           />
         );
