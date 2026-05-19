@@ -18,7 +18,7 @@ public class ScriptDbHelper : IScriptDbHelper
         _serviceProvider = serviceProvider;
     }
 
-    public void RequestApproval(string moduleName, int recordId, string? roleName, string? message)
+    public void RequestApproval(string moduleName, int recordId, string? roleName, string? message, int? timeoutHours = null, string? escalationAction = null, string? escalateToRole = null)
     {
         var tenantId = _tenantService.GetCurrentTenantId();
         var module = _context.Modules.FirstOrDefault(m => m.Name == moduleName && m.TenantId == tenantId);
@@ -26,7 +26,7 @@ public class ScriptDbHelper : IScriptDbHelper
 
         var approvalService = _serviceProvider.GetRequiredService<IApprovalService>();
         // Wait synchronously since Jint is synchronous
-        approvalService.RequestApprovalAsync(module.Id, recordId, roleName, message).GetAwaiter().GetResult();
+        approvalService.RequestApprovalAsync(module.Id, recordId, roleName, message, timeoutHours, escalationAction, escalateToRole).GetAwaiter().GetResult();
     }
 
     public IScriptModuleHelper Module(string moduleName)

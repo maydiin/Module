@@ -693,8 +693,26 @@ const resources = {
             "module_scripts_db": "Db",
             "module_scripts_data": "Data",
             "module_scripts_user": "User",
-            "ip_address": "IP Address",
-            "record_locked_pending_approval": "Record is pending approval, locked"
+            "record_locked_pending_approval": "Record is pending approval, locked",
+            "approval_role": "Approver Role",
+            "approval_message": "Approval Message",
+            "timeout_hours": "Timeout (Hours)",
+            "escalation": "Escalation",
+            "escalate_role": "Escalate to Role",
+            "auto_reject": "Auto Reject",
+            "auto_approve": "Auto Approve",
+            "escalate_to_role": "Escalate to Target Role",
+            "approval_flow": "Approval Flow and Stages",
+            "stage": "Stage",
+            "waiting": "Waiting",
+            "skipped": "Skipped",
+            "role": "Role",
+            "expired": "Time Expired",
+            "remaining": "Remaining",
+            "hours": "hours",
+            "escalated": "Escalated",
+            "reason": "Reason",
+            "by": "by"
         }
     },
     tr: {
@@ -1386,9 +1404,26 @@ const resources = {
             "ai_config": "AI Config",
             "module_scripts_db": "Veritabanı",
             "module_scripts_data": "Veri",
-            "module_scripts_user": "Kullanıcı",
-            "ip_address": "IP Adresi",
-            "record_locked_pending_approval": "Kayıt onay sürecinde, kilitli"
+            "record_locked_pending_approval": "Kayıt onay sürecinde, kilitli",
+            "approval_role": "Onaylayacak Rol",
+            "approval_message": "Onay Mesajı",
+            "timeout_hours": "Süre Sınırı (Saat)",
+            "escalation": "Eskalasyon",
+            "escalate_role": "Üst Role Ata",
+            "auto_reject": "Otomatik Reddet",
+            "auto_approve": "Otomatik Onayla",
+            "escalate_to_role": "Eskale Edilecek Rol",
+            "approval_flow": "Onay Akışı ve Aşamaları",
+            "stage": "Aşama",
+            "waiting": "Sırada",
+            "skipped": "Atlandı",
+            "role": "Rol",
+            "expired": "Süre Doldu",
+            "remaining": "Kalan",
+            "hours": "saat",
+            "escalated": "Eskale Edildi",
+            "reason": "Sebep",
+            "by": "Tarafından"
         }
     }
 };

@@ -1,6 +1,6 @@
 namespace Module.Entities;
 
-public class Role
+public class Role : IMayHaveTenant
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Module.Entities;
 
-public class DashboardWidget
+public class DashboardWidget : IMustHaveTenant
 {
     public int Id { get; set; }
 

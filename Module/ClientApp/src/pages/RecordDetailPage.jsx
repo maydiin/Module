@@ -25,6 +25,7 @@ function RecordDetailPage() {
     const [error, setError] = useState('');
     const [expandedModule, setExpandedModule] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [approvalHistory, setApprovalHistory] = useState(null);
 
     const handleApprove = async () => {
         try {
@@ -75,6 +76,13 @@ function RecordDetailPage() {
             
             if (moduleData && moduleData.name) {
                 fetchSummary(moduleData.name, recordData.id);
+            }
+
+            try {
+                const historyRes = await axios.get(`/api/modules/${moduleId}/records/${recordId}/approval-history`);
+                setApprovalHistory(historyRes.data || null);
+            } catch (hErr) {
+                console.error("Failed to load approval history", hErr);
             }
         } catch (err) {
             setError(err.response?.data?.error || t('error'));
@@ -357,6 +365,143 @@ function RecordDetailPage() {
                         >
                             <Icon name="check" size={18} /> {t('approve') || 'Onayla'}
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Multi-Stage Approval Stepper */}
+            {approvalHistory && approvalHistory.stages && approvalHistory.stages.length > 0 && (
+                <div className="card shadow-premium border-0 mb-4 rounded-4 overflow-hidden bg-opacity-10 glass">
+                    <style>{`
+                        @keyframes pulse-warning {
+                            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+                            70% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0); }
+                            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+                        }
+                        .pulse-border {
+                            animation: pulse-warning 2s infinite;
+                        }
+                    `}</style>
+                    <div className="card-header py-3 border-bottom bg-transparent d-flex align-items-center justify-content-between">
+                        <h5 className="mb-0 fw-bold d-flex align-items-center gap-2 text-warning">
+                            <Icon name="flow" size={20} className="icon-theme animate-pulse" /> {t('approval_flow') || 'Onay Akışı ve Aşamaları'}
+                        </h5>
+                        <span className="badge bg-warning bg-opacity-20 text-warning px-2 py-1 rounded-pill fw-bold text-uppercase small" style={{ fontSize: '0.75rem' }}>
+                            {t('stage') || 'Aşama'} {approvalHistory.currentStage} / {approvalHistory.stages.length}
+                        </span>
+                    </div>
+                    <div className="card-body p-4">
+                        <div className="row g-4 justify-content-center">
+                            {approvalHistory.stages.map((stage, idx) => {
+                                const isApproved = stage.status === 'Approved';
+                                const isPending = stage.status === 'Pending';
+                                const isWaiting = stage.status === 'Waiting';
+                                const isRejected = stage.status === 'Rejected';
+                                const isSkipped = stage.status === 'Skipped';
+
+                                let statusColor = 'text-muted border-secondary opacity-50';
+                                let bgBadge = 'bg-secondary bg-opacity-20 text-muted';
+                                let iconName = 'clock';
+
+                                if (isApproved) {
+                                    statusColor = 'text-success border-success';
+                                    bgBadge = 'bg-success bg-opacity-15 text-success';
+                                    iconName = 'check';
+                                } else if (isPending) {
+                                    statusColor = 'text-warning border-warning pulse-border';
+                                    bgBadge = 'bg-warning bg-opacity-15 text-warning';
+                                    iconName = 'clock';
+                                } else if (isRejected) {
+                                    statusColor = 'text-danger border-danger';
+                                    bgBadge = 'bg-danger bg-opacity-15 text-danger';
+                                    iconName = 'x';
+                                } else if (isSkipped) {
+                                    statusColor = 'text-muted border-secondary opacity-30';
+                                    bgBadge = 'bg-dark bg-opacity-20 text-muted';
+                                    iconName = 'arrowRight';
+                                }
+
+                                const deadlineDate = stage.escalationDeadline ? new Date(stage.escalationDeadline) : null;
+                                const isDeadlineExpired = deadlineDate && deadlineDate <= new Date();
+
+                                return (
+                                    <div key={stage.id} className="col-12 col-md-3 text-center position-relative">
+                                        {/* Connector line between steps */}
+                                        {idx > 0 && (
+                                            <div 
+                                                className="d-none d-md-block position-absolute start-0 top-0 translate-middle-y w-100" 
+                                                style={{ 
+                                                    height: '2px', 
+                                                    background: isApproved ? 'hsl(var(--success))' : 'rgba(255, 255, 255, 0.1)', 
+                                                    top: '24px', 
+                                                    left: '-50%', 
+                                                    zIndex: 0 
+                                                }} 
+                                            />
+                                        )}
+
+                                        <div className="d-flex flex-column align-items-center position-relative" style={{ zIndex: 1 }}>
+                                            {/* Step Circle Icon */}
+                                            <div className={`rounded-circle border border-2 d-flex align-items-center justify-content-center bg-dark ${statusColor} mb-2 shadow-sm`} style={{ width: '48px', height: '48px' }}>
+                                                <Icon name={iconName} size={20} />
+                                            </div>
+
+                                            {/* Step Name & Details */}
+                                            <h6 className="fw-bold mb-1 mt-1 text-foreground" style={{ fontSize: '0.9rem' }}>{stage.name}</h6>
+                                            <span className={`badge ${bgBadge} px-2 py-0.5 rounded-pill mb-2 small`} style={{ fontSize: '0.65rem' }}>
+                                                {stage.status === 'Pending' && (t('pending') || 'Onay Bekliyor')}
+                                                {stage.status === 'Approved' && (t('approved') || 'Onaylandı')}
+                                                {stage.status === 'Rejected' && (t('rejected') || 'Reddedildi')}
+                                                {stage.status === 'Waiting' && (t('waiting') || 'Sırada')}
+                                                {stage.status === 'Skipped' && (t('skipped') || 'Atlandı')}
+                                            </span>
+
+                                            {/* Assignee Information */}
+                                            {stage.assignedToRoleName && (
+                                                <p className="mb-1 text-muted small" style={{ fontSize: '0.75rem' }}>
+                                                    <span className="text-secondary fw-bold">{t('role') || 'Rol'}:</span> {stage.assignedToRoleName}
+                                                </p>
+                                            )}
+
+                                            {/* Timeout/Escalation Status */}
+                                            {stage.status === 'Pending' && stage.escalationDeadline && (
+                                                <div className="mt-1">
+                                                    <small className={`fw-bold ${isDeadlineExpired ? 'text-danger' : 'text-muted'}`} style={{ fontSize: '0.7rem' }}>
+                                                        <Icon name="clock" size={10} className="me-1" />
+                                                        {isDeadlineExpired ? (
+                                                            t('expired') || 'Süre Doldu'
+                                                        ) : (
+                                                            `${t('remaining') || 'Kalan'}: ${Math.max(0, Math.round((deadlineDate - new Date()) / (1000 * 60 * 60)))} ${t('hours') || 'saat'}`
+                                                        )}
+                                                    </small>
+                                                </div>
+                                            )}
+
+                                            {/* Escalated Tag */}
+                                            {stage.escalated && (
+                                                <span className="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-35 mt-1 small" style={{ fontSize: '0.65rem' }}>
+                                                    <Icon name="alert" size={10} className="me-1" /> {t('escalated') || 'Eskale Edildi'}
+                                                </span>
+                                            )}
+
+                                            {/* Approver Comments */}
+                                            {stage.comments && (
+                                                <div className="alert bg-dark bg-opacity-40 border border-secondary border-opacity-10 mt-2 p-2 rounded-3 text-start small w-100" style={{ fontSize: '0.75rem', maxWidth: '200px' }}>
+                                                    <span className="fw-bold text-danger">{t('reason') || 'Sebep'}:</span> {stage.comments}
+                                                </div>
+                                            )}
+
+                                            {/* Resolved By Info */}
+                                            {stage.resolvedByUsername && (
+                                                <small className="text-muted mt-1 opacity-75" style={{ fontSize: '0.7rem' }}>
+                                                    {t('by') || 'Tarafından'}: @{stage.resolvedByUsername}
+                                                </small>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             )}

@@ -550,6 +550,62 @@ public class ModuleRecordsController : ControllerBase
         }
     }
 
+    [HttpGet("{recordId}/approval-history")]
+    [HasModulePermission("Read")]
+    public async Task<IActionResult> GetApprovalHistory(int moduleId, int recordId)
+    {
+        var tenantId = _tenantService.GetCurrentTenantId();
+        
+        var request = await _context.ApprovalRequests
+            .Include(a => a.Stages)
+                .ThenInclude(s => s.AssignedToRole)
+            .Include(a => a.Stages)
+                .ThenInclude(s => s.AssignedToUser)
+            .Include(a => a.Stages)
+                .ThenInclude(s => s.EscalateToRole)
+            .Include(a => a.Stages)
+                .ThenInclude(s => s.ResolvedByUser)
+            .Where(a => a.ModuleId == moduleId && a.ModuleRecordId == recordId && a.TenantId == tenantId)
+            .OrderByDescending(a => a.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (request == null)
+        {
+            return Ok();
+        }
+
+        var historyDto = new
+        {
+            request.Id,
+            request.Status,
+            request.Message,
+            request.CreatedAt,
+            request.CurrentStage,
+            Stages = request.Stages
+                .OrderBy(s => s.StageOrder)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.StageOrder,
+                    s.Name,
+                    AssignedToRoleName = s.AssignedToRole?.Name,
+                    AssignedToUsername = s.AssignedToUser?.Username,
+                    s.Status,
+                    s.Message,
+                    s.Comments,
+                    s.ResolvedAt,
+                    ResolvedByUsername = s.ResolvedByUser?.Username,
+                    s.TimeoutHours,
+                    EscalateToRoleName = s.EscalateToRole?.Name,
+                    s.EscalationDeadline,
+                    s.Escalated
+                })
+                .ToList()
+        };
+
+        return Ok(historyDto);
+    }
+
     [HttpDelete("{recordId}")]
     [HasModulePermission("Delete")]
     public async Task<IActionResult> DeleteRecord(int moduleId, int recordId)

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Module.Entities;
 
-public class ExternalApiConfig
+public class ExternalApiConfig : IMustHaveTenant
 {
     [Key]
     public int Id { get; set; }

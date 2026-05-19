@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Module.Entities;
 
-public class ApprovalRequest
+public class ApprovalRequest : IMustHaveTenant
 {
     [Key]
     public int Id { get; set; }
@@ -32,11 +32,14 @@ public class ApprovalRequest
     public DateTime? ResolvedAt { get; set; }
 
     public int? ResolvedByUserId { get; set; }
-    
     public string? Comments { get; set; } // Approver comments
+
+    public int CurrentStage { get; set; } = 1;
 
     // Multi-tenant support
     public int TenantId { get; set; }
+
+    public virtual ICollection<ApprovalStage> Stages { get; set; } = new List<ApprovalStage>();
 
     [ForeignKey("ModuleRecordId")]
     public ModuleRecord ModuleRecord { get; set; } = null!;

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using Module.Entities;
 using ModuleEntity = Module.Entities.Module;
 
@@ -6,8 +7,60 @@ namespace Module.Data;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    private readonly IHttpContextAccessor? _httpContextAccessor;
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor? httpContextAccessor = null) : base(options)
     {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public int CurrentTenantId
+    {
+        get
+        {
+            var httpContext = _httpContextAccessor?.HttpContext;
+            if (httpContext == null) return 0;
+
+            // Check if user is Super Admin and has overridden TenantId in X-Tenant-Id header
+            var isSuperAdminClaim = httpContext.User?.FindFirst("IsSuperAdmin")?.Value;
+            if (isSuperAdminClaim == "True")
+            {
+                var headerValue = httpContext.Request.Headers["X-Tenant-Id"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(headerValue) && int.TryParse(headerValue, out var overrideTenantId))
+                {
+                    return overrideTenantId;
+                }
+            }
+
+            var tenantIdClaim = httpContext.User?.FindFirst("TenantId")?.Value;
+            if (!string.IsNullOrEmpty(tenantIdClaim) && int.TryParse(tenantIdClaim, out var tenantId))
+            {
+                return tenantId;
+            }
+
+            return 0;
+        }
+    }
+
+    public bool IsSuperAdminAndNoTenantSelected
+    {
+        get
+        {
+            var httpContext = _httpContextAccessor?.HttpContext;
+            if (httpContext == null) return false;
+
+            var isSuperAdminClaim = httpContext.User?.FindFirst("IsSuperAdmin")?.Value;
+            if (isSuperAdminClaim != "True") return false;
+
+            // If header is set to a valid tenant, then a tenant IS selected (so return false)
+            var headerValue = httpContext.Request.Headers["X-Tenant-Id"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(headerValue) && int.TryParse(headerValue, out var overrideTenantId) && overrideTenantId > 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
     public DbSet<ModuleEntity> Modules { get; set; }
@@ -28,6 +81,7 @@ public class AppDbContext : DbContext
     public DbSet<DashboardWidget> DashboardWidgets { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<ApprovalRequest> ApprovalRequests { get; set; }
+    public DbSet<ApprovalStage> ApprovalStages { get; set; }
 
     [DbFunction("JSON_VALUE", IsBuiltIn = true, IsNullable = true)]
     public static string? JsonValue(string expression, string path) => throw new NotSupportedException();
@@ -35,6 +89,25 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Apply Global Query Filters for Multi-Tenancy
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(IMustHaveTenant).IsAssignableFrom(entityType.ClrType))
+            {
+                var method = typeof(AppDbContext)
+                    .GetMethod("ConfigureMustHaveTenantFilter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { modelBuilder });
+            }
+            else if (typeof(IMayHaveTenant).IsAssignableFrom(entityType.ClrType))
+            {
+                var method = typeof(AppDbContext)
+                    .GetMethod("ConfigureMayHaveTenantFilter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { modelBuilder });
+            }
+        }
 
         modelBuilder.Entity<Notification>(entity =>
         {
@@ -346,6 +419,54 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => new { e.TenantId, e.ModuleRecordId });
             entity.HasIndex(e => e.Status);
         });
+
+        modelBuilder.Entity<ApprovalStage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ApprovalRequest)
+                .WithMany(r => r.Stages)
+                .HasForeignKey(e => e.ApprovalRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.AssignedToRole)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToRoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.EscalateToRole)
+                .WithMany()
+                .HasForeignKey(e => e.EscalateToRoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ResolvedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ResolvedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.TenantId, e.ApprovalRequestId });
+            entity.HasIndex(e => e.Status);
+        });
+    }
+
+    private void ConfigureMustHaveTenantFilter<T>(ModelBuilder modelBuilder) where T : class, IMustHaveTenant
+    {
+        modelBuilder.Entity<T>().HasQueryFilter(e => IsSuperAdminAndNoTenantSelected || e.TenantId == CurrentTenantId);
+    }
+
+    private void ConfigureMayHaveTenantFilter<T>(ModelBuilder modelBuilder) where T : class, IMayHaveTenant
+    {
+        modelBuilder.Entity<T>().HasQueryFilter(e => IsSuperAdminAndNoTenantSelected || e.TenantId == CurrentTenantId || e.TenantId == null);
     }
 }
 

@@ -1,6 +1,6 @@
 namespace Module.Entities;
 
-public class Permission
+public class Permission : IMayHaveTenant
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty; // e.g., "Module.Kurum.View"

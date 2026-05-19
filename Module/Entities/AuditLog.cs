@@ -1,6 +1,6 @@
 namespace Module.Entities;
 
-public class AuditLog
+public class AuditLog : IMustHaveTenant
 {
     public int Id { get; set; }
     public string Action { get; set; } = string.Empty; // Create, Update, Delete, Login, Register

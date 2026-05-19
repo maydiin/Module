@@ -1,6 +1,6 @@
 namespace Module.Entities;
 
-public class ModuleVisibilityRule
+public class ModuleVisibilityRule : IMustHaveTenant
 {
     public int Id { get; set; }
     

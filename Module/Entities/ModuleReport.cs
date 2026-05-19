@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Module.Entities;
 
-public class ModuleReport
+public class ModuleReport : IMustHaveTenant
 {
     public int Id { get; set; }
     

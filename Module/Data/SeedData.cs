@@ -34,7 +34,7 @@ public static class SeedData
 
         foreach (var perm in permissionsToSeed)
         {
-            if (!await context.Permissions.AnyAsync(p => p.Name == perm.Name && p.TenantId == hostTenant.Id))
+            if (!await context.Permissions.IgnoreQueryFilters().AnyAsync(p => p.Name == perm.Name && p.TenantId == hostTenant.Id))
             {
                 context.Permissions.Add(perm);
             }
@@ -51,7 +51,7 @@ public static class SeedData
 
         foreach (var role in rolesToSeed)
         {
-            if (!await context.Roles.AnyAsync(r => r.Name == role.Name && r.TenantId == hostTenant.Id))
+            if (!await context.Roles.IgnoreQueryFilters().AnyAsync(r => r.Name == role.Name && r.TenantId == hostTenant.Id))
             {
                 context.Roles.Add(role);
             }
@@ -59,25 +59,79 @@ public static class SeedData
         await context.SaveChangesAsync();
 
         // 3.5 Fix existing roles/permissions with null TenantId (migration fix)
-        var rolesWithNullTenant = await context.Roles.Where(r => r.TenantId == null).ToListAsync();
+        var rolesWithNullTenant = await context.Roles.IgnoreQueryFilters().Where(r => r.TenantId == null).ToListAsync();
         foreach (var role in rolesWithNullTenant)
         {
-            role.TenantId = hostTenant.Id;
+            var existing = await context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == role.Name && r.TenantId == hostTenant.Id);
+            if (existing != null)
+            {
+                var userRoles = await context.UserRoles.IgnoreQueryFilters().Where(ur => ur.RoleId == role.Id).ToListAsync();
+                foreach (var ur in userRoles)
+                {
+                    if (!await context.UserRoles.IgnoreQueryFilters().AnyAsync(x => x.UserId == ur.UserId && x.RoleId == existing.Id))
+                    {
+                        ur.RoleId = existing.Id;
+                    }
+                    else
+                    {
+                        context.UserRoles.Remove(ur);
+                    }
+                }
+                var rolePerms = await context.RolePermissions.IgnoreQueryFilters().Where(rp => rp.RoleId == role.Id).ToListAsync();
+                foreach (var rp in rolePerms)
+                {
+                    if (!await context.RolePermissions.IgnoreQueryFilters().AnyAsync(x => x.PermissionId == rp.PermissionId && x.RoleId == existing.Id))
+                    {
+                        rp.RoleId = existing.Id;
+                    }
+                    else
+                    {
+                        context.RolePermissions.Remove(rp);
+                    }
+                }
+                context.Roles.Remove(role);
+            }
+            else
+            {
+                role.TenantId = hostTenant.Id;
+            }
         }
-        var permsWithNullTenant = await context.Permissions.Where(p => p.TenantId == null).ToListAsync();
+        await context.SaveChangesAsync();
+
+        var permsWithNullTenant = await context.Permissions.IgnoreQueryFilters().Where(p => p.TenantId == null).ToListAsync();
         foreach (var perm in permsWithNullTenant)
         {
-            perm.TenantId = hostTenant.Id;
+            var existing = await context.Permissions.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Name == perm.Name && p.TenantId == hostTenant.Id);
+            if (existing != null)
+            {
+                var rolePerms = await context.RolePermissions.IgnoreQueryFilters().Where(rp => rp.PermissionId == perm.Id).ToListAsync();
+                foreach (var rp in rolePerms)
+                {
+                    if (!await context.RolePermissions.IgnoreQueryFilters().AnyAsync(x => x.RoleId == rp.RoleId && x.PermissionId == existing.Id))
+                    {
+                        rp.PermissionId = existing.Id;
+                    }
+                    else
+                    {
+                        context.RolePermissions.Remove(rp);
+                    }
+                }
+                context.Permissions.Remove(perm);
+            }
+            else
+            {
+                perm.TenantId = hostTenant.Id;
+            }
         }
         await context.SaveChangesAsync();
 
         // 4. Ensure Super Admin and Admin have all host tenant permissions
-        var superAdminRole = await context.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Super Admin" && r.TenantId == hostTenant.Id);
-        var adminRole = await context.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == hostTenant.Id);
+        var superAdminRole = await context.Roles.IgnoreQueryFilters().Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Super Admin" && r.TenantId == hostTenant.Id);
+        var adminRole = await context.Roles.IgnoreQueryFilters().Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == hostTenant.Id);
         
         if (superAdminRole != null || adminRole != null)
         {
-            var allPermissions = await context.Permissions.Where(p => p.TenantId == hostTenant.Id).ToListAsync();
+            var allPermissions = await context.Permissions.IgnoreQueryFilters().Where(p => p.TenantId == hostTenant.Id).ToListAsync();
             
             // Assign all permissions to Super Admin
             if (superAdminRole != null)
@@ -107,7 +161,7 @@ public static class SeedData
         await context.SaveChangesAsync();
 
         // 5. Seed Admin User in Host Tenant
-        if (!await context.Users.AnyAsync(u => u.Username == "admin"))
+        if (!await context.Users.IgnoreQueryFilters().AnyAsync(u => u.Username == "admin"))
         {
             var adminUser = new User 
             { 
@@ -128,7 +182,7 @@ public static class SeedData
         else
         {
             // Ensure existing admin user is in Host tenant and has Super Admin role
-            var adminUser = await context.Users.Include(u => u.UserRoles).FirstAsync(u => u.Username == "admin");
+            var adminUser = await context.Users.IgnoreQueryFilters().Include(u => u.UserRoles).FirstAsync(u => u.Username == "admin");
             
             // Update tenant if not set
             if (adminUser.TenantId == null)
@@ -144,12 +198,13 @@ public static class SeedData
             }
         }
         await context.SaveChangesAsync();
+
         // 6. Backfill "Api" permission for existing modules
-        var allModules = await context.Modules.ToListAsync();
+        var allModules = await context.Modules.IgnoreQueryFilters().ToListAsync();
         foreach (var module in allModules)
         {
             var apiPermName = $"Module.{module.Name}.Api";
-            if (!await context.Permissions.AnyAsync(p => p.Name == apiPermName && p.TenantId == module.TenantId))
+            if (!await context.Permissions.IgnoreQueryFilters().AnyAsync(p => p.Name == apiPermName && p.TenantId == module.TenantId))
             {
                 var apiPerm = new Permission
                 {
@@ -161,14 +216,11 @@ public static class SeedData
                 await context.SaveChangesAsync(); // Save to get Id
 
                 // Assign to Admin role of that tenant
-                var adminRoleForTenant = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == module.TenantId);
+                var adminRoleForTenant = await context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == module.TenantId);
                 if (adminRoleForTenant != null)
                 {
                     context.RolePermissions.Add(new RolePermission { RoleId = adminRoleForTenant.Id, PermissionId = apiPerm.Id });
                 }
-
-                // Assign to Super Admin (Host tenant) - Optional, but good for visibility if Super Admin has access to all tenants
-                // Ideally Super Admin overrides everything, but explicit permission doesn't hurt.
             }
         }
         await context.SaveChangesAsync();
@@ -177,7 +229,7 @@ public static class SeedData
         foreach (var module in allModules)
         {
             var scriptPermName = $"Module.{module.Name}.Script";
-            if (!await context.Permissions.AnyAsync(p => p.Name == scriptPermName && p.TenantId == module.TenantId))
+            if (!await context.Permissions.IgnoreQueryFilters().AnyAsync(p => p.Name == scriptPermName && p.TenantId == module.TenantId))
             {
                 var scriptPerm = new Permission
                 {
@@ -189,7 +241,7 @@ public static class SeedData
                 await context.SaveChangesAsync(); 
 
                 // Assign to Admin role of that tenant
-                var adminRoleForTenant = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == module.TenantId);
+                var adminRoleForTenant = await context.Roles.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Name == "Admin" && r.TenantId == module.TenantId);
                 if (adminRoleForTenant != null)
                 {
                     context.RolePermissions.Add(new RolePermission { RoleId = adminRoleForTenant.Id, PermissionId = scriptPerm.Id });
@@ -199,4 +251,3 @@ public static class SeedData
         await context.SaveChangesAsync();
     }
 }
-

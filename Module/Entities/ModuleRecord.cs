@@ -1,6 +1,6 @@
 namespace Module.Entities;
 
-public class ModuleRecord
+public class ModuleRecord : IMustHaveTenant
 {
     public int Id { get; set; }
     public int ModuleId { get; set; }

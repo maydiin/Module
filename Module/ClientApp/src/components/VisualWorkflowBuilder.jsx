@@ -273,8 +273,10 @@ const CodeBlockNode = ({ data, id }) => {
 // Custom Approval Node
 const ApprovalNode = ({ data, id }) => {
     const { t } = useTranslation();
+    const showEscalateRole = data.escalationAction === 'Escalate';
+
     return (
-        <div className="glass shadow-premium p-3 rounded-4 border border-warning border-opacity-50" style={{ minWidth: '260px' }}>
+        <div className="glass shadow-premium p-3 rounded-4 border border-warning border-opacity-50" style={{ minWidth: '280px' }}>
             <Handle type="target" position={Position.Top} style={{ background: 'hsl(var(--warning))' }} />
             <div className="d-flex align-items-center justify-content-between mb-2">
                 <div className="badge bg-warning bg-opacity-20 text-warning px-2 py-1 rounded-pill fw-bold text-uppercase small" style={{ fontSize: '0.65rem' }}>
@@ -283,22 +285,73 @@ const ApprovalNode = ({ data, id }) => {
                 <Icon name="check" size={14} className="text-warning" />
             </div>
             <div className="d-flex flex-column gap-2 mt-2">
-                <input 
-                    type="text" 
-                    className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
-                    value={data.roleName || ''} 
-                    onChange={(e) => data.onChange(id, 'roleName', e.target.value)}
-                    placeholder={t('node_approval_role_placeholder') || "Onaylayacak Rol (örn: Admin)"}
-                    style={{ fontSize: '0.8rem', borderRadius: '8px' }}
-                />
-                <textarea 
-                    className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
-                    value={data.message || ''} 
-                    onChange={(e) => data.onChange(id, 'message', e.target.value)}
-                    placeholder={t('node_approval_msg_placeholder') || "Onay Mesajı (örn: İzin talebi)"}
-                    rows={2}
-                    style={{ fontSize: '0.8rem', borderRadius: '8px', resize: 'none' }}
-                />
+                <div className="d-flex flex-column">
+                    <label className="text-muted small mb-1" style={{ fontSize: '0.7rem', fontWeight: 500 }}>{t('approval_role') || 'Onaylayacak Rol'}</label>
+                    <input 
+                        type="text" 
+                        className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
+                        value={data.roleName || ''} 
+                        onChange={(e) => data.onChange(id, 'roleName', e.target.value)}
+                        placeholder={t('node_approval_role_placeholder') || "Onaylayacak Rol (örn: Admin)"}
+                        style={{ fontSize: '0.8rem', borderRadius: '8px' }}
+                    />
+                </div>
+                
+                <div className="d-flex flex-column">
+                    <label className="text-muted small mb-1" style={{ fontSize: '0.7rem', fontWeight: 500 }}>{t('approval_message') || 'Onay Mesajı'}</label>
+                    <textarea 
+                        className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light font-monospace small px-2 py-1" 
+                        value={data.message || ''} 
+                        onChange={(e) => data.onChange(id, 'message', e.target.value)}
+                        placeholder={t('node_approval_msg_placeholder') || "Onay Mesajı (örn: İzin talebi)"}
+                        rows={2}
+                        style={{ fontSize: '0.8rem', borderRadius: '8px', resize: 'none' }}
+                    />
+                </div>
+
+                <div className="d-flex gap-2">
+                    <div className="d-flex flex-column flex-fill">
+                        <label className="text-muted small mb-1" style={{ fontSize: '0.7rem', fontWeight: 500 }}>{t('timeout_hours') || 'Süre (Saat)'}</label>
+                        <input 
+                            type="number" 
+                            className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
+                            value={data.timeoutHours || ''} 
+                            onChange={(e) => data.onChange(id, 'timeoutHours', e.target.value)}
+                            placeholder={t('none') || "Yok"}
+                            style={{ fontSize: '0.8rem', borderRadius: '8px' }}
+                            min={0}
+                        />
+                    </div>
+
+                    <div className="d-flex flex-column flex-fill">
+                        <label className="text-muted small mb-1" style={{ fontSize: '0.7rem', fontWeight: 500 }}>{t('escalation') || 'Eskalasyon'}</label>
+                        <select 
+                            className="form-select form-select-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1"
+                            value={data.escalationAction || ''}
+                            onChange={(e) => data.onChange(id, 'escalationAction', e.target.value)}
+                            style={{ fontSize: '0.8rem', borderRadius: '8px' }}
+                        >
+                            <option value="">{t('none') || 'Yok'}</option>
+                            <option value="Escalate">{t('escalate_role') || 'Üst Role Ata'}</option>
+                            <option value="AutoReject">{t('auto_reject') || 'Otomatik Reddet'}</option>
+                            <option value="AutoApprove">{t('auto_approve') || 'Otomatik Onayla'}</option>
+                        </select>
+                    </div>
+                </div>
+
+                {showEscalateRole && (
+                    <div className="d-flex flex-column mt-1">
+                        <label className="text-muted small mb-1" style={{ fontSize: '0.7rem', fontWeight: 500 }}>{t('escalate_to_role') || 'Eskale Edilecek Rol'}</label>
+                        <input 
+                            type="text" 
+                            className="form-control form-control-sm border-secondary border-opacity-20 bg-dark text-light small px-2 py-1" 
+                            value={data.escalateToRole || ''} 
+                            onChange={(e) => data.onChange(id, 'escalateToRole', e.target.value)}
+                            placeholder="örn: CFO"
+                            style={{ fontSize: '0.8rem', borderRadius: '8px' }}
+                        />
+                    </div>
+                )}
             </div>
             <Handle type="source" position={Position.Bottom} style={{ background: 'hsl(var(--warning))' }} />
         </div>

@@ -10,7 +10,7 @@ namespace Module.Entities
         Error
     }
 
-    public class Notification
+    public class Notification : IMayHaveTenant
     {
         public int Id { get; set; }
         

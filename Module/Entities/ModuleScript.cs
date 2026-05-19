@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Module.Entities;
 
 [Table("ModuleScripts")]
-public class ModuleScript
+public class ModuleScript : IMayHaveTenant
 {
     [Key]
     public int Id { get; set; }
