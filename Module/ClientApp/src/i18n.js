@@ -713,7 +713,26 @@ const resources = {
             "hours": "hours",
             "escalated": "Escalated",
             "reason": "Reason",
-            "by": "by"
+            "by": "by",
+            "copilot_subtitle": "Your AI-powered assistant",
+            "copilot_welcome_title": "Hello! I'm your AI Copilot.",
+            "copilot_welcome_desc": "I can help you create modules, add records, generate reports, and more. Just ask!",
+            "copilot_suggestion_1": "Create a new module",
+            "copilot_suggestion_2": "Add a record",
+            "copilot_suggestion_3": "Generate a report",
+            "copilot_input_placeholder": "Ask Copilot anything...",
+            "copilot_confirm": "Confirm",
+            "copilot_cancel": "Cancel",
+            "copilot_user_confirmed": "Yes, proceed.",
+            "copilot_user_cancelled": "No, cancel.",
+            "copilot_action_cancelled": "Understood, the action has been cancelled.",
+            "copilot_action_failed": "An error occurred while executing the action.",
+            "copilot_error_generic": "An error occurred while connecting to the AI service.",
+            "copilot_action_create_module": "Create Module",
+            "copilot_action_add_record": "Add Record",
+            "copilot_action_delete_record": "Delete Record",
+            "copilot_action_query": "Query Records",
+            "copilot_action_create_report": "Create Report"
         }
     },
     tr: {
@@ -1425,7 +1444,26 @@ const resources = {
             "hours": "saat",
             "escalated": "Eskale Edildi",
             "reason": "Sebep",
-            "by": "Tarafından"
+            "by": "Tarafından",
+            "copilot_subtitle": "Yapay zeka destekli asistanınız",
+            "copilot_welcome_title": "Merhaba! Ben AI Copilot'unuzum.",
+            "copilot_welcome_desc": "Modül oluşturma, kayıt ekleme, rapor üretme ve daha fazlasında size yardımcı olabilirim. Sadece sorun!",
+            "copilot_suggestion_1": "Yeni bir modül oluştur",
+            "copilot_suggestion_2": "Bir kayıt ekle",
+            "copilot_suggestion_3": "Bir rapor oluştur",
+            "copilot_input_placeholder": "Copilot'a bir şey sorun...",
+            "copilot_confirm": "Onayla",
+            "copilot_cancel": "İptal",
+            "copilot_user_confirmed": "Evet, devam et.",
+            "copilot_user_cancelled": "Hayır, iptal et.",
+            "copilot_action_cancelled": "Anlaşıldı, işlem iptal edildi.",
+            "copilot_action_failed": "İşlem sırasında bir hata oluştu.",
+            "copilot_error_generic": "AI servisiyle bağlantı kurulurken bir hata oluştu.",
+            "copilot_action_create_module": "Modül Oluştur",
+            "copilot_action_add_record": "Kayıt Ekle",
+            "copilot_action_delete_record": "Kayıt Sil",
+            "copilot_action_query": "Kayıt Sorgula",
+            "copilot_action_create_report": "Rapor Oluştur"
         }
     }
 };

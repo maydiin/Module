@@ -25,6 +25,7 @@ import { NotificationProvider } from './components/NotificationContext';
 import SettingsPage from './pages/SettingsPage';
 import DashboardPage from './pages/DashboardPage';
 import NotificationsPage from './pages/NotificationsPage';
+import CopilotWidget from './components/CopilotWidget/CopilotWidget';
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
                             <Route path="/settings" element={<SettingsPage />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                           </Routes>
+                          <CopilotWidget />
                         </AppLayout>
                       </ProtectedRoute>
                     }
