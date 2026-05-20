@@ -4,6 +4,7 @@ using Module.Common;
 using Module.Data;
 using Module.DTOs;
 using Module.Services;
+using Module.Services.Caching;
 
 namespace Module.Features.Records.Queries;
 
@@ -13,18 +14,21 @@ public class ListRecordsByNameHandler : IRequestHandler<ListRecordsByNameQuery, 
 {
     private readonly AppDbContext _context;
     private readonly IModuleService _moduleService;
+    private readonly IModuleCacheService _moduleCacheService;
+    private readonly ITenantService _tenantService;
 
-    public ListRecordsByNameHandler(AppDbContext context, IModuleService moduleService)
+    public ListRecordsByNameHandler(AppDbContext context, IModuleService moduleService, IModuleCacheService moduleCacheService, ITenantService tenantService)
     {
         _context = context;
         _moduleService = moduleService;
+        _moduleCacheService = moduleCacheService;
+        _tenantService = tenantService;
     }
 
     public async Task<IEnumerable<ModuleRecordDto>> Handle(ListRecordsByNameQuery request, CancellationToken cancellationToken)
     {
-        var module = await _context.Modules
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Name == request.ModuleName, cancellationToken);
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = await _moduleCacheService.GetModuleByNameAsync(request.ModuleName, tenantId);
             
         if (module == null)
         {

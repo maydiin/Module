@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Module.Data;
+using Module.Services.Caching;
 
 namespace Module.Authorization;
 
@@ -14,11 +15,13 @@ public class ModulePermissionAuthorizationHandler : AuthorizationHandler<ModuleP
 {
     private readonly AppDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IModuleCacheService _moduleCacheService;
 
-    public ModulePermissionAuthorizationHandler(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+    public ModulePermissionAuthorizationHandler(AppDbContext context, IHttpContextAccessor httpContextAccessor, IModuleCacheService moduleCacheService)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
+        _moduleCacheService = moduleCacheService;
     }
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ModulePermissionRequirement requirement)
@@ -54,10 +57,8 @@ public class ModulePermissionAuthorizationHandler : AuthorizationHandler<ModuleP
         // Try to get module name from moduleId in route
         if (routeData.Values.TryGetValue("moduleId", out var moduleIdStr) && int.TryParse(moduleIdStr?.ToString(), out var moduleId))
         {
-            moduleName = await _context.Modules
-                .Where(m => m.Id == moduleId)
-                .Select(m => m.Name)
-                .FirstOrDefaultAsync();
+            var module = await _moduleCacheService.GetModuleAsync(moduleId);
+            moduleName = module?.Name;
         }
         // Or directly from moduleName in route
         else if (routeData.Values.TryGetValue("moduleName", out var mName))

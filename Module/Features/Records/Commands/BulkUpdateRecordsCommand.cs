@@ -5,6 +5,7 @@ using Module.Data;
 using Module.DTOs;
 using Module.Entities;
 using Module.Services;
+using Module.Services.Caching;
 using Module.FieldTypes;
 using System.Text.Json;
 
@@ -20,20 +21,20 @@ public class BulkUpdateRecordsHandler : IRequestHandler<BulkUpdateRecordsCommand
     private readonly IModuleService _moduleService;
     private readonly IRelationService _relationService;
     private readonly FieldTypeFactory _fieldTypeFactory;
+    private readonly IModuleCacheService _moduleCacheService;
 
-    public BulkUpdateRecordsHandler(AppDbContext context, IModuleService moduleService, IRelationService relationService, FieldTypeFactory fieldTypeFactory)
+    public BulkUpdateRecordsHandler(AppDbContext context, IModuleService moduleService, IRelationService relationService, FieldTypeFactory fieldTypeFactory, IModuleCacheService moduleCacheService)
     {
         _context = context;
         _moduleService = moduleService;
         _relationService = relationService;
         _fieldTypeFactory = fieldTypeFactory;
+        _moduleCacheService = moduleCacheService;
     }
 
     public async Task<List<ModuleRecordDto>> Handle(BulkUpdateRecordsCommand request, CancellationToken cancellationToken)
     {
-        var module = await _context.Modules
-            .Include(m => m.Fields)
-            .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken);
+        var module = await _moduleCacheService.GetModuleAsync(request.ModuleId);
 
         if (module == null)
         {

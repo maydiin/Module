@@ -5,6 +5,7 @@ using Module.DTOs;
 using Module.FieldTypes;
 using Module.Authorization;
 using Module.Services;
+using Module.Services.Caching;
 
 namespace Module.Controllers;
 
@@ -15,12 +16,14 @@ public class ModuleFieldsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly FieldTypeFactory _fieldTypeFactory;
     private readonly IAuditLogService _auditLogService;
+    private readonly IModuleCacheService _moduleCacheService;
 
-    public ModuleFieldsController(AppDbContext context, FieldTypeFactory fieldTypeFactory, IAuditLogService auditLogService)
+    public ModuleFieldsController(AppDbContext context, FieldTypeFactory fieldTypeFactory, IAuditLogService auditLogService, IModuleCacheService moduleCacheService)
     {
         _context = context;
         _fieldTypeFactory = fieldTypeFactory;
         _auditLogService = auditLogService;
+        _moduleCacheService = moduleCacheService;
     }
 
     [HttpPost]
@@ -72,6 +75,8 @@ public class ModuleFieldsController : ControllerBase
 
         _context.ModuleFields.Add(field);
         await _context.SaveChangesAsync();
+        
+        _moduleCacheService.InvalidateModule(moduleId, module.Name, module.TenantId);
 
         await _auditLogService.LogAsync("Create", "Field", field.Id.ToString(), $"{field.Label} ({field.Name})");
 
@@ -151,6 +156,7 @@ public class ModuleFieldsController : ControllerBase
     [HasModulePermission("Manage")]
     public async Task<ActionResult<ModuleFieldDto>> UpdateField(int moduleId, int id, [FromBody] UpdateModuleFieldDto dto)
     {
+        var module = await _context.Modules.FindAsync(moduleId);
         var field = await _context.ModuleFields
             .FirstOrDefaultAsync(f => f.Id == id && f.ModuleId == moduleId);
 
@@ -167,6 +173,11 @@ public class ModuleFieldsController : ControllerBase
         field.IsDisplayField = dto.IsDisplayField;
 
         await _context.SaveChangesAsync();
+        
+        if (module != null)
+        {
+            _moduleCacheService.InvalidateModule(moduleId, module.Name, module.TenantId);
+        }
 
         await _auditLogService.LogAsync("Update", "Field", field.Id.ToString(), $"{field.Label} ({field.Name})");
 

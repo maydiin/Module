@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Module.Data;
 using Module.DTOs;
 using Module.Services;
+using Module.Services.Caching;
 
 namespace Module.Controllers;
 
@@ -16,19 +17,22 @@ public class ModulesController : ControllerBase
     private readonly IAuditLogService _auditLogService;
     private readonly IModuleService _moduleService;
     private readonly IRelationService _relationService;
+    private readonly IModuleCacheService _moduleCacheService;
 
     public ModulesController(
         AppDbContext context,
         ITenantService tenantService,
         IAuditLogService auditLogService,
         IModuleService moduleService,
-        IRelationService relationService)
+        IRelationService relationService,
+        IModuleCacheService moduleCacheService)
     {
         _context = context;
         _tenantService = tenantService;
         _auditLogService = auditLogService;
         _moduleService = moduleService;
         _relationService = relationService;
+        _moduleCacheService = moduleCacheService;
     }
 
     [HttpPost]
@@ -200,6 +204,8 @@ public class ModulesController : ControllerBase
             return BadRequest(ApiResponse<object>.Fail("Module name is required"));
         }
 
+        var oldName = module.Name;
+
         // Handle Rename
         if (!string.Equals(module.Name, dto.Name, StringComparison.OrdinalIgnoreCase))
         {
@@ -208,7 +214,6 @@ public class ModulesController : ControllerBase
                 return BadRequest(ApiResponse<object>.Fail("Module with this name already exists"));
             }
 
-            var oldName = module.Name;
             var newName = dto.Name;
 
             // Rename permissions (EF change tracking handles the update)
@@ -241,6 +246,12 @@ public class ModulesController : ControllerBase
         module.LayoutConfig = dto.LayoutConfig;
 
         await _context.SaveChangesAsync();
+
+        _moduleCacheService.InvalidateModule(module.Id, oldName, module.TenantId);
+        if (oldName != dto.Name)
+        {
+            _moduleCacheService.InvalidateModule(module.Id, dto.Name, module.TenantId);
+        }
 
         await _auditLogService.LogAsync("Update", "Module", module.Id.ToString(), module.Name);
 

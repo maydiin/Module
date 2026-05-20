@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Module.Authorization;
 using Module.Middleware;
 using Module.BackgroundServices;
+using Module.Services.Caching;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Module.Hubs;
@@ -24,6 +25,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -112,6 +114,11 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IApiSyncService, ApiSyncService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IApprovalService, ApprovalService>();
+
+// Cache Services
+builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
+builder.Services.AddSingleton<IModuleCacheService, ModuleCacheService>();
+builder.Services.AddSingleton<ITenantCacheService, TenantCacheService>();
 
 
 builder.Services.AddHostedService<PollingBackgroundService>();

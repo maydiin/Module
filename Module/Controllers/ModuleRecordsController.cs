@@ -7,6 +7,7 @@ using Module.DTOs;
 using Module.Services;
 using Module.FieldTypes;
 using Module.Authorization;
+using Module.Services.Caching;
 
 namespace Module.Controllers;
 
@@ -23,8 +24,9 @@ public class ModuleRecordsController : ControllerBase
     private readonly ITenantService _tenantService;
     private readonly IAuditLogService _auditLogService;
     private readonly Module.Services.Scripting.IScriptService _scriptService;
+    private readonly IModuleCacheService _moduleCacheService;
 
-    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService, IAuditLogService auditLogService, Module.Services.Scripting.IScriptService scriptService)
+    public ModuleRecordsController(AppDbContext context, IModuleService moduleService, IRelationService relationService, MediatR.IMediator mediator, FieldTypeFactory fieldTypeFactory, ITenantService tenantService, IAuditLogService auditLogService, Module.Services.Scripting.IScriptService scriptService, IModuleCacheService moduleCacheService)
     {
         _context = context;
         _moduleService = moduleService;
@@ -34,6 +36,7 @@ public class ModuleRecordsController : ControllerBase
         _tenantService = tenantService;
         _auditLogService = auditLogService;
         _scriptService = scriptService;
+        _moduleCacheService = moduleCacheService;
     }
 
     [HttpPost]
@@ -53,7 +56,7 @@ public class ModuleRecordsController : ControllerBase
 
         var result = await _mediator.Send(new Features.Records.Commands.CreateRecordCommand(moduleId, dto.Data, currentUserId));
         
-        var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module != null && module.AuditCreate)
         {
             var displayValue = GetRecordDisplayValue(module, result.Data);
@@ -82,7 +85,7 @@ public class ModuleRecordsController : ControllerBase
 
         var result = await _mediator.Send(new Features.Records.Commands.BulkCreateRecordsCommand(moduleId, recordsData, currentUserId));
         
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module != null && module.AuditCreate)
         {
             var details = JsonSerializer.Serialize(new { Count = result.Count, Sample = recordsData.FirstOrDefault() });
@@ -124,10 +127,7 @@ public class ModuleRecordsController : ControllerBase
             return Ok(overrideResult);
         }
 
-        var module = await _context.Modules
-            .Include(m => m.Fields)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
             
         if (module == null)
         {
@@ -419,7 +419,7 @@ public class ModuleRecordsController : ControllerBase
     [HasModulePermission("View")]
     public async Task<ActionResult<ModuleRecordDto>> GetRecord(int moduleId, int recordId)
     {
-        var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module == null) return NotFound();
 
         var query = _context.ModuleRecords
@@ -473,7 +473,7 @@ public class ModuleRecordsController : ControllerBase
 
         var result = await _mediator.Send(new Features.Records.Commands.UpdateRecordCommand(moduleId, recordId, dto.Data));
         
-        var module = await _context.Modules.Include(m => m.Fields).FirstOrDefaultAsync(m => m.Id == moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module != null && module.AuditUpdate)
         {
             var displayValue = GetRecordDisplayValue(module, result.Data);
@@ -499,7 +499,7 @@ public class ModuleRecordsController : ControllerBase
 
         var result = await _mediator.Send(new Features.Records.Commands.BulkUpdateRecordsCommand(moduleId, updates));
         
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module != null && module.AuditUpdate)
         {
             var details = JsonSerializer.Serialize(new { Count = result.Count, Sample = updates.FirstOrDefault()?.Data });
@@ -635,7 +635,7 @@ public class ModuleRecordsController : ControllerBase
 
         await _mediator.Send(new Features.Records.Commands.DeleteRecordCommand(moduleId, recordId));
         
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module != null && module.AuditDelete)
         {
             var details = JsonSerializer.Serialize(new { RecordId = recordId });
@@ -659,7 +659,7 @@ public class ModuleRecordsController : ControllerBase
 
         await _mediator.Send(new Features.Records.Commands.BulkDeleteRecordsCommand(moduleId, recordIds));
         
-        var module = await _context.Modules.FindAsync(moduleId);
+        var module = await _moduleCacheService.GetModuleAsync(moduleId);
         if (module != null && module.AuditDelete)
         {
             var details = JsonSerializer.Serialize(new { Count = recordIds.Count, Ids = recordIds });
@@ -677,9 +677,8 @@ public class ModuleRecordsController : ControllerBase
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 20)
     {
-        var module = await _context.Modules
-            .Include(m => m.Fields)
-            .FirstOrDefaultAsync(m => m.Name == moduleName);
+        var tenantId = _tenantService.GetCurrentTenantId();
+        var module = await _moduleCacheService.GetModuleByNameAsync(moduleName, tenantId);
             
         if (module == null)
         {
@@ -691,7 +690,6 @@ public class ModuleRecordsController : ControllerBase
             .AsNoTracking();
 
         // Tenant filter
-        var tenantId = _tenantService.GetCurrentTenantId();
         query = query.Where(r => r.TenantId == tenantId);
 
         // Visibility Rules Hook

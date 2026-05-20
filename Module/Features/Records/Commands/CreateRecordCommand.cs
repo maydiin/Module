@@ -5,6 +5,7 @@ using Module.Data;
 using Module.DTOs;
 using Module.Entities;
 using Module.Services;
+using Module.Services.Caching;
 using Module.FieldTypes;
 using System.Text.Json;
 using System.Text.Json;
@@ -20,21 +21,21 @@ public class CreateRecordHandler : IRequestHandler<CreateRecordCommand, ModuleRe
     private readonly IRelationService _relationService;
     private readonly FieldTypeFactory _fieldTypeFactory;
     private readonly ITenantService _tenantService;
+    private readonly IModuleCacheService _moduleCacheService;
 
-    public CreateRecordHandler(AppDbContext context, IModuleService moduleService, IRelationService relationService, FieldTypeFactory fieldTypeFactory, ITenantService tenantService)
+    public CreateRecordHandler(AppDbContext context, IModuleService moduleService, IRelationService relationService, FieldTypeFactory fieldTypeFactory, ITenantService tenantService, IModuleCacheService moduleCacheService)
     {
         _context = context;
         _moduleService = moduleService;
         _relationService = relationService;
         _fieldTypeFactory = fieldTypeFactory;
         _tenantService = tenantService;
+        _moduleCacheService = moduleCacheService;
     }
 
     public async Task<ModuleRecordDto> Handle(CreateRecordCommand request, CancellationToken cancellationToken)
     {
-        var module = await _context.Modules
-            .Include(m => m.Fields)
-            .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken);
+        var module = await _moduleCacheService.GetModuleAsync(request.ModuleId);
 
         if (module == null)
         {

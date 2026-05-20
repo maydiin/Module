@@ -5,6 +5,7 @@ using Module.Data;
 using Module.DTOs;
 using Module.Entities;
 using Module.Services;
+using Module.Services.Caching;
 using Module.FieldTypes;
 using System.Globalization;
 using System.Text.Json;
@@ -25,20 +26,19 @@ public class ListRecordsHandler : IRequestHandler<ListRecordsQuery, PagedResult<
     private readonly AppDbContext _context;
     private readonly IModuleService _moduleService;
     private readonly FieldTypeFactory _fieldTypeFactory;
+    private readonly IModuleCacheService _moduleCacheService;
 
-    public ListRecordsHandler(AppDbContext context, IModuleService moduleService, FieldTypeFactory fieldTypeFactory)
+    public ListRecordsHandler(AppDbContext context, IModuleService moduleService, FieldTypeFactory fieldTypeFactory, IModuleCacheService moduleCacheService)
     {
         _context = context;
         _moduleService = moduleService;
         _fieldTypeFactory = fieldTypeFactory;
+        _moduleCacheService = moduleCacheService;
     }
 
     public async Task<PagedResult<ModuleRecordDto>> Handle(ListRecordsQuery request, CancellationToken cancellationToken)
     {
-        var module = await _context.Modules
-            .Include(m => m.Fields)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken);
+        var module = await _moduleCacheService.GetModuleAsync(request.ModuleId);
             
         if (module == null)
         {
